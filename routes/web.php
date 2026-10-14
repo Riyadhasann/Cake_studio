@@ -1,15 +1,13 @@
 <?php
 
 use App\Http\Controllers\Admin\CakePreviewController;
+use App\Http\Controllers\Admin\CakeVisualController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\CakeStudioController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderTrackingController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\CakeVisualController;
-
-
 
 Route::view('/', 'welcome')->name('home');
 
@@ -32,6 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/cake-images/{type}/{id}', [CakeVisualController::class, 'update'])->whereIn('type', ['sponge', 'cream', 'part'])->whereNumber('id')->name('admin.cake-visuals.update');
         Route::delete('/admin/cake-images/{type}/{id}', [CakeVisualController::class, 'destroy'])->whereIn('type', ['sponge', 'cream', 'part'])->whereNumber('id')->name('admin.cake-visuals.destroy');
         Route::post('/admin/cake-images/{type}/{id}/default', [CakeVisualController::class, 'setDefault'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.cake-visuals.default');
+        Route::post('/admin/cake-images/{type}/{id}/texture', [CakeVisualController::class, 'updateTexture'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.cake-visuals.texture.update');
+        Route::delete('/admin/cake-images/{type}/{id}/texture', [CakeVisualController::class, 'destroyTexture'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.cake-visuals.texture.destroy');
+        Route::post('/admin/cake-images/{type}/order', [CakeVisualController::class, 'reorder'])->whereIn('type', ['sponge', 'cream'])->name('admin.cake-visuals.reorder');
 
     });
 });

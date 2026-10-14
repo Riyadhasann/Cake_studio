@@ -1,8 +1,22 @@
-@props(['item', 'type', 'ratio', 'fit' => 'cover'])
+@props(['item', 'type', 'ratio', 'fit' => 'cover', 'moveUp' => null, 'moveDown' => null])
 
 <div class="panel p-5">
     <div class="flex items-baseline justify-between gap-3">
-        <h3 class="font-display text-2xl font-medium leading-snug">{{ $item->name }}</h3>
+        <div class="flex items-baseline gap-2">
+            {{-- Menu order: each button posts the whole list with this flavor swapped one place. --}}
+            @foreach (['up' => $moveUp, 'down' => $moveDown] as $direction => $ids)
+                @if ($ids)
+                    <form action="{{ route('admin.cake-visuals.reorder', $type) }}" method="POST">
+                        @csrf
+                        @foreach ($ids as $id)
+                            <input type="hidden" name="ids[]" value="{{ $id }}">
+                        @endforeach
+                        <button type="submit" class="text-xs text-ink/60 hover:text-brand" aria-label="Move {{ $item->name }} {{ $direction }}" title="Move {{ $direction }}">{{ $direction === 'up' ? '▲' : '▼' }}</button>
+                    </form>
+                @endif
+            @endforeach
+            <h3 class="font-display text-2xl font-medium leading-snug">{{ $item->name }}</h3>
+        </div>
         <span class="shrink-0 rounded-full px-3 py-1 text-xs font-medium {{ $item->layer_image ? 'bg-sage-soft text-sage' : 'bg-petal text-ink/70' }}">
             {{ $item->layer_image ? 'Your image' : 'Default drawing' }}
         </span>
@@ -32,6 +46,36 @@
             @method('DELETE')
             <button type="submit" class="text-xs text-ink/70 underline underline-offset-4 hover:text-clay">Remove image</button>
         </form>
+    @endif
+
+    {{-- Sponges and creams only: a square tile repeated across the slots of the cake drawing. --}}
+    @if ($type !== 'part')
+        <div class="mt-4 border-t border-line pt-4">
+            <div class="flex items-center gap-3">
+                <div class="size-14 shrink-0 rounded-lg border border-line"
+                     style="{{ $item->texture_image ? "background: url('" . asset($item->texture_image) . "') 0 0 / 28px 28px repeat;" : 'background-color: ' . ($item->color ?? '#ffffff') . ';' }}"></div>
+                <p class="text-xs leading-5 text-ink/70">
+                    {{ $item->texture_image ? 'Texture uploaded (shown tiled).' : 'No texture yet.' }}
+                    Square PNG or WebP that tiles seamlessly, 256 to 1024 px, up to 2 MB.
+                </p>
+            </div>
+
+            <form action="{{ route('admin.cake-visuals.texture.update', [$type, $item->id]) }}" method="POST" enctype="multipart/form-data" class="mt-3 space-y-3">
+                @csrf
+                <input type="file" name="texture" accept="image/png,image/webp" required
+                       class="w-full text-sm text-ink/80 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-medium file:text-brand hover:file:bg-brand-soft">
+                <button type="submit" class="btn-outline btn-sm w-full">{{ $item->texture_image ? 'Replace texture' : 'Upload texture' }}</button>
+            </form>
+
+            @if ($item->texture_image)
+                <form action="{{ route('admin.cake-visuals.texture.destroy', [$type, $item->id]) }}" method="POST"
+                      onsubmit="return confirm('Remove this texture?')" class="mt-3 text-center">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="text-xs text-ink/70 underline underline-offset-4 hover:text-clay">Remove texture</button>
+                </form>
+            @endif
+        </div>
     @endif
 
     {{-- Sponges and creams only: the flavor every layer starts with in the design page. --}}

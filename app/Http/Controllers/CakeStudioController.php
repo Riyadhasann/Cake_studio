@@ -26,8 +26,8 @@ class CakeStudioController extends Controller
             fn ($part) => [$part->key => $part->layer_image ? asset($part->layer_image) : null]
         );
 
-        $sponges = SpongeFlavor::where('is_active', true)->orderBy('id')->get();
-        $creams = CreamFlavor::where('is_active', true)->orderBy('id')->get();
+        $sponges = SpongeFlavor::where('is_active', true)->ordered()->get();
+        $creams = CreamFlavor::where('is_active', true)->ordered()->get();
 
         return view('cake-studio.index', [
             'sizes' => CakeSize::all(),

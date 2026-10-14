@@ -27,6 +27,18 @@
     @php
         $defaultSponge = $sponges->firstWhere('is_default', true) ?? $sponges->first();
         $defaultCream = $creams->firstWhere('is_default', true) ?? $creams->first();
+
+        // The full ID list with the item at $index swapped with its neighbour, or null at the edge.
+        $swapped = function ($items, int $index, int $offset) {
+            $ids = $items->pluck('id')->all();
+            $other = $index + $offset;
+            if (! isset($ids[$other])) {
+                return null;
+            }
+            [$ids[$index], $ids[$other]] = [$ids[$other], $ids[$index]];
+
+            return $ids;
+        };
     @endphp
 
     <section class="panel mt-12 p-6">
@@ -59,10 +71,12 @@
         <p class="mt-2 max-w-2xl text-sm leading-7 text-ink/75">
             One image per sponge flavor: a wide strip of that sponge, about 1200 x 255 px.
             If your shape is different it is cropped from the center, exactly as the preview below each name shows.
+            Use the arrows next to a name to change the order flavors are listed in on the design page.
         </p>
         <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($sponges as $sponge)
-                <x-visual-card :item="$sponge" type="sponge" ratio="4.7 / 1" fit="cover" />
+                <x-visual-card :item="$sponge" type="sponge" ratio="4.7 / 1" fit="cover"
+                               :move-up="$swapped($sponges, $loop->index, -1)" :move-down="$swapped($sponges, $loop->index, 1)" />
             @endforeach
         </div>
     </section>
@@ -75,7 +89,8 @@
         </p>
         <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($creams as $cream)
-                <x-visual-card :item="$cream" type="cream" ratio="12.5 / 1" fit="cover" />
+                <x-visual-card :item="$cream" type="cream" ratio="12.5 / 1" fit="cover"
+                               :move-up="$swapped($creams, $loop->index, -1)" :move-down="$swapped($creams, $loop->index, 1)" />
             @endforeach
         </div>
     </section>
