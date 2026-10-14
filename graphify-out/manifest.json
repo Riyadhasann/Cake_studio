@@ -336,8 +336,8 @@
     "semantic_hash": "2fa5f63beb9003195b27d1fbe85717b1"
   },
   "database/migrations/2026_10_06_100909_rename_total_price_to_total_on_orders_table.php": {
-    "mtime": 1791970750.8983529,
-    "seen": 1791970755.952115,
+    "mtime": 1791970768.081172,
+    "seen": 1791971401.2214813,
     "ast_hash": "666c8404180dc2fdd1b441ee69e0eceb",
     "semantic_hash": "666c8404180dc2fdd1b441ee69e0eceb"
   },
