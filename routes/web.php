@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CakePreviewController;
+use App\Http\Controllers\Admin\CakeSizeController;
 use App\Http\Controllers\Admin\CakeVisualController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\CakeStudioController;
@@ -33,6 +34,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/cake-images/{type}/{id}/texture', [CakeVisualController::class, 'updateTexture'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.cake-visuals.texture.update');
         Route::delete('/admin/cake-images/{type}/{id}/texture', [CakeVisualController::class, 'destroyTexture'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.cake-visuals.texture.destroy');
         Route::post('/admin/cake-images/{type}/order', [CakeVisualController::class, 'reorder'])->whereIn('type', ['sponge', 'cream'])->name('admin.cake-visuals.reorder');
+
+        Route::resource('/admin/sizes', CakeSizeController::class)
+            ->only(['index', 'store', 'edit', 'update', 'destroy'])
+            ->whereNumber('size')
+            ->names('admin.sizes');
 
     });
 });

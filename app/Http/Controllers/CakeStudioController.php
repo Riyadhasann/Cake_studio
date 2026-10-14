@@ -30,7 +30,7 @@ class CakeStudioController extends Controller
         $creams = CreamFlavor::where('is_active', true)->ordered()->get();
 
         return view('cake-studio.index', [
-            'sizes' => CakeSize::all(),
+            'sizes' => CakeSize::ordered()->get(),
             'sponges' => $sponges->map($forPage)->values(),
             'creams' => $creams->map($forPage)->values(),
             'parts' => $parts,

@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\CakeSize;
+use Illuminate\Database\Seeder;
 
 class CakeSizeSeeder extends Seeder
 {
@@ -14,15 +13,15 @@ class CakeSizeSeeder extends Seeder
     public function run(): void
     {
         $sizes = [
-            ['label' => '1 kg', 'price' => 1200],
-            ['label' => '2 kg', 'price' => 2300],
-            ['label' => '3 kg', 'price' => 3300],
+            ['label' => '1 kg', 'weight_kg' => 1, 'price' => 1200],
+            ['label' => '2 kg', 'weight_kg' => 2, 'price' => 2300],
+            ['label' => '3 kg', 'weight_kg' => 3, 'price' => 3300],
         ];
 
         foreach ($sizes as $size) {
             CakeSize::firstOrCreate(
                 ['label' => $size['label']],
-                ['price' => $size['price']]
+                ['weight_kg' => $size['weight_kg'], 'price' => $size['price']]
             );
         }
     }
