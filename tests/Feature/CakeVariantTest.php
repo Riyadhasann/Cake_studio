@@ -5,20 +5,6 @@ use App\Models\CakeVariantSlot;
 use Database\Seeders\CakeVariantSeeder;
 use Illuminate\Database\UniqueConstraintViolationException;
 
-/** A variant with a sponge and a cream slot for every layer. */
-function completeVariant(int $layers = 2): CakeVariant
-{
-    $variant = CakeVariant::create(['layers' => $layers, 'view_box_width' => 700, 'view_box_height' => 196 * $layers]);
-
-    foreach (range(1, $layers) as $layerNo) {
-        foreach (CakeVariantSlot::TYPES as $type) {
-            $variant->slots()->create(['layer_no' => $layerNo, 'type' => $type, 'svg_path' => 'M0 0H10V10H0Z']);
-        }
-    }
-
-    return $variant->fresh();
-}
-
 test('a variant with a sponge and a cream for every layer can be published', function (int $layers) {
     $variant = completeVariant($layers);
 

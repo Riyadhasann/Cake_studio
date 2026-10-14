@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CakePreviewController;
 use App\Http\Controllers\Admin\CakeSizeController;
+use App\Http\Controllers\Admin\CakeVariantController;
 use App\Http\Controllers\Admin\CakeVisualController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\CakeStudioController;
@@ -40,6 +41,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->whereNumber('size')
             ->names('admin.sizes');
 
+        Route::get('/admin/cake-variants', [CakeVariantController::class, 'index'])->name('admin.cake-variants.index');
+        Route::post('/admin/cake-variants', [CakeVariantController::class, 'store'])->name('admin.cake-variants.store');
+        Route::get('/admin/cake-variants/{variant}/edit', [CakeVariantController::class, 'edit'])->whereNumber('variant')->name('admin.cake-variants.edit');
+        Route::put('/admin/cake-variants/{variant}', [CakeVariantController::class, 'update'])->whereNumber('variant')->name('admin.cake-variants.update');
+        Route::post('/admin/cake-variants/{variant}/publish', [CakeVariantController::class, 'publish'])->whereNumber('variant')->name('admin.cake-variants.publish');
+        Route::delete('/admin/cake-variants/{variant}/publish', [CakeVariantController::class, 'unpublish'])->whereNumber('variant')->name('admin.cake-variants.unpublish');
     });
 });
 

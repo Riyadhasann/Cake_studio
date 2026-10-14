@@ -24,10 +24,10 @@
     "semantic_hash": "9da65916eac719381c3ab04cb3a6320c"
   },
   "app/Http/Controllers/Admin/CakePreviewController.php": {
-    "mtime": 1791970430.7982996,
-    "seen": 1791970755.951924,
-    "ast_hash": "c7b2012430f916dfb6dde8d7363ce131",
-    "semantic_hash": "c7b2012430f916dfb6dde8d7363ce131"
+    "mtime": 1791974032.2947676,
+    "seen": 1791974604.4336762,
+    "ast_hash": "e5e2e9dc25ffdc75a0e00717131dfaf7",
+    "semantic_hash": ""
   },
   "app/Http/Controllers/Admin/CakeVisualController.php": {
     "mtime": 1791970734.1369984,
@@ -48,10 +48,10 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/CartController.php": {
-    "mtime": 1791765014.0,
-    "seen": 1791956208.1713872,
-    "ast_hash": "c6977415fe415649454404294ff0d390",
-    "semantic_hash": "c6977415fe415649454404294ff0d390"
+    "mtime": 1791974221.6578603,
+    "seen": 1791974604.4336956,
+    "ast_hash": "76ed5837c8dd5cc0e0c35d25a8a98783",
+    "semantic_hash": ""
   },
   "app/Http/Controllers/Controller.php": {
     "mtime": 1789964338.0,
@@ -60,28 +60,28 @@
     "semantic_hash": "25a307335c0719bc9a91b3f7babd186d"
   },
   "app/Http/Controllers/OrderTrackingController.php": {
-    "mtime": 1791765014.0,
-    "seen": 1791956208.171392,
-    "ast_hash": "eba6ec27444585f3c54b91e8ad40d509",
-    "semantic_hash": "eba6ec27444585f3c54b91e8ad40d509"
+    "mtime": 1791974221.9841983,
+    "seen": 1791974604.4337025,
+    "ast_hash": "482accfd5455a9307019adf8bf90d052",
+    "semantic_hash": ""
   },
   "app/Http/Middleware/EnsureUserIsAdmin.php": {
-    "mtime": 1791970430.8967483,
-    "seen": 1791970755.9519484,
-    "ast_hash": "f3ec3723b0cce14552758dcb5f95ff11",
-    "semantic_hash": "f3ec3723b0cce14552758dcb5f95ff11"
+    "mtime": 1791974032.3067636,
+    "seen": 1791974604.4337056,
+    "ast_hash": "2fa907bd8787b4ebc75b4760972a3dd1",
+    "semantic_hash": ""
   },
   "app/Http/Requests/PlaceOrderRequest.php": {
-    "mtime": 1791970431.0216725,
-    "seen": 1791970755.951958,
-    "ast_hash": "df7eb667fec672e737e346eaa3b97fe2",
-    "semantic_hash": "df7eb667fec672e737e346eaa3b97fe2"
+    "mtime": 1791974229.5597696,
+    "seen": 1791974604.43372,
+    "ast_hash": "653ed2287cc9deae1839b06f64c99509",
+    "semantic_hash": ""
   },
   "app/Http/Requests/StoreCakeCustomizationRequest.php": {
-    "mtime": 1791765014.0,
-    "seen": 1791956208.1714003,
-    "ast_hash": "947797fdf2d9ea6c86d212b51b5b3411",
-    "semantic_hash": "947797fdf2d9ea6c86d212b51b5b3411"
+    "mtime": 1791974229.6117063,
+    "seen": 1791974604.4337232,
+    "ast_hash": "fa76cb0c7eefdd2c99d687a72713afc8",
+    "semantic_hash": ""
   },
   "app/Livewire/Actions/Logout.php": {
     "mtime": 1789964338.0,
@@ -90,16 +90,16 @@
     "semantic_hash": "4644ad5fef45333671f2123d03165848"
   },
   "app/Models/CakeCustomization.php": {
-    "mtime": 1791764990.0,
-    "seen": 1791956208.1714056,
-    "ast_hash": "0e974bb8c7c97eeab1f699272e7572bd",
-    "semantic_hash": "0e974bb8c7c97eeab1f699272e7572bd"
+    "mtime": 1791974280.011411,
+    "seen": 1791974604.43373,
+    "ast_hash": "421481b293d3b334fb503296cbfa04e8",
+    "semantic_hash": ""
   },
   "app/Models/CakeCustomizationLayer.php": {
-    "mtime": 1791764990.0,
-    "seen": 1791956208.171408,
-    "ast_hash": "472e032b3cfc3506379237f72f4b9d49",
-    "semantic_hash": "472e032b3cfc3506379237f72f4b9d49"
+    "mtime": 1791974198.6430554,
+    "seen": 1791974604.4337327,
+    "ast_hash": "8024ad12997dc360eadbd2c4662e8919",
+    "semantic_hash": ""
   },
   "app/Models/CakePart.php": {
     "mtime": 1791842114.0,
@@ -108,33 +108,33 @@
     "semantic_hash": "085195b43d8341f6172832b7a385fb9f"
   },
   "app/Models/CakePreview.php": {
-    "mtime": 1791970431.1523077,
-    "seen": 1791970755.95198,
-    "ast_hash": "f1804c036a357f5863f071307ce28790",
-    "semantic_hash": "f1804c036a357f5863f071307ce28790"
+    "mtime": 1791974207.1819994,
+    "seen": 1791974604.4337397,
+    "ast_hash": "0a8b8e02410d6697636a1251e5cbef2f",
+    "semantic_hash": ""
   },
   "app/Models/CakeSize.php": {
-    "mtime": 1791972181.0453224,
-    "seen": 1791973280.7040217,
-    "ast_hash": "72f320bb57787fe327e0a256ab174b90",
+    "mtime": 1791974198.4675448,
+    "seen": 1791974604.4337425,
+    "ast_hash": "7376ce665c5f8cf509d1068ae6cb75bc",
     "semantic_hash": ""
   },
   "app/Models/CreamFlavor.php": {
-    "mtime": 1791970733.9509864,
-    "seen": 1791970755.9519858,
-    "ast_hash": "2ea596f3b2a1cbfbb7868fcdcf80fcfc",
+    "mtime": 1791974198.4177344,
+    "seen": 1791974604.433753,
+    "ast_hash": "88aa992c7a3d131c892f6126711d51fc",
     "semantic_hash": ""
   },
   "app/Models/Order.php": {
-    "mtime": 1791970431.3962643,
-    "seen": 1791970755.951989,
-    "ast_hash": "c5850fc713f5558268202a3235949674",
-    "semantic_hash": "c5850fc713f5558268202a3235949674"
+    "mtime": 1791974198.5161388,
+    "seen": 1791974604.4337559,
+    "ast_hash": "e5bfd8faa42c246b066776938efbf373",
+    "semantic_hash": ""
   },
   "app/Models/SpongeFlavor.php": {
-    "mtime": 1791970733.909868,
-    "seen": 1791970755.9519923,
-    "ast_hash": "2137a778651bb65274b986ca892a1b6e",
+    "mtime": 1791974198.3652585,
+    "seen": 1791974604.433759,
+    "ast_hash": "1f5c6630b5df888bee2a9c56b4b3c98a",
     "semantic_hash": ""
   },
   "app/Models/User.php": {
@@ -156,16 +156,16 @@
     "semantic_hash": "17936a91ed6b16c3b4e70ad836f909ca"
   },
   "app/Services/CartService.php": {
-    "mtime": 1791765014.0,
-    "seen": 1791956208.1714337,
-    "ast_hash": "f51cbe893990e92636a056b992b86529",
-    "semantic_hash": "f51cbe893990e92636a056b992b86529"
+    "mtime": 1791974261.1875956,
+    "seen": 1791974604.4337728,
+    "ast_hash": "95a21079a1fa86920123e86dd66ae0ce",
+    "semantic_hash": ""
   },
   "app/View/Components/OrderAlerts.php": {
-    "mtime": 1791970431.515301,
-    "seen": 1791970755.9520102,
-    "ast_hash": "6588891ce9cdc46e4427161be7941d3d",
-    "semantic_hash": "6588891ce9cdc46e4427161be7941d3d"
+    "mtime": 1791974032.3732579,
+    "seen": 1791974604.4337754,
+    "ast_hash": "c914bc51ec2757da13622c06d21cdbaf",
+    "semantic_hash": ""
   },
   "artisan": {
     "mtime": 1789964338.0,
@@ -186,10 +186,10 @@
     "semantic_hash": "ff696af1e434a9b604bfd14ecc0b2cb0"
   },
   "composer.json": {
-    "mtime": 1791280896.2601662,
-    "seen": 1791956208.1714463,
-    "ast_hash": "d20086b547f7ccbb2efaf256d085ebf0",
-    "semantic_hash": "d20086b547f7ccbb2efaf256d085ebf0"
+    "mtime": 1791974028.886166,
+    "seen": 1791974604.4337893,
+    "ast_hash": "f392929279c92efcb3ea2f418d6c0cb8",
+    "semantic_hash": ""
   },
   "config/app.php": {
     "mtime": 1791438170.9866884,
@@ -336,22 +336,22 @@
     "semantic_hash": "2fa5f63beb9003195b27d1fbe85717b1"
   },
   "database/migrations/2026_10_06_100909_rename_total_price_to_total_on_orders_table.php": {
-    "mtime": 1791972734.2002184,
-    "seen": 1791973280.7041595,
-    "ast_hash": "666c8404180dc2fdd1b441ee69e0eceb",
-    "semantic_hash": "666c8404180dc2fdd1b441ee69e0eceb"
+    "mtime": 1791973730.6565423,
+    "seen": 1791974604.4338748,
+    "ast_hash": "c18a89cc745019b86b0b806733bd9d4b",
+    "semantic_hash": ""
   },
   "database/migrations/2026_10_07_060906_add_delivery_details_to_orders_table.php": {
-    "mtime": 1791970431.7583272,
-    "seen": 1791970755.9521182,
-    "ast_hash": "4077ff5fb67f3a62203d6e57d5256b9e",
-    "semantic_hash": "4077ff5fb67f3a62203d6e57d5256b9e"
+    "mtime": 1791974032.3927543,
+    "seen": 1791974604.433878,
+    "ast_hash": "071abd43cdf25a1ec89489637129b9fc",
+    "semantic_hash": ""
   },
   "database/migrations/2026_10_08_050619_add_quantity_to_cake_customizations_table.php": {
-    "mtime": 1791970431.877923,
-    "seen": 1791970755.9521215,
-    "ast_hash": "b63ddd7c1fb0f644fd5f9be52695903e",
-    "semantic_hash": "b63ddd7c1fb0f644fd5f9be52695903e"
+    "mtime": 1791974032.4197395,
+    "seen": 1791974604.4338808,
+    "ast_hash": "59eeded0463386a928c779338840585f",
+    "semantic_hash": ""
   },
   "database/migrations/2026_10_08_050624_drop_delivery_time_from_orders_table.php": {
     "mtime": 1791436230.8771913,
@@ -396,10 +396,10 @@
     "semantic_hash": "f5bba54b6999c4d6be5016e979774872"
   },
   "database/seeders/CakePreviewSeeder.php": {
-    "mtime": 1791970432.0004628,
-    "seen": 1791970755.9521525,
-    "ast_hash": "4cc1baa34fad33bc63b0644fdde2ccb5",
-    "semantic_hash": "4cc1baa34fad33bc63b0644fdde2ccb5"
+    "mtime": 1791974032.436242,
+    "seen": 1791974604.4339178,
+    "ast_hash": "9f187c68839e3c467a44751d9f90bfbb",
+    "semantic_hash": ""
   },
   "database/seeders/CakeSizeSeeder.php": {
     "mtime": 1791972274.5199716,
@@ -558,9 +558,9 @@
     "semantic_hash": "06a1d80023a689bd0018486f7fb46664"
   },
   "resources/views/components/studio-layout.blade.php": {
-    "mtime": 1791972218.629182,
-    "seen": 1791973280.704315,
-    "ast_hash": "0ec0c374eab08b91b6c07a37a27a8838",
+    "mtime": 1791975040.6554923,
+    "seen": 1791975305.612011,
+    "ast_hash": "601918c8df5354ae69ffd23211097b31",
     "semantic_hash": ""
   },
   "resources/views/components/visual-card.blade.php": {
@@ -774,9 +774,9 @@
     "semantic_hash": "3570bed7572ca73abfb12fecf93cb56b"
   },
   "routes/web.php": {
-    "mtime": 1791972197.2598739,
-    "seen": 1791973280.7044516,
-    "ast_hash": "676cca86ef47f767e1dc0062aec61519",
+    "mtime": 1791975036.9377103,
+    "seen": 1791975305.6121423,
+    "ast_hash": "73fd47683129d3e93698646dc867185c",
     "semantic_hash": ""
   },
   "tests/Feature/Auth/AuthenticationTest.php": {
@@ -846,10 +846,10 @@
     "semantic_hash": "d425037ac93252a5cf754ee1b228908c"
   },
   "tests/Pest.php": {
-    "mtime": 1790765901.8057997,
-    "seen": 1791956208.171726,
-    "ast_hash": "87407a81a6669f1ac555691dd2ea38ca",
-    "semantic_hash": "87407a81a6669f1ac555691dd2ea38ca"
+    "mtime": 1791975181.7208009,
+    "seen": 1791975305.6121972,
+    "ast_hash": "0f69932ee3ab35a90c6ab1caba4f8aea",
+    "semantic_hash": ""
   },
   "tests/TestCase.php": {
     "mtime": 1790765901.8067992,
@@ -1002,15 +1002,69 @@
     "semantic_hash": ""
   },
   "tests/Feature/CakeVariantTest.php": {
-    "mtime": 1791972699.8923292,
-    "seen": 1791973280.7044768,
-    "ast_hash": "e74c0dfc6a58258a3202da87e7fd40fe",
+    "mtime": 1791975181.6948168,
+    "seen": 1791975305.6121695,
+    "ast_hash": "cffc21d735e6d8bd053aa02df0f62d87",
     "semantic_hash": ""
   },
   "tests/Feature/SizeAdminTest.php": {
     "mtime": 1791972249.5086975,
     "seen": 1791973280.704501,
     "ast_hash": "dbd8244b7503d9671e3759cb37edd270",
+    "semantic_hash": ""
+  },
+  "app/Actions/Variants/SaveCakeVariant.php": {
+    "mtime": 1791975018.206182,
+    "seen": 1791975305.6116033,
+    "ast_hash": "7d0a813f32bf18bd6f2a398776f56616",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Admin/CakeVariantController.php": {
+    "mtime": 1791975036.2800298,
+    "seen": 1791975305.6116228,
+    "ast_hash": "c62acc5ae56ff769030a4e1dea111475",
+    "semantic_hash": ""
+  },
+  "app/Http/Requests/Admin/UpdateCakeVariantRequest.php": {
+    "mtime": 1791975159.1418185,
+    "seen": 1791975305.6116676,
+    "ast_hash": "18fb7c612516cf58e0ee0c7fc78aaa70",
+    "semantic_hash": ""
+  },
+  "app/Services/SvgSanitizer.php": {
+    "mtime": 1791974994.1842837,
+    "seen": 1791975305.6117325,
+    "ast_hash": "039a4815a382b7e1835fdbd82d92e02d",
+    "semantic_hash": ""
+  },
+  "resources/views/admin/cake-variants/_alerts.blade.php": {
+    "mtime": 1791975057.1594238,
+    "seen": 1791975305.611929,
+    "ast_hash": "4e2e98947eb0ec07fe0f04f81a6b0679",
+    "semantic_hash": ""
+  },
+  "resources/views/admin/cake-variants/_publish.blade.php": {
+    "mtime": 1791975057.2230241,
+    "seen": 1791975305.6119316,
+    "ast_hash": "b9e4ab54438ef5f31d93b2b8856c7957",
+    "semantic_hash": ""
+  },
+  "resources/views/admin/cake-variants/edit.blade.php": {
+    "mtime": 1791975113.3184173,
+    "seen": 1791975305.6119344,
+    "ast_hash": "b820eb5960cc247535072884e0914d14",
+    "semantic_hash": ""
+  },
+  "resources/views/admin/cake-variants/index.blade.php": {
+    "mtime": 1791975057.191536,
+    "seen": 1791975305.611937,
+    "ast_hash": "8fec49106a89308af55bd1add3a1a7f3",
+    "semantic_hash": ""
+  },
+  "tests/Feature/CakeVariantAdminTest.php": {
+    "mtime": 1791975151.4365537,
+    "seen": 1791975305.6121664,
+    "ast_hash": "1504943632ea21918352e6a0bee523bc",
     "semantic_hash": ""
   }
 }

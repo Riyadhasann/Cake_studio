@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\CakeVariant;
+use App\Models\CakeVariantSlot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +49,18 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/** A variant with a sponge and a cream slot for every layer. */
+function completeVariant(int $layers = 2): CakeVariant
+{
+    $variant = CakeVariant::create(['layers' => $layers, 'view_box_width' => 700, 'view_box_height' => 196 * $layers]);
+
+    foreach (range(1, $layers) as $layerNo) {
+        foreach (CakeVariantSlot::TYPES as $type) {
+            $variant->slots()->create(['layer_no' => $layerNo, 'type' => $type, 'svg_path' => 'M0 0H10V10H0Z']);
+        }
+    }
+
+    return $variant->fresh();
 }
