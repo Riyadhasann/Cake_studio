@@ -98,6 +98,8 @@
                        class="{{ request()->routeIs('admin.cake-visuals.*') ? 'text-brand' : 'text-ink/70 hover:text-brand' }}">Cake images</a>
                     <a href="{{ route('admin.sizes.index') }}"
                        class="{{ request()->routeIs('admin.sizes.*') ? 'text-brand' : 'text-ink/70 hover:text-brand' }}">Sizes</a>
+                    <a href="{{ route('admin.cake-variants.index') }}"
+                       class="{{ request()->routeIs('admin.cake-variants.*') ? 'text-brand' : 'text-ink/70 hover:text-brand' }}">Cake shapes</a>
                 </nav>
             @else
                 <a href="{{ route('cake-studio.index') }}" class="font-script text-4xl leading-none text-brand">Cake Studio</a>
