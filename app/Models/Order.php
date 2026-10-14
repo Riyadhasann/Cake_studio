@@ -27,7 +27,7 @@ class Order extends Model
         'delivered_at' => 'datetime',
     ];
 
-
+    /** @return HasMany<CakeCustomization, $this> */
     public function cakeCustomizations(): HasMany
     {
         return $this->hasMany(CakeCustomization::class);

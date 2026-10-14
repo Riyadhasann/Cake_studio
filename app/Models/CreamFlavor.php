@@ -3,14 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Columns added in loop migrations, which Larastan cannot read:
+ *
+ * @property string|null $color
+ * @property string|null $layer_image
+ * @property bool $is_active
+ * @property bool $is_default
+ * @property string|null $texture_image
+ * @property int $sort_order
+ */
 class CreamFlavor extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'name',
         'extra_price',
@@ -41,11 +48,13 @@ class CreamFlavor extends Model
         return $query->orderBy('sort_order')->orderBy('id');
     }
 
+    /** @return HasMany<CakePreview, $this> */
     public function previews(): HasMany
     {
         return $this->hasMany(CakePreview::class);
     }
 
+    /** @return HasMany<CakeCustomization, $this> */
     public function customizations(): HasMany
     {
         return $this->hasMany(CakeCustomization::class);

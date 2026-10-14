@@ -21,7 +21,7 @@ class CartController extends Controller
         $validated = $request->validated();
         $submitted = array_values($validated['layers']);
 
-        $size = CakeSize::findOrFail($validated['cake_size_id']);
+        $size = CakeSize::findOrFail($request->integer('cake_size_id'));
 
         // Load every flavor once, then look each layer up. Names and prices come from the database.
         $sponges = SpongeFlavor::whereIn('id', array_column($submitted, 'sponge_flavor_id'))->get()->keyBy('id');

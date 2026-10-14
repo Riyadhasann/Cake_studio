@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CakePreview;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
 class CakePreviewController extends Controller
 {
@@ -22,7 +22,6 @@ class CakePreviewController extends Controller
 
     public function update(Request $request, CakePreview $cakePreview): RedirectResponse
     {
-        
 
         $validated = $request->validate([
             'image' => ['required', 'image', 'max:10240'], // 10MB max

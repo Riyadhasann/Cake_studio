@@ -14,16 +14,19 @@ class CakeCustomizationLayer extends Model
         'cream_flavor_id',
     ];
 
+    /** @return BelongsTo<CakeCustomization, $this> */
     public function customization(): BelongsTo
     {
         return $this->belongsTo(CakeCustomization::class, 'cake_customization_id');
     }
 
+    /** @return BelongsTo<SpongeFlavor, $this> */
     public function spongeFlavor(): BelongsTo
     {
         return $this->belongsTo(SpongeFlavor::class);
     }
 
+    /** @return BelongsTo<CreamFlavor, $this> */
     public function creamFlavor(): BelongsTo
     {
         return $this->belongsTo(CreamFlavor::class);

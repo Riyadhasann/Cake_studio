@@ -3,8 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\relations\BelongsTo;
-
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CakePreview extends Model
 {
@@ -14,12 +13,13 @@ class CakePreview extends Model
         'image',
     ];
 
-
+    /** @return BelongsTo<SpongeFlavor, $this> */
     public function spongeFlavor(): BelongsTo
     {
         return $this->belongsTo(SpongeFlavor::class);
     }
 
+    /** @return BelongsTo<CreamFlavor, $this> */
     public function creamFlavor(): BelongsTo
     {
         return $this->belongsTo(CreamFlavor::class);

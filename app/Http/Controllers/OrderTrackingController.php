@@ -25,7 +25,7 @@ class OrderTrackingController extends Controller
             'cakeCustomizations.cakeSize',
             'cakeCustomizations.layers.spongeFlavor',
             'cakeCustomizations.layers.creamFlavor'
-        )->find($validated['order_id']);
+        )->find($request->integer('order_id'));
 
         $digits = fn (string $phone) => preg_replace('/\D+/', '', $phone);
 

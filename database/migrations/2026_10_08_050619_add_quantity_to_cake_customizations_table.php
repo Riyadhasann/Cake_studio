@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::table('cake_customizations', function (Blueprint $table) {
             $table->unsignedSmallInteger('quantity')->default(1);
-            
-            
+
         });
     }
 

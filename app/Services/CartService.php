@@ -8,6 +8,7 @@ class CartService
 {
     protected string $sessionKey = 'cake_cart';
 
+    /** @param  array<string, mixed>  $item */
     public function add(array $item): void
     {
         $items = $this->items();
@@ -27,12 +28,13 @@ class CartService
         session([$this->sessionKey => $items]);
     }
 
+    /** @return list<array<string, mixed>> */
     public function items(): array
     {
-        return array_map(
+        return array_values(array_map(
             fn (array $item) => $this->withLayers($item),
             session($this->sessionKey, [])
-        );
+        ));
     }
 
     public function total(): float
@@ -52,7 +54,12 @@ class CartService
         session()->forget($this->sessionKey);
     }
 
-    /** A cart item saved before layers existed has one sponge and one cream. Treat it as one layer. */
+    /**
+     * A cart item saved before layers existed has one sponge and one cream. Treat it as one layer.
+     *
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
     protected function withLayers(array $item): array
     {
         if (! isset($item['layers'])) {
