@@ -10,11 +10,15 @@ class CakeVariant extends Model
 {
     public const LAYER_COUNTS = [2, 3, 4];
 
+    /** View box units per texture tile: about 4 tiles across a 700-wide cake. */
+    public const TEXTURE_TILE = 160;
+
     protected $fillable = [
         'layers',
         'view_box_width',
         'view_box_height',
         'base_svg',
+        'shading_image',
         'is_published',
     ];
 
@@ -29,6 +33,12 @@ class CakeVariant extends Model
     public function slots(): HasMany
     {
         return $this->hasMany(CakeVariantSlot::class)->orderBy('layer_no')->orderBy('type');
+    }
+
+    /** @return HasMany<FlavorVariantImage, $this> */
+    public function flavorImages(): HasMany
+    {
+        return $this->hasMany(FlavorVariantImage::class)->orderBy('layer_no')->orderBy('flavor_type');
     }
 
     /**

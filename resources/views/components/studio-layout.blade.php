@@ -83,7 +83,7 @@
     @endunless
 
     <header class="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur">
-        <div class="mx-auto flex h-20 items-center justify-between px-4 {{ $admin ? 'max-w-7xl' : 'max-w-5xl' }}">
+        <div class="mx-auto flex items-center justify-between px-4 {{ $admin ? 'min-h-20 max-w-7xl flex-wrap gap-x-6 gap-y-3 py-4' : 'h-20 max-w-5xl' }}">
 
             @if ($admin)
                 <a href="{{ route('admin.orders.index') }}" class="font-script text-4xl leading-none text-brand">
@@ -91,7 +91,8 @@
                     <span class="ml-2 rounded-full bg-ink px-2.5 py-1 align-middle font-sans text-[0.6rem] font-medium uppercase tracking-[0.2em] text-white">Admin</span>
                 </a>
 
-                <nav class="flex items-center gap-8 text-[0.7rem] font-medium uppercase tracking-[0.22em]">
+                {{-- Wraps under the logo on phones --}}
+                <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.7rem] font-medium uppercase tracking-[0.22em] sm:gap-x-8">
                     <a href="{{ route('admin.orders.index') }}"
                        class="{{ request()->routeIs('admin.orders.*') ? 'text-brand' : 'text-ink/70 hover:text-brand' }}">Orders</a>
                     <a href="{{ route('admin.cake-visuals.index') }}"

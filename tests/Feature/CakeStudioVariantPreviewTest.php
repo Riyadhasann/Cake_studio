@@ -3,8 +3,13 @@
 use App\Models\CakeVariant;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('cake-textures/chocolate.png', UploadedFile::fake()->image('chocolate.png', 256, 256)->getContent());
+
     $this->sponge = SpongeFlavor::create([
         'name' => 'Chocolate', 'extra_price' => 0, 'is_active' => true, 'color' => '#6b3f2a',
         'texture_image' => 'storage/cake-textures/chocolate.png',
@@ -20,6 +25,13 @@ test('the design page gets each flavor texture', function () {
         ->assertOk()
         ->assertViewHas('sponges', fn ($sponges) => $sponges->first()['texture'] === asset('storage/cake-textures/chocolate.png'))
         ->assertViewHas('creams', fn ($creams) => $creams->first()['texture'] === null);
+});
+
+test('a texture whose file is missing is not sent, so the slot falls back to the color', function () {
+    Storage::disk('public')->delete('cake-textures/chocolate.png');
+
+    $this->get(route('cake-studio.index'))
+        ->assertViewHas('sponges', fn ($sponges) => $sponges->first()['texture'] === null);
 });
 
 test('inactive flavors and their textures are not sent', function () {

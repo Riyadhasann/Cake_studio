@@ -2,14 +2,15 @@
     The cake preview on the design page. Lives inside the cakeStudio() Alpine scope.
 
     When the admin has published an SVG drawing for the chosen layer count, the cake is that drawing:
-    every slot is filled with its flavor's texture, else its layer image, else its color. Otherwise the
+    every slot is filled with the flavor's photo for that slot, else its texture, else its layer image,
+    else its color, then shaded (the drawing's shading image, or soft gradients). Otherwise the
     cake is stacked from one element per sponge and cream (the layered preview).
     SVG content is rendered here in Blade because Alpine's <template x-for> doesn't work inside <svg>;
     only each slot's fill is bound, so changing a pick repaints just that slot.
 --}}
 @props(['sponges', 'creams', 'variants'])
 @php
-    $textureTile = 160; // view box units per texture tile: about 4 tiles across a 700-wide cake
+    $textureTile = \App\Models\CakeVariant::TEXTURE_TILE;
     $flavorsByType = ['sponge' => $sponges, 'cream' => $creams];
 @endphp
 
@@ -167,15 +168,19 @@
                         @foreach ($flavors as $flavor)
                             @if ($flavor['texture'])
                                 <pattern id="cake-texture-{{ $type }}-{{ $flavor['id'] }}" patternUnits="userSpaceOnUse" width="{{ $textureTile }}" height="{{ $textureTile }}">
-                                    <image href="{{ $flavor['texture'] }}" width="{{ $textureTile }}" height="{{ $textureTile }}" preserveAspectRatio="xMidYMid slice" @@error="markBroken($el.getAttribute('href'))" />
+                                    <image :href="@js($flavor['texture'])" width="{{ $textureTile }}" height="{{ $textureTile }}" preserveAspectRatio="xMidYMid slice" @@error="markBroken($el.getAttribute('href'))" />
                                 </pattern>
                             @endif
                             @if ($flavor['image'])
-                                {{-- The layer image stretched over the slot's box, like the layered preview's object-fit --}}
-                                <pattern id="cake-image-{{ $type }}-{{ $flavor['id'] }}" patternUnits="objectBoundingBox" patternContentUnits="objectBoundingBox" width="1" height="1">
-                                    <image href="{{ $flavor['image'] }}" width="1" height="1" preserveAspectRatio="none" @@error="markBroken($el.getAttribute('href'))" />
-                                </pattern>
+                                <x-cake-cover-pattern :id="'cake-image-'.$type.'-'.$flavor['id']" :url="$flavor['image']" :size="$flavor['image_size']" />
                             @endif
+                        @endforeach
+                    @endforeach
+
+                    {{-- Photos of one flavor for one slot of one drawing --}}
+                    @foreach ($variants as $variant)
+                        @foreach ($variant['photos'] as $photo)
+                            <x-cake-cover-pattern :id="'cake-photo-'.$photo['id']" :url="$photo['url']" :size="[$photo['width'], $photo['height']]" />
                         @endforeach
                     @endforeach
 
@@ -219,8 +224,20 @@
                             @if ($slot['type'] === 'sponge')
                                 <path d="{{ $slot['path'] }}" fill="url(#cake-crumbs)" pointer-events="none" x-show="!slotHasArt({{ $slot['layer_no'] }}, 'sponge')" />
                             @endif
-                            <path d="{{ $slot['path'] }}" fill="url(#cake-shade-{{ $slot['type'] }})" pointer-events="none" />
+                            @unless ($variant['shading'])
+                                <path d="{{ $slot['path'] }}" fill="url(#cake-shade-{{ $slot['type'] }})" pointer-events="none" />
+                            @endunless
                         @endforeach
+                        @if ($variant['shading'])
+                            {{-- The admin's grayscale light and shadow, multiplied over the slots only (white changes nothing) --}}
+                            <clipPath id="cake-slots-{{ $layers }}">
+                                @foreach ($variant['slots'] as $slot)
+                                    <path d="{{ $slot['path'] }}" />
+                                @endforeach
+                            </clipPath>
+                            <image href="{{ $variant['shading']['url'] }}" x="0" y="0" width="{{ $variant['width'] }}" height="{{ $variant['height'] }}" preserveAspectRatio="none"
+                                   clip-path="url(#cake-slots-{{ $layers }})" style="mix-blend-mode: multiply" pointer-events="none" />
+                        @endif
                         {{-- Outline and decorations last, so the slots never cover them. Sanitized by the controller. --}}
                         <g>{!! $variant['base_svg'] !!}</g>
                     </svg>

@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\CakePreviewController;
 use App\Http\Controllers\Admin\CakeSizeController;
 use App\Http\Controllers\Admin\CakeVariantController;
+use App\Http\Controllers\Admin\CakeVariantImageController;
 use App\Http\Controllers\Admin\CakeVisualController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\CakeStudioController;
@@ -19,9 +19,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin only: logged-in customers get a 403
     Route::middleware(EnsureUserIsAdmin::class)->group(function () {
         Route::redirect('/admin', '/admin/orders');
-
-        Route::get('/admin/cake-previews', [CakePreviewController::class, 'index'])->name('admin.cake-previews.index');
-        Route::post('/admin/cake-previews/{cakePreview}', [CakePreviewController::class, 'update'])->name('admin.cake-previews.update');
 
         Route::get('/admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
         Route::post('/admin/orders/{order}/deliver', [OrderController::class, 'deliver'])->name('admin.orders.deliver');
@@ -47,6 +44,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/admin/cake-variants/{variant}', [CakeVariantController::class, 'update'])->whereNumber('variant')->name('admin.cake-variants.update');
         Route::post('/admin/cake-variants/{variant}/publish', [CakeVariantController::class, 'publish'])->whereNumber('variant')->name('admin.cake-variants.publish');
         Route::delete('/admin/cake-variants/{variant}/publish', [CakeVariantController::class, 'unpublish'])->whereNumber('variant')->name('admin.cake-variants.unpublish');
+        Route::post('/admin/cake-variants/{variant}/shading', [CakeVariantImageController::class, 'updateShading'])->whereNumber('variant')->name('admin.cake-variants.shading.update');
+        Route::delete('/admin/cake-variants/{variant}/shading', [CakeVariantImageController::class, 'destroyShading'])->whereNumber('variant')->name('admin.cake-variants.shading.destroy');
+        Route::post('/admin/cake-variants/{variant}/photos', [CakeVariantImageController::class, 'storePhoto'])->whereNumber('variant')->name('admin.cake-variants.photos.store');
+        Route::delete('/admin/cake-variants/{variant}/photos/{photo}', [CakeVariantImageController::class, 'destroyPhoto'])->whereNumber(['variant', 'photo'])->name('admin.cake-variants.photos.destroy');
     });
 });
 

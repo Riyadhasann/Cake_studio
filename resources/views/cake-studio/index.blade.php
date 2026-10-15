@@ -7,6 +7,7 @@
             creams: @js($creams),
             parts: @js($parts),
             variantLayers: @js(array_keys($variants)),
+            variantPhotos: @js(collect($variants)->map(fn ($variant) => collect($variant['photos'])->map(fn ($photo) => ['id' => $photo['id'], 'url' => $photo['url']]))),
             defaultSpongeId: @js($defaultSpongeId),
             defaultCreamId: @js($defaultCreamId),
             addUrl: @js(route('cart.add')),
@@ -38,8 +39,8 @@
             <div class="space-y-9 md:col-span-3">
 
                 <section>
-                    <h2 class="heading text-3xl">Size</h2>
-                    <div class="mt-4 flex flex-wrap gap-2.5">
+                    <h2 id="size-heading" class="heading text-3xl">Size</h2>
+                    <div class="mt-4 flex flex-wrap gap-2.5" role="group" aria-labelledby="size-heading">
                         <template x-for="size in sizes" :key="size.id">
                             <button
                                 type="button"
@@ -64,6 +65,7 @@
                                 type="button"
                                 @click="setLayerCount(n)"
                                 :aria-pressed="layerCount === n"
+                                :aria-label="n + ' layers'"
                                 :class="layerCount === n ? 'bg-brand text-white' : 'text-ink hover:text-brand'"
                                 class="h-10 min-w-14 rounded-full px-5 text-sm font-medium transition-colors"
                                 x-text="n"
@@ -78,8 +80,8 @@
                         <section class="panel p-6">
                             <h2 class="heading text-3xl" x-text="layerTitle(index)"></h2>
 
-                            <p class="mt-5 text-sm font-medium">Sponge</p>
-                            <div class="mt-3 flex flex-wrap gap-2.5">
+                            <p class="mt-5 text-sm font-medium" aria-hidden="true">Sponge</p>
+                            <div class="mt-3 flex flex-wrap gap-2.5" role="group" :aria-label="layerTitle(index) + ': sponge'">
                                 <template x-for="sponge in sponges" :key="sponge.id">
                                     <button
                                         type="button"
@@ -95,8 +97,8 @@
                                 </template>
                             </div>
 
-                            <p class="mt-6 text-sm font-medium">Cream</p>
-                            <div class="mt-3 flex flex-wrap gap-2.5">
+                            <p class="mt-6 text-sm font-medium" aria-hidden="true">Cream</p>
+                            <div class="mt-3 flex flex-wrap gap-2.5" role="group" :aria-label="layerTitle(index) + ': cream'">
                                 <template x-for="cream in creams" :key="cream.id">
                                     <button
                                         type="button"
@@ -131,21 +133,21 @@
                 </section>
 
                 <section class="border-t border-line pt-9">
-                    <h2 class="heading text-3xl">How many</h2>
-                    <div class="mt-4 inline-flex items-center rounded-full border border-line bg-white/60">
+                    <h2 id="quantity-heading" class="heading text-3xl">How many</h2>
+                    <div class="mt-4 inline-flex items-center rounded-full border border-line bg-white/60" role="group" aria-labelledby="quantity-heading">
                         <button type="button" @click="decrement()" :disabled="quantity <= 1" aria-label="Decrease quantity"
                             class="h-11 w-11 text-xl text-brand disabled:text-ink/30">&minus;</button>
-                        <span class="w-10 text-center font-medium" x-text="quantity"></span>
+                        <span class="w-10 text-center font-medium" x-text="quantity" aria-live="polite"></span>
                         <button type="button" @click="increment()" :disabled="quantity >= maxQuantity" aria-label="Increase quantity"
                             class="h-11 w-11 text-xl text-brand disabled:text-ink/30">+</button>
                     </div>
                 </section>
 
-                <p x-show="errorMessage" x-text="errorMessage" x-cloak
+                <p x-show="errorMessage" x-text="errorMessage" x-cloak role="alert"
                    class="rounded-xl border border-clay/30 bg-clay-soft px-4 py-3 text-sm text-clay"></p>
 
-                <div class="flex items-end justify-between gap-4 border-t border-line pt-9">
-                    <div>
+                <div class="flex flex-wrap items-end justify-between gap-4 border-t border-line pt-9">
+                    <div aria-live="polite" aria-atomic="true">
                         <p class="text-sm text-ink/70" x-text="quantity + ' × ৳' + format(unitPrice)"></p>
                         <p class="mt-1 font-display text-5xl font-medium leading-none">৳<span x-text="format(totalPrice)"></span></p>
                     </div>
@@ -161,12 +163,14 @@
             x-transition.opacity
             @click.self="showModal = false"
             class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            @keydown.tab="trapFocus($event)"
             role="dialog"
             aria-modal="true"
+            aria-labelledby="confirm-title"
         >
-            <div class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[1.75rem] bg-paper p-8 text-center">
+            <div x-ref="dialog" class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[1.75rem] bg-paper p-8 text-center">
                 <p class="font-script text-3xl leading-none text-brand">lovely choice</p>
-                <h2 class="heading mt-2 text-4xl">Add this cake to your cart?</h2>
+                <h2 id="confirm-title" class="heading mt-2 text-4xl">Add this cake to your cart?</h2>
 
                 <div class="mt-6 rounded-2xl bg-petal p-5 text-sm">
                     <p class="font-display text-2xl font-medium" x-text="quantity + ' × ' + selectedSize?.label + ', ' + layerCount + ' layers'"></p>
@@ -185,7 +189,7 @@
                 <p class="mt-4 text-xs text-ink/70">Nothing is added to your cart until you continue to checkout.</p>
 
                 <div class="mt-6 space-y-3">
-                    <button type="button" @click="confirmAndCheckout()" :disabled="isSaving" class="btn w-full">
+                    <button type="button" x-ref="confirmButton" @click="confirmAndCheckout()" :disabled="isSaving" class="btn w-full">
                         <span x-text="isSaving ? 'Adding…' : 'Add to Cart & Go to Checkout'"></span>
                     </button>
                     <button type="button" @click="showModal = false" :disabled="isSaving" class="btn-outline w-full">
@@ -215,6 +219,7 @@
                 cartUrl: config.cartUrl,
                 parts: config.parts ?? {},
                 variantLayers: config.variantLayers ?? [], // layer counts with a published SVG drawing
+                variantPhotos: config.variantPhotos ?? {}, // {layers: {"sponge-3-1": {id, url}}}: a flavor's photo for one slot
                 broken: [], // image URLs that failed to load, so we fall back to the drawing
 
                 minLayers: minLayers,
@@ -228,6 +233,7 @@
                 quantity: 1,
                 maxQuantity: 20,
                 showModal: false,
+                lastFocus: null, // the element that opened the dialog
                 isSaving: false,
                 errorMessage: '',
 
@@ -311,16 +317,24 @@
                     const url = this.flavor(list, id)?.texture ?? null;
                     return url && !this.broken.includes(url) ? url : null;
                 },
-                // The fill of one slot in the SVG drawing: texture, else layer image, else color.
+                // The fill of one slot in the SVG drawing: the flavor's photo for this slot, else its texture,
+                // else its layer image, else its color.
                 slotFill(layerNo, type) {
                     const [list, id] = this.slotFlavor(layerNo, type);
+                    const photo = this.slotPhoto(layerNo, type);
+                    if (photo) return `url(#cake-photo-${photo.id})`;
                     if (this.flavorTexture(list, id)) return `url(#cake-texture-${type}-${id})`;
                     if (this.flavorImage(list, id)) return `url(#cake-image-${type}-${id})`;
                     return this.flavorColor(list, id);
                 },
                 slotHasArt(layerNo, type) {
                     const [list, id] = this.slotFlavor(layerNo, type);
-                    return Boolean(this.flavorTexture(list, id) || this.flavorImage(list, id));
+                    return Boolean(this.slotPhoto(layerNo, type) || this.flavorTexture(list, id) || this.flavorImage(list, id));
+                },
+                slotPhoto(layerNo, type) {
+                    const [, id] = this.slotFlavor(layerNo, type);
+                    const photo = this.variantPhotos[this.layerCount]?.[`${type}-${id}-${layerNo}`];
+                    return photo && !this.broken.includes(photo.url) ? photo : null;
                 },
                 slotFlavor(layerNo, type) {
                     const layer = this.layers[layerNo - 1];
@@ -340,13 +354,24 @@
                     return `hsl(${h} 45% 70%)`;
                 },
 
-                // Warm the cache with every texture once the page has loaded, so picking a flavor
-                // or switching to another drawing never waits for one.
+                // Warm the cache once the page has loaded: every texture, and the photos of the drawing
+                // in use (again whenever the layer count changes), so a pick never waits for an image.
                 init() {
+                    // The confirm dialog gives focus back to whatever opened it.
+                    this.$watch('showModal', (open) => {
+                        if (!open) this.$nextTick(() => this.lastFocus?.focus());
+                    });
+
                     if (!this.variantLayers.length) return;
-                    const urls = [...this.sponges, ...this.creams].map(f => f.texture).filter(Boolean);
-                    const preload = () => urls.forEach(url => { new Image().src = url; });
-                    document.readyState === 'complete' ? preload() : window.addEventListener('load', preload, { once: true });
+                    const preload = (urls) => urls.forEach(url => { new Image().src = url; });
+                    const photosOf = (layers) => Object.values(this.variantPhotos[layers] ?? {}).map(photo => photo.url);
+                    const whenLoaded = (fn) => document.readyState === 'complete' ? fn() : window.addEventListener('load', fn, { once: true });
+
+                    whenLoaded(() => preload([
+                        ...[...this.sponges, ...this.creams].map(f => f.texture).filter(Boolean),
+                        ...photosOf(this.layerCount),
+                    ]));
+                    this.$watch('layerCount', (layers) => whenLoaded(() => preload(photosOf(layers))));
                 },
 
                 format(value) {
@@ -359,6 +384,21 @@
                     if (this.quantity > 1) this.quantity--;
                 },
 
+                // Tab and Shift+Tab cycle through the dialog's buttons instead of leaving it.
+                trapFocus(event) {
+                    const buttons = [...this.$refs.dialog.querySelectorAll('button:not([disabled])')];
+                    if (!buttons.length) return;
+                    const first = buttons[0];
+                    const last = buttons[buttons.length - 1];
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (!event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                },
+
                 openConfirm() {
                     this.errorMessage = '';
                     const complete = this.layers.every(l => l.sponge_id && l.cream_id);
@@ -366,7 +406,9 @@
                         this.errorMessage = 'Please choose a size and a sponge and cream for every layer.';
                         return;
                     }
+                    this.lastFocus = document.activeElement;
                     this.showModal = true;
+                    this.$nextTick(() => this.$refs.confirmButton.focus());
                 },
 
                 async confirmAndCheckout() {

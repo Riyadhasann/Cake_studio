@@ -69,13 +69,13 @@
     <section class="mt-14">
         <h2 class="heading text-3xl">Sponge layers</h2>
         <p class="mt-2 max-w-2xl text-sm leading-7 text-ink/75">
-            One image per sponge flavor: a wide strip of that sponge, about 1200 x 255 px.
+            One image per sponge flavor: a wide strip of that sponge, about 1200 x 255 px, as PNG, JPG, WebP or SVG.
             If your shape is different it is cropped from the center, exactly as the preview below each name shows.
             Use the arrows next to a name to change the order flavors are listed in on the design page.
         </p>
         <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($sponges as $sponge)
-                <x-visual-card :item="$sponge" type="sponge" ratio="4.7 / 1" fit="cover"
+                <x-visual-card :item="$sponge" type="sponge" :drawings="$drawings" ratio="4.7 / 1" fit="cover"
                                :move-up="$swapped($sponges, $loop->index, -1)" :move-down="$swapped($sponges, $loop->index, 1)" />
             @endforeach
         </div>
@@ -84,12 +84,12 @@
     <section class="mt-14">
         <h2 class="heading text-3xl">Cream layers</h2>
         <p class="mt-2 max-w-2xl text-sm leading-7 text-ink/75">
-            One image per cream flavor: a thin wide strip of that cream, about 1400 x 112 px.
+            One image per cream flavor: a thin wide strip of that cream, about 1400 x 112 px, as PNG, JPG, WebP or SVG.
             It sits between the sponge layers and is slightly wider than the sponge.
         </p>
         <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($creams as $cream)
-                <x-visual-card :item="$cream" type="cream" ratio="12.5 / 1" fit="cover"
+                <x-visual-card :item="$cream" type="cream" :drawings="$drawings" ratio="12.5 / 1" fit="cover"
                                :move-up="$swapped($creams, $loop->index, -1)" :move-down="$swapped($creams, $loop->index, 1)" />
             @endforeach
         </div>

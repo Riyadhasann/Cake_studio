@@ -6,6 +6,8 @@ use App\Actions\Variants\SaveCakeVariant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateCakeVariantRequest;
 use App\Models\CakeVariant;
+use App\Models\CreamFlavor;
+use App\Models\SpongeFlavor;
 use App\Services\SvgSanitizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,10 +46,15 @@ class CakeVariantController extends Controller
 
     public function edit(CakeVariant $variant): View
     {
-        $variant->load('slots');
+        $variant->load(['slots', 'flavorImages']);
 
         return view('admin.cake-variants.edit', [
             'variant' => $variant,
+            // Every flavor, so photos of flavors taken off the menu still show a name; the upload form lists active ones.
+            'flavors' => [
+                'sponge' => SpongeFlavor::ordered()->get(['id', 'name', 'is_active']),
+                'cream' => CreamFlavor::ordered()->get(['id', 'name', 'is_active']),
+            ],
             'allowedElements' => SvgSanitizer::ELEMENTS,
             'allowedAttributes' => SvgSanitizer::ATTRIBUTES,
         ]);

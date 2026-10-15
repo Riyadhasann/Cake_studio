@@ -1,4 +1,4 @@
-@props(['item', 'type', 'ratio', 'fit' => 'cover', 'moveUp' => null, 'moveDown' => null])
+@props(['item', 'type', 'ratio', 'fit' => 'cover', 'moveUp' => null, 'moveDown' => null, 'drawings' => []])
 
 <div class="panel p-5">
     <div class="flex items-baseline justify-between gap-3">
@@ -11,7 +11,14 @@
                         @foreach ($ids as $id)
                             <input type="hidden" name="ids[]" value="{{ $id }}">
                         @endforeach
-                        <button type="submit" class="text-xs text-ink/60 hover:text-brand" aria-label="Move {{ $item->name }} {{ $direction }}" title="Move {{ $direction }}">{{ $direction === 'up' ? '▲' : '▼' }}</button>
+                        @php
+                            $focusKey = "{$type}-{$item->id}-{$direction}";
+                            // After a move, focus this arrow again; at the top or bottom, the other arrow.
+                            $refocus = in_array(session('focus'), [$focusKey, "{$type}-{$item->id}-".($direction === 'up' ? 'down' : 'up')], true)
+                                && (session('focus') === $focusKey || ! ($direction === 'up' ? $moveDown : $moveUp));
+                        @endphp
+                        <input type="hidden" name="focus" value="{{ $focusKey }}">
+                        <button type="submit" class="text-xs text-ink/60 hover:text-brand" aria-label="Move {{ $item->name }} {{ $direction }}" title="Move {{ $direction }}" @if ($refocus) autofocus @endif>{{ $direction === 'up' ? '▲' : '▼' }}</button>
                     </form>
                 @endif
             @endforeach
@@ -34,7 +41,7 @@
 
     <form action="{{ route('admin.cake-visuals.update', [$type, $item->id]) }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-3">
         @csrf
-        <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required
+        <input type="file" name="image" accept="{{ $type === 'part' ? 'image/png,image/jpeg,image/webp' : 'image/png,image/jpeg,image/webp,image/svg+xml,.svg' }}" required
                class="w-full text-sm text-ink/80 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-medium file:text-brand hover:file:bg-brand-soft">
         <button type="submit" class="btn btn-sm w-full">{{ $item->layer_image ? 'Replace image' : 'Upload image' }}</button>
     </form>
@@ -50,7 +57,9 @@
 
     {{-- Sponges and creams only: a square tile repeated across the slots of the cake drawing. --}}
     @if ($type !== 'part')
-        <div class="mt-4 border-t border-line pt-4">
+        @php $savedTexture = $item->texture_image ? asset($item->texture_image) : null; @endphp
+        {{-- url: the file chosen in the form (before saving), else the saved texture --}}
+        <div class="mt-4 border-t border-line pt-4" x-data="{ url: @js($savedTexture), saved: @js($savedTexture) }">
             <div class="flex items-center gap-3">
                 <div class="size-14 shrink-0 rounded-lg border border-line"
                      style="{{ $item->texture_image ? "background: url('" . asset($item->texture_image) . "') 0 0 / 28px 28px repeat;" : 'background-color: ' . ($item->color ?? '#ffffff') . ';' }}"></div>
@@ -63,9 +72,14 @@
             <form action="{{ route('admin.cake-visuals.texture.update', [$type, $item->id]) }}" method="POST" enctype="multipart/form-data" class="mt-3 space-y-3">
                 @csrf
                 <input type="file" name="texture" accept="image/png,image/webp" required
+                       @change="if (url && url !== saved) URL.revokeObjectURL(url); url = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : saved"
                        class="w-full text-sm text-ink/80 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-medium file:text-brand hover:file:bg-brand-soft">
                 <button type="submit" class="btn-outline btn-sm w-full">{{ $item->texture_image ? 'Replace texture' : 'Upload texture' }}</button>
             </form>
+
+            @if ($drawings)
+                <x-texture-preview :drawings="$drawings" :type="$type" :id="$type.'-'.$item->id" :color="$item->color" />
+            @endif
 
             @if ($item->texture_image)
                 <form action="{{ route('admin.cake-visuals.texture.destroy', [$type, $item->id]) }}" method="POST"

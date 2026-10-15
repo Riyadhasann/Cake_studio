@@ -4,16 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\CakePart;
 use App\Models\CakeSize;
-use App\Models\CakeVariant;
-use App\Models\CakeVariantSlot;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
-use App\Services\SvgSanitizer;
+use App\Services\CakeDrawings;
+use App\Services\PublicUploads;
 use Illuminate\View\View;
 
 class CakeStudioController extends Controller
 {
-    public function index(SvgSanitizer $sanitizer): View
+    public function index(CakeDrawings $drawings, PublicUploads $uploads): View
     {
         // The page only needs these fields. layer_image and texture_image are paths inside public/, or null.
         $forPage = fn ($flavor) => [
@@ -22,7 +21,10 @@ class CakeStudioController extends Controller
             'extra_price' => $flavor->extra_price,
             'color' => $flavor->color,
             'image' => $flavor->layer_image ? asset($flavor->layer_image) : null,
-            'texture' => $flavor->texture_image ? asset($flavor->texture_image) : null,
+            // A texture whose file is gone is left out, so the slot falls back instead of drawing nothing.
+            'texture' => $uploads->size($flavor->texture_image) ? asset($flavor->texture_image) : null,
+            // [width, height] in pixels, so the drawing can crop the image to a slot like object-fit: cover
+            'image_size' => $uploads->size($flavor->layer_image),
         ];
 
         // ['frosting' => url or null, 'plate' => url or null]
@@ -38,38 +40,10 @@ class CakeStudioController extends Controller
             'sponges' => $sponges->map($forPage)->values(),
             'creams' => $creams->map($forPage)->values(),
             'parts' => $parts,
-            'variants' => $this->publishedVariants($sanitizer),
+            'variants' => $drawings->published($sponges, $creams),
             // The admin's default flavors, which every new layer starts with. Falls back to the first one on the menu.
             'defaultSpongeId' => ($sponges->firstWhere('is_default', true) ?? $sponges->first())?->id,
             'defaultCreamId' => ($creams->firstWhere('is_default', true) ?? $creams->first())?->id,
         ]);
-    }
-
-    /**
-     * The SVG drawing for each layer count that has a published, complete one, keyed by layer count.
-     * A layer count missing here keeps the layered preview.
-     *
-     * @return array<int, array{width: int, height: int, base_svg: string, slots: array<int, array{layer_no: int, type: string, path: string}>}>
-     */
-    private function publishedVariants(SvgSanitizer $sanitizer): array
-    {
-        return CakeVariant::published()
-            ->with('slots')
-            ->get()
-            ->filter(fn (CakeVariant $variant) => $variant->canPublish())
-            ->mapWithKeys(fn (CakeVariant $variant) => [$variant->layers => [
-                'width' => $variant->view_box_width,
-                'height' => $variant->view_box_height,
-                // Sanitized on save already; again here so markup written straight into the database can't run either.
-                'base_svg' => $sanitizer->sanitize((string) $variant->base_svg),
-                // Bottom layer first and each sponge before its cream, so a cream's shadow falls on its sponge.
-                'slots' => $variant->slots
-                    ->sortBy([['layer_no', 'asc'], fn (CakeVariantSlot $a, CakeVariantSlot $b) => array_search($a->type, CakeVariantSlot::TYPES, true) <=> array_search($b->type, CakeVariantSlot::TYPES, true)])
-                    ->map(fn (CakeVariantSlot $slot) => ['layer_no' => $slot->layer_no, 'type' => $slot->type, 'path' => $slot->svg_path])
-                    ->values()
-                    ->all(),
-            ]])
-            ->sortKeys()
-            ->all();
     }
 }

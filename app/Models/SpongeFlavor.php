@@ -48,12 +48,6 @@ class SpongeFlavor extends Model
         return $query->orderBy('sort_order')->orderBy('id');
     }
 
-    /** @return HasMany<CakePreview, $this> */
-    public function previews(): HasMany
-    {
-        return $this->hasMany(CakePreview::class);
-    }
-
     /** @return HasMany<CakeCustomization, $this> */
     public function customizations(): HasMany
     {

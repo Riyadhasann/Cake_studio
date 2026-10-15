@@ -158,12 +158,23 @@
                                   :stroke-width="active === {{ $i }} ? 3 : 1"
                                   vector-effect="non-scaling-stroke" />
                         @endforeach
+                        @if ($variant->shading_image)
+                            <clipPath id="editor-slots">
+                                @foreach ($slotRows as $i => $row)
+                                    <path :d="pathOf(slots[{{ $i }}])" />
+                                @endforeach
+                            </clipPath>
+                            <image href="{{ asset($variant->shading_image) }}" x="0" y="0" :width="width" :height="height" preserveAspectRatio="none"
+                                   clip-path="url(#editor-slots)" style="mix-blend-mode: multiply" pointer-events="none" />
+                        @endif
                         <g x-html="safeBase"></g>
                     </svg>
                 </div>
             </div>
         </aside>
     </form>
+
+    @include('admin.cake-variants._realism')
 
     <script>
         function cakeVariantEditor(config) {

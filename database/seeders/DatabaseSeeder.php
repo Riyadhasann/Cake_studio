@@ -12,7 +12,6 @@ class DatabaseSeeder extends Seeder
             CakeSizeSeeder::class,
             SpongeFlavorSeeder::class,
             CreamFlavorSeeder::class,
-            CakePreviewSeeder::class,
             CakeVariantSeeder::class,
         ]);
     }

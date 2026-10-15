@@ -29,7 +29,7 @@
             <p class="mt-8 text-ink/70">No orders yet.</p>
         @else
             <div class="panel mt-8 overflow-x-auto">
-                <table class="w-full text-left text-sm">
+                <table class="w-full min-w-[56rem] text-left text-sm">
                     <thead class="bg-petal text-xs font-medium tracking-wide text-ink/70">
                         <tr>
                             <th class="px-5 py-3.5">Order</th>

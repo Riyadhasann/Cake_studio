@@ -1,30 +1,30 @@
-# Graph Report - Cake_studio  (2026-10-14)
+# Graph Report - Cake_studio  (2026-10-15)
 
 ## Corpus Check
-- 173 files · ~34,424 words
+- 186 files · ~40,964 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 21 file(s) not represented in the graph (top: (none) 16, .example 1, .neon 1)
 
 ## Summary
-- 823 nodes · 1230 edges · 128 communities (22 shown, 106 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 47 edges (avg confidence: 0.86)
+- 834 nodes · 1235 edges · 127 communities (23 shown, 104 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 52 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `17053e17`
+- Built from commit: `eb58c43a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- Illuminate\Database\Eloquent\Relations\BelongsTo
+- Illuminate\Database\Eloquent\Model
 - Illuminate\Http\RedirectResponse
 - Laravel\Fortify\Features
 - FortifyServiceProvider.php
-- SizeAdminTest.php
+- AppServiceProvider.php
 - package.json
 - UserFactory.php
 - Illuminate\Foundation\Http\FormRequest
-- CartController.php
+- CartService
 - FlavorAdminTest.php
 - scripts
 - Illuminate\Database\Schema\Blueprint
@@ -54,8 +54,8 @@
 - ⚡two-factor-setup-modal.blade.php
 - 2026_10_01_065018_create_cake_customizations_table.php
 - 2026_10_01_072506_create_cake_previews_table.php
-- CakeVariantAdminTest.php
-- CakeVariant
+- completeVariant
+- App\Models\CakeVariant
 - ⚡profile.blade.php
 - Apple Touch Icon (Laravel Logo)
 - Site Favicon (favicon.svg)
@@ -68,11 +68,12 @@
 - ⚡appearance.blade.php
 - ⚡delete-user-form.blade.php
 - robots.txt Allow-All Crawl Policy
-- Illuminate\Database\Eloquent\Model
-- Logout.php
+- PasswordValidationRules
+- bootstrap/app.php
 - Illuminate\Database\Seeder
+- ProfileValidationRules
+- FortifyServiceProvider
 - 2026_10_01_064803_create_cream_flavors_table.php
-- CakeSize
 - 0001_01_01_000002_create_jobs_table.php
 - cake-variants/edit.blade.php
 - 2026_10_14_120000_add_weight_kg_to_cake_sizes_table.php
@@ -81,30 +82,30 @@
 - cake-variants/index.blade.php
 - edit.blade.php
 - sizes/index.blade.php
-- cake-variants/_alerts.blade.php
+- admin.sizes._alerts
 
 ## God Nodes (most connected - your core abstractions)
-1. `User` - 29 edges
-2. `completeVariant()` - 21 edges
-3. `CakeVariant` - 20 edges
-4. `CreamFlavor` - 17 edges
-5. `SpongeFlavor` - 17 edges
-6. `CakeSize` - 16 edges
-7. `Controller` - 14 edges
-8. `SvgSanitizer` - 14 edges
-9. `CakeVisualController` - 13 edges
-10. `CartService` - 13 edges
+1. `User` - 28 edges
+2. `completeVariant()` - 24 edges
+3. `SvgSanitizer` - 17 edges
+4. `SpongeFlavor` - 15 edges
+5. `CreamFlavor` - 15 edges
+6. `CakeSize` - 15 edges
+7. `CartService` - 13 edges
+8. `scripts` - 13 edges
+9. `CakeVisualController` - 12 edges
+10. `require-dev` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `useSizeInOrder()` --references--> `CakeSize`  [EXTRACTED]
   tests/Feature/SizeAdminTest.php → app/Models/CakeSize.php
-- `completeVariant()` --references--> `CakeVariant`  [EXTRACTED]
-  tests/Pest.php → app/Models/CakeVariant.php
-- `{closure#3}()` --calls--> `CakeVariantSlot`  [EXTRACTED]
-  tests/Feature/CakeVariantTest.php → app/Models/CakeVariantSlot.php
-- `{closure#2}()` --calls--> `completeVariant()`  [INFERRED]
-  tests/Feature/CakeVariantAdminTest.php → tests/Pest.php
-- `{closure#4}()` --calls--> `completeVariant()`  [INFERRED]
+- `{closure#10}()` --calls--> `completeVariant()`  [INFERRED]
+  tests/Feature/CakeStudioVariantPreviewTest.php → tests/Pest.php
+- `{closure#11}()` --calls--> `completeVariant()`  [INFERRED]
+  tests/Feature/CakeStudioVariantPreviewTest.php → tests/Pest.php
+- `{closure#7}()` --calls--> `completeVariant()`  [INFERRED]
+  tests/Feature/CakeStudioVariantPreviewTest.php → tests/Pest.php
+- `{closure#12}()` --calls--> `completeVariant()`  [INFERRED]
   tests/Feature/CakeVariantAdminTest.php → tests/Pest.php
 
 ## Import Cycles
@@ -113,31 +114,31 @@
 ## Hyperedges (group relationships)
 - **CI Pipeline Setup and Check Flow** — _github_workflows_tests_actions_checkout, _github_workflows_tests_setup_php, _github_workflows_tests_setup_node, _github_workflows_tests_composer_setup, _github_workflows_tests_composer_ci_check [EXTRACTED 1.00]
 
-## Communities (128 total, 106 thin omitted)
+## Communities (127 total, 104 thin omitted)
 
-### Community 0 - "Illuminate\Database\Eloquent\Relations\BelongsTo"
-Cohesion: 0.13
-Nodes (4): CakeCustomization, {closure#2}(), CakeCustomizationLayer, CakePreview
+### Community 0 - "Illuminate\Database\Eloquent\Model"
+Cohesion: 0.05
+Nodes (10): DeleteCakeSize, CakeCustomization, {closure#2}(), CakeCustomizationLayer, CakePart, CakeSize, CreamFlavor, SpongeFlavor (+2 more)
 
 ### Community 1 - "Illuminate\Http\RedirectResponse"
-Cohesion: 0.07
-Nodes (15): ReorderFlavors, CakePreviewController, CakeSizeController, CakeVisualController, {closure#1}(), {closure#1}(), OrderController, CakeStudioController (+7 more)
+Cohesion: 0.06
+Nodes (11): ReorderFlavors, CakeSizeController, CakeVisualController, {closure#1}(), {closure#1}(), OrderController, Controller, OrderTrackingController (+3 more)
 
 ### Community 3 - "FortifyServiceProvider.php"
-Cohesion: 0.05
-Nodes (10): CreateNewUser, ResetUserPassword, PasswordValidationRules, ProfileValidationRules, AppServiceProvider, {closure#1}(), {closure#10}(), {closure#8}() (+2 more)
+Cohesion: 0.16
+Nodes (3): {closure#10}(), {closure#8}(), {closure#9}()
 
 ### Community 5 - "package.json"
 Cohesion: 0.06
 Nodes (30): dependencies, concurrently, @laravel/passkeys, laravel-vite-plugin, tailwindcss, @tailwindcss/vite, vite, vite-plus (+22 more)
 
 ### Community 7 - "Illuminate\Foundation\Http\FormRequest"
-Cohesion: 0.08
-Nodes (8): EnsureUserIsAdmin, {closure#1}(), ReorderFlavorsRequest, StoreFlavorTextureRequest, {closure#1}(), {closure#2}(), UpdateCakeVariantRequest, PlaceOrderRequest
+Cohesion: 0.06
+Nodes (10): EnsureUserIsAdmin, {closure#1}(), ReorderFlavorsRequest, StoreFlavorTextureRequest, {closure#1}(), {closure#2}(), UpdateCakeVariantRequest, PlaceOrderRequest (+2 more)
 
-### Community 8 - "CartController.php"
-Cohesion: 0.11
-Nodes (5): CartController, {closure#1}(), StoreCakeCustomizationRequest, CartService, {closure#2}()
+### Community 8 - "CartService"
+Cohesion: 0.22
+Nodes (3): CartController, CartService, {closure#2}()
 
 ### Community 10 - "scripts"
 Cohesion: 0.15
@@ -183,45 +184,49 @@ Nodes (5): extra, laravel, post-create-project, dont-discover, installer
 Cohesion: 0.50
 Nodes (3): confirmTwoFactor, resetVerification, showVerificationIfNecessary
 
-### Community 39 - "CakeVariantAdminTest.php"
+### Community 39 - "completeVariant"
+Cohesion: 0.06
+Nodes (27): {closure#10}(), {closure#11}(), {closure#7}(), {closure#11}(), {closure#12}(), {closure#13}(), {closure#14}(), {closure#15}() (+19 more)
+
+### Community 40 - "App\Models\CakeVariant"
 Cohesion: 0.07
-Nodes (27): CakeVariantSlot, CakeVariantSeeder, {closure#1}(), {closure#11}(), {closure#12}(), {closure#13}(), {closure#14}(), {closure#15}() (+19 more)
+Nodes (10): {closure#1}(), SaveCakeVariant, CakeVariantController, CakeStudioController, {closure#3}(), {closure#4}(), {closure#5}(), {closure#6}() (+2 more)
 
-### Community 40 - "CakeVariant"
-Cohesion: 0.12
-Nodes (5): {closure#1}(), SaveCakeVariant, CakeVariantController, CakeVariant, SvgSanitizer
+### Community 104 - "PasswordValidationRules"
+Cohesion: 0.24
+Nodes (3): CreateNewUser, ResetUserPassword, PasswordValidationRules
 
-### Community 104 - "Illuminate\Database\Eloquent\Model"
-Cohesion: 0.16
-Nodes (3): CakePart, CreamFlavor, SpongeFlavor
+### Community 105 - "bootstrap/app.php"
+Cohesion: 0.32
+Nodes (3): {closure#1}(), {closure#2}(), {closure#3}()
 
 ### Community 106 - "Illuminate\Database\Seeder"
-Cohesion: 0.17
-Nodes (5): CakePreviewSeeder, CakeSizeSeeder, CreamFlavorSeeder, DatabaseSeeder, SpongeFlavorSeeder
+Cohesion: 0.12
+Nodes (7): CakeVariantSlot, CakeSizeSeeder, CakeVariantSeeder, {closure#1}(), CreamFlavorSeeder, DatabaseSeeder, SpongeFlavorSeeder
 
 ### Community 114 - "0001_01_01_000002_create_jobs_table.php"
 Cohesion: 0.33
 Nodes (3): {closure#1}(), {closure#2}(), {closure#3}()
 
 ## Knowledge Gaps
-- **44 isolated node(s):** `concurrently`, `tailwindcss`, `vite`, `@laravel/multiplex`, `@rollup/rollup-linux-x64-gnu` (+39 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 403 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **106 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **44 isolated node(s):** `admin.cake-variants._alerts`, `admin.cake-variants._publish`, `admin.cake-variants._alerts`, `admin.cake-variants._publish`, `admin.sizes._alerts` (+39 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 413 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **104 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `User` connect `User` to `Laravel\Fortify\Features`, `FortifyServiceProvider.php`, `SizeAdminTest.php`, `UserFactory.php`, `CakeVariantAdminTest.php`, `FlavorAdminTest.php`, `EmailVerificationTest.php`, `PasswordResetTest.php`, `DefaultCakePreviewTest.php`, `SecurityTest.php`, `AuthenticationTest.php`, `DashboardTest.php`?**
-  _High betweenness centrality (0.150) - this node is a cross-community bridge._
-- **What connects `concurrently`, `tailwindcss`, `vite` to the rest of the system?**
+- **Why does `User` connect `User` to `PasswordResetTest.php`, `Illuminate\Database\Eloquent\Model`, `Laravel\Fortify\Features`, `UserFactory.php`, `PasswordValidationRules`, `FlavorAdminTest.php`, `EmailVerificationTest.php`, `ProfileValidationRules`, `SecurityTest.php`, `AuthenticationTest.php`, `DashboardTest.php`?**
+  _High betweenness centrality (0.122) - this node is a cross-community bridge._
+- **What connects `admin.cake-variants._alerts`, `admin.cake-variants._publish`, `admin.cake-variants._alerts` to the rest of the system?**
   _44 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Illuminate\Database\Eloquent\Relations\BelongsTo` be split into smaller, more focused modules?**
-  _Cohesion score 0.13438735177865613 - nodes in this community are weakly interconnected._
-- **Why does `CreamFlavor` connect `Illuminate\Database\Eloquent\Model` to `Illuminate\Http\RedirectResponse`, `SizeAdminTest.php`, `Illuminate\Foundation\Http\FormRequest`, `CartController.php`, `FlavorAdminTest.php`, `Illuminate\Database\Seeder`, `DefaultCakePreviewTest.php`?**
+- **Should `Illuminate\Database\Eloquent\Model` be split into smaller, more focused modules?**
+  _Cohesion score 0.053939714436805924 - nodes in this community are weakly interconnected._
+- **Why does `SpongeFlavor` connect `Illuminate\Database\Eloquent\Model` to `Illuminate\Http\RedirectResponse`, `Illuminate\Database\Seeder`, `FlavorAdminTest.php`, `Illuminate\Foundation\Http\FormRequest`?**
   _High betweenness centrality (0.060) - this node is a cross-community bridge._
 - **Should `Illuminate\Http\RedirectResponse` be split into smaller, more focused modules?**
-  _Cohesion score 0.0673076923076923 - nodes in this community are weakly interconnected._
-- **Why does `SpongeFlavor` connect `Illuminate\Database\Eloquent\Model` to `Illuminate\Http\RedirectResponse`, `SizeAdminTest.php`, `Illuminate\Foundation\Http\FormRequest`, `CartController.php`, `FlavorAdminTest.php`, `Illuminate\Database\Seeder`, `DefaultCakePreviewTest.php`?**
+  _Cohesion score 0.05698778833107191 - nodes in this community are weakly interconnected._
+- **Why does `CreamFlavor` connect `Illuminate\Database\Eloquent\Model` to `Illuminate\Http\RedirectResponse`, `Illuminate\Database\Seeder`, `FlavorAdminTest.php`, `Illuminate\Foundation\Http\FormRequest`?**
   _High betweenness centrality (0.060) - this node is a cross-community bridge._
-- **Should `FortifyServiceProvider.php` be split into smaller, more focused modules?**
-  _Cohesion score 0.05279034690799397 - nodes in this community are weakly interconnected._
+- **Should `package.json` be split into smaller, more focused modules?**
+  _Cohesion score 0.06439393939393939 - nodes in this community are weakly interconnected._
