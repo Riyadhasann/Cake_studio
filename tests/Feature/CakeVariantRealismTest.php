@@ -186,14 +186,6 @@ test('a layer image is cropped to the slot using its pixel size', function () {
         ->assertSee('<pattern id="cake-image-sponge-'.$this->sponge->id.'" patternUnits="objectBoundingBox" width="1" height="1" viewBox="0 0 1200 255"', false);
 });
 
-test('the flavor admin previews textures on the drawings', function () {
-    $this->actingAs($this->admin)
-        ->get(route('admin.cake-visuals.index'))
-        ->assertOk()
-        ->assertSee('id="texture-preview-sponge-'.$this->sponge->id.'"', false)
-        ->assertSee('The texture on a 2-layer cake');
-});
-
 test('customers cannot manage shading or photos', function () {
     uploadPhoto($this);
     $photo = FlavorVariantImage::sole();

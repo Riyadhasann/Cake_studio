@@ -15,15 +15,13 @@ class CakeStudioController extends Controller
 {
     public function index(CakeDrawings $drawings, PublicUploads $uploads, LayerStrips $strips): View
     {
-        // The page only needs these fields. layer_image and texture_image are paths inside public/, or null.
+        // The page only needs these fields. layer_image is a path inside public/, or null.
         $forPage = fn ($flavor) => [
             'id' => $flavor->id,
             'name' => $flavor->name,
             'extra_price' => $flavor->extra_price,
             'color' => $flavor->color,
             'image' => $flavor->layer_image ? asset($flavor->layer_image) : null,
-            // A texture whose file is gone is left out, so the slot falls back instead of drawing nothing.
-            'texture' => $uploads->size($flavor->texture_image) ? asset($flavor->texture_image) : null,
             // [width, height] in pixels, so the drawing can crop the image to a slot like object-fit: cover
             'image_size' => $uploads->size($flavor->layer_image),
             // The strip of art in the layer image (e.g. a V-shaped slice), mapped arm by arm onto a slot of a cake photo

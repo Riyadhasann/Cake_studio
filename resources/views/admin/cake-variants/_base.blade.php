@@ -18,10 +18,9 @@
     <div>
         <h2 class="heading text-3xl">Cake photo</h2>
         <p class="mt-2 text-sm leading-6 text-ink/70">
-            The cake as customers see it, with no sponge or cream in the cut: leave the cut face empty (transparent or
-            any flat color). The shapes are drawn over it and filled with the chosen flavors, the default sponge and cream
-            first. PNG, JPG or WebP, up to 4 MB; it is stored as WebP. A photo of a different size unpublishes the drawing
-            until the cut face is marked again.
+            The whole cake with a slice cut out and the cut left empty (see-through, or a gray checkerboard). The cut is
+            found automatically and the layers are fitted into it. PNG, JPG or WebP, up to 4 MB. Usually set once for
+            all layer counts on the <a href="{{ route('admin.cake-visuals.index') }}" class="underline">Cake images</a> page.
         </p>
 
         <form action="{{ route('admin.cake-variants.base.update', $variant) }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-3">

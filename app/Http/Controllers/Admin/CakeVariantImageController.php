@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Variants\ApplyCakePhoto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreVariantBaseRequest;
 use App\Http\Requests\Admin\StoreVariantPhotoRequest;
@@ -17,39 +18,17 @@ class CakeVariantImageController extends Controller
     public function __construct(private PublicUploads $uploads) {}
 
     /**
-     * The photo of the cake with an empty cut face, optionally for every layer count at once. The view box
-     * becomes the photo's pixel size; when that changes, the shapes no longer fit, so the drawing is unpublished
-     * until the cut face is marked again.
+     * The photo of the cake with an empty cut face, optionally for every layer count at once. The cut is found
+     * in the photo and the layers fitted into it; when it can't be found, it is marked by hand.
      */
-    public function updateBase(StoreVariantBaseRequest $request, CakeVariant $variant): RedirectResponse
+    public function updateBase(StoreVariantBaseRequest $request, CakeVariant $variant, ApplyCakePhoto $apply): RedirectResponse
     {
         $targets = $request->boolean('all_layers') ? CakeVariant::orderBy('layers')->get() : collect([$variant]);
-        $refit = [];
+        $saved = $targets->count() > 1 ? 'Cake photo saved for every layer count.' : 'Cake photo saved.';
 
-        foreach ($targets as $target) {
-            $old = $target->base_image;
-            $path = $this->uploads->storeAsWebp($request->file('base'), 'cake-bases');
-            [$width, $height] = $this->uploads->size($path) ?? [$target->view_box_width, $target->view_box_height];
-            $resized = $width !== $target->view_box_width || $height !== $target->view_box_height;
-
-            $target->update([
-                'base_image' => $path,
-                'view_box_width' => $width,
-                'view_box_height' => $height,
-                ...($resized ? ['cut_face' => null, 'is_published' => false] : []),
-            ]);
-            $this->uploads->delete($old);
-
-            if ($resized) {
-                $refit[] = $target->layers;
-            }
-        }
-
-        $redirect = back()->with('success', $targets->count() > 1 ? 'Cake photo saved for every layer count.' : 'Cake photo saved.');
-
-        return $refit
-            ? $redirect->with('warning', 'Mark the cut face on the photo and fit the shapes, then publish again ('.implode(', ', $refit).' layers).')
-            : $redirect;
+        return $apply->handle($request->file('base'), $targets)
+            ? back()->with('success', $saved.' The layers were fitted into the cut.')
+            : back()->with('success', $saved)->with('warning', 'The empty cut could not be found in the photo: mark it below and fit the shapes, then publish.');
     }
 
     /** Back to a drawing without a photo. It is unpublished: shapes fitted to the photo would float on nothing. */

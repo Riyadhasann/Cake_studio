@@ -25,18 +25,18 @@ test('the per-combination previews are retired', function () {
     $this->actingAs($this->admin)->get('/admin/cake-previews')->assertNotFound();
 });
 
-test('textures, photos and shading are stored as WebP', function () {
+test('cake photos, flavor photos and shading are stored as WebP', function () {
     $variant = completeVariant(2);
     $this->actingAs($this->admin);
 
-    $this->post(route('admin.cake-visuals.texture.update', ['sponge', $this->vanilla->id]), ['texture' => UploadedFile::fake()->image('t.png', 256, 256)]);
+    $this->post(route('admin.cake-variants.base.update', $variant), ['base' => UploadedFile::fake()->image('b.png', 700, 392)]);
     $this->post(route('admin.cake-variants.photos.store', $variant), [
         'layer_no' => 1, 'flavor_type' => 'sponge', 'flavor_id' => $this->vanilla->id, 'photo' => UploadedFile::fake()->image('p.jpg', 660, 140),
     ]);
     $this->post(route('admin.cake-variants.shading.update', $variant), ['shading' => UploadedFile::fake()->image('s.png', 700, 392)]);
 
     $paths = [
-        $this->vanilla->fresh()->texture_image,
+        $variant->fresh()->base_image,
         $variant->flavorImages()->sole()->image,
         $variant->fresh()->shading_image,
     ];

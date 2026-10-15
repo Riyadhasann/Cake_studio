@@ -3,16 +3,13 @@
 use App\Models\CakeVariant;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     Storage::fake('public');
-    Storage::disk('public')->put('cake-textures/chocolate.png', UploadedFile::fake()->image('chocolate.png', 256, 256)->getContent());
 
     $this->sponge = SpongeFlavor::create([
         'name' => 'Chocolate', 'extra_price' => 0, 'is_active' => true, 'color' => '#6b3f2a',
-        'texture_image' => 'storage/cake-textures/chocolate.png',
     ]);
     $this->cream = CreamFlavor::create([
         'name' => 'Vanilla', 'extra_price' => 0, 'is_active' => true, 'color' => '#fff3d1',
@@ -20,22 +17,8 @@ beforeEach(function () {
     ]);
 });
 
-test('the design page gets each flavor texture', function () {
-    $this->get(route('cake-studio.index'))
-        ->assertOk()
-        ->assertViewHas('sponges', fn ($sponges) => $sponges->first()['texture'] === asset('storage/cake-textures/chocolate.png'))
-        ->assertViewHas('creams', fn ($creams) => $creams->first()['texture'] === null);
-});
-
-test('a texture whose file is missing is not sent, so the slot falls back to the color', function () {
-    Storage::disk('public')->delete('cake-textures/chocolate.png');
-
-    $this->get(route('cake-studio.index'))
-        ->assertViewHas('sponges', fn ($sponges) => $sponges->first()['texture'] === null);
-});
-
-test('inactive flavors and their textures are not sent', function () {
-    SpongeFlavor::create(['name' => 'Hidden', 'extra_price' => 0, 'is_active' => false, 'texture_image' => 'storage/cake-textures/hidden.png']);
+test('inactive flavors are not sent', function () {
+    SpongeFlavor::create(['name' => 'Hidden', 'extra_price' => 0, 'is_active' => false, 'layer_image' => 'storage/cake-layers/hidden.png']);
 
     $this->get(route('cake-studio.index'))
         ->assertViewHas('sponges', fn ($sponges) => $sponges->pluck('name')->all() === ['Chocolate'])
@@ -61,7 +44,6 @@ test('published variants are sent keyed by layer count, bottom layer and sponge 
         ->assertSee("variantLayers: JSON.parse('[2,3]')", false)
         ->assertSee('x-if="hasVariant && layerCount === 3"', false)
         ->assertSee('<path d="M0 0H700" stroke="#3b2a27"/>', false)
-        ->assertSee('id="cake-texture-sponge-'.$this->sponge->id.'"', false)
         ->assertSee('id="cake-image-cream-'.$this->cream->id.'"', false);
 });
 

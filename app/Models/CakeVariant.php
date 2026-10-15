@@ -13,9 +13,6 @@ class CakeVariant extends Model
 {
     public const LAYER_COUNTS = [2, 3, 4];
 
-    /** View box units per texture tile: about 4 tiles across a 700-wide cake. */
-    public const TEXTURE_TILE = 160;
-
     protected $fillable = [
         'layers',
         'view_box_width',

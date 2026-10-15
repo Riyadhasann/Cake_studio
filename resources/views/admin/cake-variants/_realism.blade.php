@@ -37,7 +37,7 @@
     <section class="panel p-6" x-data="{ slot: '1-sponge' }">
         <h2 class="heading text-3xl">Flavor photos</h2>
         <p class="mt-2 text-sm leading-6 text-ink/70">
-            Optional. A photo of one flavor for one shape replaces that flavor's texture there, cropped from the center to fit the shape.
+            Optional. A photo of one flavor for one shape replaces that flavor's layer image there, cropped from the center to fit the shape.
             PNG, JPG or WebP, up to 2 MB. Uploading again for the same shape and flavor replaces the photo.
         </p>
 
@@ -101,7 +101,7 @@
                     </div>
                 </div>
             @empty
-                <p class="py-4 text-sm text-ink/60">No photos yet: every shape uses the flavor's texture, image or color.</p>
+                <p class="py-4 text-sm text-ink/60">No photos yet: every shape uses the flavor's layer image or color.</p>
             @endforelse
         </div>
     </section>

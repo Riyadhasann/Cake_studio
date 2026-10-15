@@ -3,9 +3,9 @@
 
     <h1 class="heading mt-6 text-5xl">Cake shapes</h1>
     <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
-        One SVG drawing per layer count. Each drawing has a sponge and a cream shape for every layer, which the
-        design page fills with the chosen flavor's texture or color. Only published drawings are used; while a layer
-        count has none, the design page keeps its current layered preview.
+        Where the sponge and cream layers sit in the cake, for 2, 3 and 4 layers. When you upload the cake photo on the
+        <a href="{{ route('admin.cake-visuals.index') }}" class="underline">Cake images</a> page, the layers are fitted
+        into its cut automatically, so you only need this page to adjust them. Only published shapes are shown to customers.
     </p>
 
     @include('admin.cake-variants._alerts')
@@ -15,8 +15,8 @@
             <thead class="bg-petal text-xs font-medium tracking-wide text-ink/70">
                 <tr>
                     <th class="px-5 py-3.5">Layers</th>
-                    <th class="px-5 py-3.5">View box</th>
-                    <th class="px-5 py-3.5">Shapes</th>
+                    <th class="px-5 py-3.5">Cake photo</th>
+                    <th class="px-5 py-3.5">Layers fitted</th>
                     <th class="px-5 py-3.5">Status</th>
                     <th class="px-5 py-3.5">Actions</th>
                 </tr>
@@ -28,8 +28,14 @@
                         <td class="px-5 py-4 font-display text-2xl font-medium">{{ $layers }} layers</td>
                         @if ($variant)
                             @php $problems = $variant->publishProblems(); @endphp
-                            <td class="px-5 py-4">{{ $variant->view_box_width }} × {{ $variant->view_box_height }}</td>
-                            <td class="px-5 py-4">{{ $variant->slots->count() }} / {{ 2 * $variant->layers }}</td>
+                            <td class="px-5 py-4">
+                                @if ($variant->base_image)
+                                    <img src="{{ asset($variant->base_image) }}" alt="" class="h-12 rounded-lg border border-line">
+                                @else
+                                    <span class="text-ink/50">None (drawn cake)</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-4">{{ $variant->slots->count() === 2 * $variant->layers ? 'Yes' : $variant->slots->count().' of '.(2 * $variant->layers).' shapes' }}</td>
                             <td class="px-5 py-4">
                                 @if ($variant->is_published)
                                     <span class="rounded-full bg-sage-soft px-3 py-1 text-xs text-sage">Published</span>
@@ -46,7 +52,7 @@
                             </td>
                             <td class="px-5 py-4">
                                 <div class="flex flex-wrap items-center gap-4">
-                                    <a href="{{ route('admin.cake-variants.edit', $variant) }}" class="btn-outline btn-sm">Edit</a>
+                                    <a href="{{ route('admin.cake-variants.edit', $variant) }}" class="btn-outline btn-sm">Adjust</a>
                                     @include('admin.cake-variants._publish', ['variant' => $variant, 'problems' => $problems])
                                 </div>
                             </td>

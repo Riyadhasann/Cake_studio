@@ -4,13 +4,12 @@
     When the admin has published an SVG drawing for the chosen layer count, the cake is that drawing
     (x-cake-variant-svg): on the admin's cake photo when it has one, which then fills the stage,
     else between the plate and the frosting. Every slot is filled with the flavor's photo for that slot,
-    else its texture, else its layer image, else its color, then shaded (the drawing's shading image,
+    else its layer image, else its color, then shaded (the drawing's shading image,
     or soft gradients). Otherwise the cake is stacked from one element per sponge and cream (the layered preview).
     SVG content is rendered in Blade because Alpine's <template x-for> doesn't work inside <svg>.
 --}}
 @props(['sponges', 'creams', 'variants'])
 @php
-    $textureTile = \App\Models\CakeVariant::TEXTURE_TILE;
     $flavorsByType = ['sponge' => $sponges, 'cream' => $creams];
 @endphp
 
@@ -176,16 +175,11 @@
 <div class="overflow-hidden rounded-[1.75rem] border border-line">
     <div class="cake-stage" :class="{ 'is-photo': hasPhotoBase }" role="img" :aria-label="previewLabel">
         @if ($variants)
-            {{-- Fills shared by every drawing: one texture and one image pattern per flavor that has them. --}}
+            {{-- Fills shared by every drawing: one image pattern per flavor that has a layer image. --}}
             <svg class="cake-defs" aria-hidden="true" focusable="false">
                 <defs>
                     @foreach ($flavorsByType as $type => $flavors)
                         @foreach ($flavors as $flavor)
-                            @if ($flavor['texture'])
-                                <pattern id="cake-texture-{{ $type }}-{{ $flavor['id'] }}" patternUnits="userSpaceOnUse" width="{{ $textureTile }}" height="{{ $textureTile }}">
-                                    <image :href="@js($flavor['texture'])" width="{{ $textureTile }}" height="{{ $textureTile }}" preserveAspectRatio="xMidYMid slice" @@error="markBroken($el.getAttribute('href'))" />
-                                </pattern>
-                            @endif
                             @if ($flavor['image'])
                                 <x-cake-cover-pattern :id="'cake-image-'.$type.'-'.$flavor['id']" :url="$flavor['image']" :size="$flavor['image_size']" />
                             @endif

@@ -40,21 +40,6 @@ class CakeDrawings
             ->all();
     }
 
-    /**
-     * Every drawing that has at least one slot, keyed by layer count: for previews in the admin.
-     *
-     * @return array<int, array{width: int, height: int, base_svg: string, base_image: array{url: string, width: int, height: int}|null, slots: array<int, array{layer_no: int, type: string, path: string, band: list<array{0: float, 1: float}>|null}>}>
-     */
-    public function all(): array
-    {
-        return CakeVariant::with('slots')
-            ->get()
-            ->filter(fn (CakeVariant $variant) => $variant->slots->isNotEmpty())
-            ->mapWithKeys(fn (CakeVariant $variant) => [$variant->layers => $this->drawing($variant)])
-            ->sortKeys()
-            ->all();
-    }
-
     /** @return array{width: int, height: int, base_svg: string, base_image: array{url: string, width: int, height: int}|null, slots: array<int, array{layer_no: int, type: string, path: string, band: list<array{0: float, 1: float}>|null}>} */
     public function drawing(CakeVariant $variant): array
     {

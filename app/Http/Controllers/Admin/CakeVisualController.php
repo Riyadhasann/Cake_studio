@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Flavors\ReorderFlavors;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReorderFlavorsRequest;
-use App\Http\Requests\Admin\StoreFlavorTextureRequest;
 use App\Http\Requests\Admin\UpdateLayerImageRequest;
 use App\Models\CakePart;
+use App\Models\CakeVariant;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
-use App\Services\CakeDrawings;
 use App\Services\PublicUploads;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -20,11 +19,14 @@ class CakeVisualController extends Controller
 {
     public function __construct(private PublicUploads $uploads) {}
 
-    public function index(CakeDrawings $drawings): View
+    public function index(): View
     {
+        // The cake photo is shared by every layer count; any drawing that has one shows it.
+        $photoDrawings = CakeVariant::whereNotNull('base_image')->orderBy('layers')->get();
+
         return view('admin.cake-visuals.index', [
-            // For the live texture preview: every drawing that has shapes, published or not.
-            'drawings' => $drawings->all(),
+            'photo' => $photoDrawings->first()?->base_image,
+            'photoLive' => $photoDrawings->where('is_published', true)->pluck('layers')->all(),
             'sponges' => SpongeFlavor::where('is_active', true)->ordered()->get(),
             'creams' => CreamFlavor::where('is_active', true)->ordered()->get(),
             'parts' => CakePart::orderBy('id')->get(),
@@ -77,29 +79,6 @@ class CakeVisualController extends Controller
         return back()->with('success', "{$item->name} is now the default {$type} in the cake preview.");
     }
 
-    /** Save (or replace) the tileable texture of one sponge or cream. */
-    public function updateTexture(StoreFlavorTextureRequest $request, string $type, int $id): RedirectResponse
-    {
-        $item = $this->findFlavor($type, $id);
-
-        $this->uploads->delete($item->texture_image);
-
-        $item->update(['texture_image' => $this->uploads->storeAsWebp($request->file('texture'), 'cake-textures')]);
-
-        return back()->with('success', "Texture saved for {$item->name}.");
-    }
-
-    /** Remove the texture so the flavor goes back to its image or color. */
-    public function destroyTexture(string $type, int $id): RedirectResponse
-    {
-        $item = $this->findFlavor($type, $id);
-
-        $this->uploads->delete($item->texture_image);
-        $item->update(['texture_image' => null]);
-
-        return back()->with('success', "Texture removed for {$item->name}.");
-    }
-
     /** Save the order sponges or creams are listed in, here and on the design page. */
     public function reorder(ReorderFlavorsRequest $request, string $type, ReorderFlavors $reorder): RedirectResponse
     {
@@ -121,7 +100,7 @@ class CakeVisualController extends Controller
         };
     }
 
-    /** Sponge or cream only: parts have no texture, default or menu. */
+    /** Sponge or cream only: parts have no default or menu. */
     private function findFlavor(string $type, int $id): SpongeFlavor|CreamFlavor
     {
         return match ($type) {

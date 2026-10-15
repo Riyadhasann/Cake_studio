@@ -28,10 +28,8 @@
         <div>
             <h1 class="heading text-5xl">{{ $variant->layers }}-layer shape</h1>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
-                Upload a photo of the cake with an empty cut face, mark the cut on it and fit the shapes: every sponge and
-                cream shape is then filled with the customer's flavors (the defaults first). Or draw the shapes yourself in view
-                box units (layer 1 is the bottom). The base SVG is drawn on top of the shapes, so keep outlines and decorations
-                there, never sponge or cream. Scripts, links, images and styles are removed when you save.
+                Where the {{ $variant->layers }} sponge and cream layers sit in the cake. With a cake photo they are fitted into
+                its cut automatically; this page is only needed to adjust them.
             </p>
         </div>
         <div class="flex items-center gap-4">
@@ -89,7 +87,23 @@
         @method('PUT')
 
         <div class="space-y-8">
-            <section class="panel space-y-5 p-6">
+            @php $handDrawn = ! $variant->base_image || $errors->hasAny(['view_box_width', 'view_box_height', 'base_svg', 'slots.*']); @endphp
+            @if ($variant->base_image)
+                @include('admin.cake-variants._cut-face')
+            @endif
+
+            {{-- Drawing the shapes by hand: needed without a photo, rarely with one --}}
+            <details class="panel p-6" @if ($handDrawn) open @endif>
+                <summary class="cursor-pointer font-display text-2xl text-ink">
+                    {{ $variant->base_image ? 'Advanced: draw the shapes by hand' : 'Draw the shapes' }}
+                </summary>
+                <p class="mt-2 text-sm leading-6 text-ink/70">
+                    One sponge and one cream shape per layer (layer 1 is the bottom), in view box units. The base SVG is drawn
+                    on top of the shapes: keep outlines and decorations there, never sponge or cream. Scripts, links, images
+                    and styles are removed when you save.
+                </p>
+                <div class="mt-6 space-y-8">
+            <section class="space-y-5">
                 <h2 class="heading text-3xl">Drawing</h2>
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div>
@@ -116,59 +130,8 @@
                 </div>
             </section>
 
-            @if ($variant->base_image)
-                <section class="panel space-y-5 p-6">
-                    <div>
-                        <h2 class="heading text-3xl">Cut face</h2>
-                        <p class="mt-2 text-sm leading-6 text-ink/70">
-                            Mark the empty cut in the photo with three points along its top edge and three along its bottom edge
-                            (left, middle, right; for a straight cut put the middle point on the line). Click "Place by clicking",
-                            then click the six points on the preview in order. Place them just outside the empty area so no gap shows.
-                        </p>
-                    </div>
 
-                    <div class="grid gap-3 sm:grid-cols-3">
-                        @foreach (['Top left', 'Top middle', 'Top right', 'Bottom left', 'Bottom middle', 'Bottom right'] as $p => $pointLabel)
-                            @php $edge = $p < 3 ? 'top' : 'bottom'; $i = $p % 3; @endphp
-                            <fieldset class="rounded-2xl border p-3" :class="placing === {{ $p }} ? 'border-brand' : 'border-line'">
-                                <legend class="px-1 text-xs font-medium text-ink">{{ $pointLabel }}</legend>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <label class="text-xs text-ink/70">X
-                                        <input type="number" step="any" x-model.number="cutPoints[{{ $p }}].x" class="field mt-1 px-3 py-2">
-                                    </label>
-                                    <label class="text-xs text-ink/70">Y
-                                        <input type="number" step="any" x-model.number="cutPoints[{{ $p }}].y" class="field mt-1 px-3 py-2">
-                                    </label>
-                                </div>
-                                {{-- Sent only once all six points are set --}}
-                                <input type="hidden" name="cut_face[{{ $edge }}][{{ $i }}][0]" :value="cutPoints[{{ $p }}].x" :disabled="!cutComplete">
-                                <input type="hidden" name="cut_face[{{ $edge }}][{{ $i }}][1]" :value="cutPoints[{{ $p }}].y" :disabled="!cutComplete">
-                            </fieldset>
-                        @endforeach
-                    </div>
-
-                    <div>
-                        <label for="sponge_share" class="label">Sponge share of each layer: <span x-text="Math.round(spongeShare * 100) + '%'"></span></label>
-                        <input id="sponge_share" type="range" min="0.3" max="0.95" step="0.01" x-model.number="spongeShare" class="w-full accent-brand">
-                        <input type="hidden" name="cut_face[sponge_share]" :value="spongeShare" :disabled="!cutComplete">
-                        <p class="mt-1 text-xs text-ink/60">The rest of each layer is its cream, on top of the sponge.</p>
-                    </div>
-
-                    <div class="flex flex-wrap gap-3">
-                        <button type="button" class="btn-outline btn-sm" @click="placing = placing === null ? 0 : null"
-                                x-text="placing === null ? 'Place by clicking' : 'Click: ' + pointNames[placing] + ' (stop)'"></button>
-                        <button type="button" class="btn btn-sm" @click="fitShapes()" :disabled="!cutComplete">Fit the shapes to the cut</button>
-                    </div>
-                    <p class="text-xs text-ink/60" x-show="fitted" x-cloak>Shapes fitted. Save the shape to keep them.</p>
-                    @foreach (['cut_face', 'cut_face.top.*.*', 'cut_face.bottom.*.*', 'cut_face.sponge_share'] as $field)
-                        @error($field)
-                            <p class="text-xs text-clay">{{ $message }}</p>
-                        @enderror
-                    @endforeach
-                </section>
-            @endif
-
-            <section class="panel p-6">
+            <section>
                 <h2 class="heading text-3xl">Shapes</h2>
                 <p class="mt-2 text-sm text-ink/70">Enter an SVG path, or a rectangle that is turned into a path when you save. Leave a path empty to remove that shape.</p>
 
@@ -212,8 +175,10 @@
                     @endforeach
                 </div>
             </section>
+                </div>
+            </details>
 
-            <button type="submit" class="btn">Save shape</button>
+            <button type="submit" class="btn">Save</button>
         </div>
 
         <aside class="lg:sticky lg:top-6 lg:self-start">
@@ -260,7 +225,10 @@
         </aside>
     </form>
 
-    @include('admin.cake-variants._realism')
+    <details class="mt-12">
+        <summary class="cursor-pointer font-display text-2xl text-ink">Extra realism (optional): shading and per-layer photos</summary>
+        @include('admin.cake-variants._realism')
+    </details>
 
     <script>
         function cakeVariantEditor(config) {

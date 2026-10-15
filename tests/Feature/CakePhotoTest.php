@@ -5,6 +5,7 @@ use App\Models\CakeVariantSlot;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
 use App\Models\User;
+use App\Services\CutFaceFinder;
 use App\Services\LayerStrips;
 use App\Services\SvgSanitizer;
 use Database\Seeders\CakePhotoSeeder;
@@ -73,7 +74,7 @@ test('replacing the photo with one of the same size keeps the cut face and the p
 
     $this->actingAs($this->admin)
         ->post(route('admin.cake-variants.base.update', $this->variant), ['base' => UploadedFile::fake()->image('cake.png', 1180, 1020)])
-        ->assertSessionMissing('warning');
+        ->assertSessionHas('warning'); // a blank test image has no cut to find, so the marked one is kept
 
     $variant = $this->variant->fresh();
 
@@ -178,7 +179,7 @@ test('the editor shows the photo and suggests the cut face marked on another dra
     $this->actingAs($this->admin)
         ->get(route('admin.cake-variants.edit', $three))
         ->assertOk()
-        ->assertSee('Cut face')
+        ->assertSee('The cut')
         ->assertSee(asset('storage/cake-bases/three.webp'), false)
         ->assertViewHas('cutFace', fn ($cut) => $cut['top'] === cutFace()['top']);
 });
@@ -219,8 +220,12 @@ test('customers see the photo with the default sponge and cream in every layer',
         ->assertSee("slotFill(2, 'cream')", false);
 });
 
-/** A PNG with an opaque V-shaped strip of the given thickness on a transparent background, like a slice of the cut. */
-function vStripPng(int $width = 200, int $height = 100, int $thickness = 30): string
+/**
+ * A PNG with an opaque V-shaped strip on a transparent background, like a slice of the cut: its top edge runs
+ * from (0, 65) up to (100, 5) and down to (200, 65), 30 px thick. A ragged one has a wavy, crumbly top edge
+ * around that line, so its thickness varies.
+ */
+function vStripPng(int $width = 200, int $height = 100, int $thickness = 30, bool $ragged = false): string
 {
     $image = imagecreatetruecolor($width, $height);
     imagesavealpha($image, true);
@@ -231,8 +236,9 @@ function vStripPng(int $width = 200, int $height = 100, int $thickness = 30): st
     $rise = $height - $thickness - 10;
 
     foreach (range(0, $width - 1) as $x) {
-        $top = 5 + (int) round($rise * abs($x - $apex) / $apex);
-        imageline($image, $x, $top, $x, $top + $thickness - 1, $brown);
+        $line = 5 + $rise * abs($x - $apex) / $apex;
+        $top = (int) round($line + ($ragged ? 4 * sin($x / 3) : 0));
+        imageline($image, $x, max(0, $top), $x, (int) round($line) + $thickness - 1, $brown);
     }
 
     ob_start();
@@ -241,20 +247,21 @@ function vStripPng(int $width = 200, int $height = 100, int $thickness = 30): st
     return (string) ob_get_clean();
 }
 
-test('a layer image with a V-shaped strip is measured for mapping onto the bands', function () {
-    Storage::disk('public')->put('cake-layers/v.png', vStripPng());
+test('a layer image with a V-shaped strip is measured by its average edges', function (bool $ragged) {
+    Storage::disk('public')->put('cake-layers/v.png', vStripPng(ragged: $ragged));
 
     $strip = app(LayerStrips::class)->of('storage/cake-layers/v.png');
+    $near = fn (array $point, array $expected, float $by) => abs($point[0] - $expected[0]) <= $by && abs($point[1] - $expected[1]) <= $by;
 
     expect($strip['width'])->toBe(200)
         ->and($strip['height'])->toBe(100)
-        ->and($strip['top'][1])->toBe([100, 5])
-        ->and($strip['top'][0][1])->toBe(65)
-        ->and($strip['bottom'][1])->toBe([100, 35])
-        ->and($strip['bottom'][2])->toBe([200, 94]);
-});
+        ->and($near($strip['top'][1], [100, 5], 3))->toBeTrue()
+        ->and($near($strip['top'][0], [0, 65], 3))->toBeTrue()
+        ->and($near($strip['bottom'][1], [100, 35], 3))->toBeTrue()
+        ->and($near($strip['bottom'][2], [200, 95], 3))->toBeTrue();
+})->with(['clean edges' => false, 'wavy, ragged top edge' => true]);
 
-test('images that are not one even strip, or not raster, are not mapped', function () {
+test('images without a strip across them, or not raster, are not mapped', function () {
     $image = imagecreatetruecolor(100, 100);
     imagesavealpha($image, true);
     imagealphablending($image, false);
@@ -284,8 +291,116 @@ test('the design page maps a strip layer image onto the bands of the photo', fun
     $this->seed(CakePhotoSeeder::class);
 
     $this->get(route('cake-studio.index'))
-        ->assertViewHas('sponges', fn ($sponges) => $sponges->first()['strip']['top'][1] === [100, 5])
+        ->assertViewHas('sponges', fn ($sponges) => abs($sponges->first()['strip']['top'][1][1] - 5) <= 3)
         ->assertViewHas('variants', fn (array $variants) => count($variants[2]['slots'][0]['band']) === 6)
-        ->assertSee('cake-arm-2-1-sponge-0', false)
-        ->assertSee("armTransform(1, 'sponge', 0,", false);
+        // Clipped only by the outline of the cut, so the art keeps its own edges
+        ->assertSee('clip-path="url(#cake-cut-2-0)"', false)
+        // Drawn from the top of the cake down, so each layer's top edge lies over the layer above
+        ->assertSeeInOrder(["armTransform(2, 'cream', 0,", "armTransform(2, 'sponge', 0,", "armTransform(1, 'cream', 0,", "armTransform(1, 'sponge', 0,"], false);
+});
+
+/**
+ * A cake photo: an opaque cake with an empty V-shaped cut (see-through, or a painted gray checkerboard) inside it.
+ * The cut's corners are top (150, 200) (300, 120) (450, 200) and bottom (150, 400) (300, 320) (450, 400).
+ */
+function cakePhotoPng(bool $checkerboard = false): UploadedFile
+{
+    $image = imagecreatetruecolor(600, 500);
+    imagealphablending($image, false);
+    imagesavealpha($image, true);
+    imagefill($image, 0, 0, imagecolorallocate($image, 120, 70, 50));
+    $cut = [150, 200, 300, 120, 450, 200, 450, 400, 300, 320, 150, 400];
+
+    if ($checkerboard) {
+        $mask = imagecreatetruecolor(600, 500);
+        imagefilledpolygon($mask, $cut, imagecolorallocate($mask, 255, 255, 255));
+        [$light, $gray] = [imagecolorallocate($image, 255, 255, 255), imagecolorallocate($image, 214, 214, 214)];
+
+        foreach (range(0, 599) as $x) {
+            foreach (range(0, 499) as $y) {
+                if (imagecolorat($mask, $x, $y) !== 0) {
+                    imagesetpixel($image, $x, $y, (intdiv($x, 20) + intdiv($y, 20)) % 2 ? $gray : $light);
+                }
+            }
+        }
+    } else {
+        imagefilledpolygon($image, $cut, imagecolorallocatealpha($image, 0, 0, 0, 127));
+    }
+
+    $file = tempnam(sys_get_temp_dir(), 'cake').'.png';
+    imagepng($image, $file);
+
+    return new UploadedFile($file, 'cake.png', 'image/png', null, true);
+}
+
+test('the cut is found in a photo, see-through or painted as a checkerboard', function (bool $checkerboard) {
+    $cut = app(CutFaceFinder::class)->find(cakePhotoPng($checkerboard)->getRealPath());
+
+    $near = fn (array $points, array $expected) => collect($points)->every(
+        fn ($point, $i) => abs($point[0] - $expected[$i][0]) <= 6 && abs($point[1] - $expected[$i][1]) <= 6,
+    );
+
+    expect($cut)->not->toBeNull()
+        ->and($near($cut['top'], [[150, 200], [300, 120], [450, 200]]))->toBeTrue()
+        ->and($near($cut['bottom'], [[150, 400], [300, 320], [450, 400]]))->toBeTrue();
+})->with(['see-through' => false, 'checkerboard' => true]);
+
+test('a photo with no empty cut has none to find', function () {
+    expect(app(CutFaceFinder::class)->find(UploadedFile::fake()->image('cake.png', 600, 500)->getRealPath()))->toBeNull();
+});
+
+test('admin uploads the cake photo once on the cake images page and customers see it for every layer count', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.cake-photo.update'), ['base' => cakePhotoPng()])
+        ->assertRedirect()
+        ->assertSessionHas('success')
+        ->assertSessionMissing('warning');
+
+    $variants = CakeVariant::with('slots')->orderBy('layers')->get();
+
+    expect($variants->pluck('layers')->all())->toBe([2, 3, 4]);
+
+    foreach ($variants as $variant) {
+        expect($variant->base_image)->toStartWith('storage/cake-bases/')
+            ->and([$variant->view_box_width, $variant->view_box_height])->toBe([600, 500])
+            ->and($variant->slots)->toHaveCount(2 * $variant->layers)
+            ->and($variant->is_published)->toBeTrue();
+    }
+
+    $this->get(route('cake-studio.index'))
+        ->assertViewHas('variants', fn (array $drawings) => array_keys($drawings) === [2, 3, 4] && $drawings[4]['base_image'] !== null);
+
+    $this->get(route('admin.cake-visuals.index'))
+        ->assertSee('Customers see this photo now');
+});
+
+test('a photo whose cut cannot be found is saved but not shown, with a warning', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.cake-photo.update'), ['base' => UploadedFile::fake()->image('cake.png', 600, 500)])
+        ->assertSessionHas('warning');
+
+    expect(CakeVariant::whereNotNull('base_image')->count())->toBe(3)
+        ->and(CakeVariant::where('is_published', true)->exists())->toBeFalse();
+});
+
+test('admin can remove the cake photo from the cake images page', function () {
+    $this->actingAs($this->admin)->post(route('admin.cake-photo.update'), ['base' => cakePhotoPng()]);
+    $paths = CakeVariant::pluck('base_image');
+
+    $this->delete(route('admin.cake-photo.destroy'))->assertRedirect();
+
+    expect(CakeVariant::whereNotNull('base_image')->exists())->toBeFalse()
+        ->and(CakeVariant::where('is_published', true)->exists())->toBeFalse();
+
+    foreach ($paths as $path) {
+        Storage::disk('public')->assertMissing(diskPath($path));
+    }
+});
+
+test('customers cannot change the cake photo from the cake images page', function () {
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.cake-photo.update'), ['base' => cakePhotoPng()])
+        ->assertForbidden();
+
+    $this->delete(route('admin.cake-photo.destroy'))->assertForbidden();
 });

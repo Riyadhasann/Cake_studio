@@ -319,29 +319,24 @@
                     const url = this.flavor(list, id)?.image ?? null;
                     return url && !this.broken.includes(url) ? url : null;
                 },
-                flavorTexture(list, id) {
-                    const url = this.flavor(list, id)?.texture ?? null;
-                    return url && !this.broken.includes(url) ? url : null;
-                },
-                // The fill of one slot in the SVG drawing: the flavor's photo for this slot, else its texture,
-                // else its layer image, else its color.
+                // The fill of one slot in the SVG drawing: the flavor's photo for this slot, else its layer image
+                // (a strip mapped onto the band, or cropped to it), else its color.
                 slotFill(layerNo, type) {
                     const [list, id] = this.slotFlavor(layerNo, type);
                     const photo = this.slotPhoto(layerNo, type);
                     if (photo) return `url(#cake-photo-${photo.id})`;
-                    if (this.flavorTexture(list, id)) return `url(#cake-texture-${type}-${id})`;
                     if (this.slotStrip(layerNo, type)) return this.flavorColor(list, id); // the strip is drawn over it
                     if (this.flavorImage(list, id)) return `url(#cake-image-${type}-${id})`;
                     return this.flavorColor(list, id);
                 },
                 // The flavor's layer image as a strip mapped onto the band, on a cake photo when nothing more specific
-                // (a photo for this slot, a texture) applies: {url, width, height, top, bottom}, else null.
+                // (a photo for this slot) applies: {url, width, height, top, bottom}, else null.
                 slotStrip(layerNo, type) {
                     if (!this.hasPhotoBase || this.slotPhoto(layerNo, type)) return null;
                     const [list, id] = this.slotFlavor(layerNo, type);
                     const strip = this.flavor(list, id)?.strip;
                     const url = this.flavorImage(list, id);
-                    return strip && url && !this.flavorTexture(list, id) ? { url, ...strip } : null;
+                    return strip && url ? { url, ...strip } : null;
                 },
                 // The affine map from one arm of the strip in the image (0 = left, 1 = right) onto the same arm of
                 // the band [top left, top middle, top right, bottom right, bottom middle, bottom left].
@@ -370,7 +365,7 @@
                 },
                 slotHasArt(layerNo, type) {
                     const [list, id] = this.slotFlavor(layerNo, type);
-                    return Boolean(this.slotPhoto(layerNo, type) || this.flavorTexture(list, id) || this.flavorImage(list, id));
+                    return Boolean(this.slotPhoto(layerNo, type) || this.flavorImage(list, id));
                 },
                 slotPhoto(layerNo, type) {
                     const [, id] = this.slotFlavor(layerNo, type);
@@ -395,7 +390,7 @@
                     return `hsl(${h} 45% 70%)`;
                 },
 
-                // Warm the cache once the page has loaded: every texture, and the photos of the drawing
+                // Warm the cache once the page has loaded: every flavor's layer image, and the photos of the drawing
                 // in use (again whenever the layer count changes), so a pick never waits for an image.
                 init() {
                     // The confirm dialog gives focus back to whatever opened it.
@@ -412,7 +407,7 @@
                     const whenLoaded = (fn) => document.readyState === 'complete' ? fn() : window.addEventListener('load', fn, { once: true });
 
                     whenLoaded(() => preload([
-                        ...[...this.sponges, ...this.creams].map(f => f.texture).filter(Boolean),
+                        ...[...this.sponges, ...this.creams].map(f => f.image).filter(Boolean),
                         ...photosOf(this.layerCount),
                     ]));
                     this.$watch('layerCount', (layers) => whenLoaded(() => preload(photosOf(layers))));

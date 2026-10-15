@@ -3,7 +3,8 @@
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -19,84 +20,44 @@ beforeEach(function () {
     $this->admin->forceFill(['is_admin' => true])->save();
 });
 
-test('admin can upload a texture, and replacing it deletes the old file', function () {
+test('flavor textures are gone: no columns, no routes, nothing on the admin page', function () {
+    expect(Schema::hasColumn('sponge_flavors', 'texture_image'))->toBeFalse()
+        ->and(Schema::hasColumn('cream_flavors', 'texture_image'))->toBeFalse()
+        ->and(Route::has('admin.cake-visuals.texture.update'))->toBeFalse();
+
     $this->actingAs($this->admin)
-        ->post(route('admin.cake-visuals.texture.update', ['sponge', $this->vanilla->id]), [
-            'texture' => UploadedFile::fake()->image('first.png', 512, 512),
-        ])
-        ->assertRedirect()
-        ->assertSessionHasNoErrors();
-
-    $first = $this->vanilla->fresh()->texture_image;
-    expect($first)->toStartWith('storage/cake-textures/');
-    Storage::disk('public')->assertExists(substr($first, strlen('storage/')));
-
-    $this->post(route('admin.cake-visuals.texture.update', ['sponge', $this->vanilla->id]), [
-        'texture' => UploadedFile::fake()->image('second.webp', 256, 256),
-    ])->assertSessionHasNoErrors();
-
-    $second = $this->vanilla->fresh()->texture_image;
-    expect($second)->not->toBe($first);
-    Storage::disk('public')->assertMissing(substr($first, strlen('storage/')));
-    Storage::disk('public')->assertExists(substr($second, strlen('storage/')));
+        ->get(route('admin.cake-visuals.index'))
+        ->assertOk()
+        ->assertDontSee('texture', false);
 });
 
-test('texture must be a square png or webp between 256 and 1024 px', function (UploadedFile $file) {
+test('the cake images page walks through the photo, the default cake and the flavor pictures', function () {
     $this->actingAs($this->admin)
-        ->post(route('admin.cake-visuals.texture.update', ['cream', $this->cream->id]), ['texture' => $file])
-        ->assertSessionHasErrors('texture');
-
-    expect($this->cream->fresh()->texture_image)->toBeNull();
-})->with([
-    'jpg' => fn () => UploadedFile::fake()->image('t.jpg', 512, 512),
-    'not square' => fn () => UploadedFile::fake()->image('t.png', 512, 256),
-    'too small' => fn () => UploadedFile::fake()->image('t.png', 128, 128),
-    'too large' => fn () => UploadedFile::fake()->image('t.png', 2048, 2048),
-    'too heavy' => fn () => UploadedFile::fake()->image('t.png', 512, 512)->size(3000),
-]);
-
-test('removing a texture deletes the file under cake-textures', function () {
-    Storage::disk('public')->put('cake-textures/old.png', 'x');
-    $this->vanilla->update(['texture_image' => 'storage/cake-textures/old.png']);
-
-    $this->actingAs($this->admin)
-        ->delete(route('admin.cake-visuals.texture.destroy', ['sponge', $this->vanilla->id]))
-        ->assertRedirect();
-
-    expect($this->vanilla->fresh()->texture_image)->toBeNull();
-    Storage::disk('public')->assertMissing('cake-textures/old.png');
+        ->get(route('admin.cake-visuals.index'))
+        ->assertOk()
+        ->assertSeeInOrder(['Cake photo', 'Default cake', 'Sponge pictures', 'Cream pictures', 'Frosting and plate'])
+        ->assertSee(route('admin.cake-photo.update'), false)
+        ->assertSee('Upload photo');
 });
 
-test('files outside the app prefixes are never deleted', function (string $path) {
+test('removing a flavor picture deletes its file, but never a file outside the app folders', function (string $path, bool $deleted) {
     Storage::disk('public')->put('keep/me.png', 'x');
-    Storage::disk('public')->put('cake-textures/x.png', 'x');
-    $this->vanilla->update(['texture_image' => $path]);
+    Storage::disk('public')->put('cake-layers/x.png', 'x');
+    $this->vanilla->update(['layer_image' => $path]);
 
     $this->actingAs($this->admin)
-        ->delete(route('admin.cake-visuals.texture.destroy', ['sponge', $this->vanilla->id]))
+        ->delete(route('admin.cake-visuals.destroy', ['sponge', $this->vanilla->id]))
         ->assertRedirect();
 
-    expect($this->vanilla->fresh()->texture_image)->toBeNull();
+    expect($this->vanilla->fresh()->layer_image)->toBeNull();
     Storage::disk('public')->assertExists('keep/me.png');
+    $deleted ? Storage::disk('public')->assertMissing('cake-layers/x.png') : Storage::disk('public')->assertExists('cake-layers/x.png');
 })->with([
-    'other folder' => 'storage/keep/me.png',
-    'path traversal' => 'storage/cake-textures/../keep/me.png',
-    'hand-placed public file' => 'images/me.png',
+    'own folder' => ['storage/cake-layers/x.png', true],
+    'other folder' => ['storage/keep/me.png', false],
+    'path traversal' => ['storage/cake-layers/../keep/me.png', false],
+    'hand-placed public file' => ['images/me.png', false],
 ]);
-
-test('customers cannot upload or remove textures', function () {
-    $customer = User::factory()->create();
-
-    $this->actingAs($customer)
-        ->post(route('admin.cake-visuals.texture.update', ['sponge', $this->vanilla->id]), [
-            'texture' => UploadedFile::fake()->image('t.png', 512, 512),
-        ])
-        ->assertForbidden();
-
-    $this->actingAs($customer)
-        ->delete(route('admin.cake-visuals.texture.destroy', ['sponge', $this->vanilla->id]))
-        ->assertForbidden();
-});
 
 test('admin can reorder flavors and the design page follows the new order', function () {
     $ids = [$this->redVelvet->id, $this->vanilla->id, $this->chocolate->id];

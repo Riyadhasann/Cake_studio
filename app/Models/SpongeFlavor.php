@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $layer_image
  * @property bool $is_active
  * @property bool $is_default
- * @property string|null $texture_image
  * @property int $sort_order
  */
 class SpongeFlavor extends Model
@@ -26,7 +25,6 @@ class SpongeFlavor extends Model
         'layer_image',
         'is_active',
         'is_default',
-        'texture_image',
         'sort_order',
     ];
 
