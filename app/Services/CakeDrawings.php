@@ -21,7 +21,7 @@ class CakeDrawings
      *
      * @param  Collection<int, SpongeFlavor>  $sponges
      * @param  Collection<int, CreamFlavor>  $creams
-     * @return array<int, array{width: int, height: int, base_svg: string, slots: array<int, array{layer_no: int, type: string, path: string}>, shading: array{url: string, width: int, height: int}|null, photos: array<string, array{id: int, url: string, width: int, height: int}>}>
+     * @return array<int, array{width: int, height: int, base_svg: string, base_image: array{url: string, width: int, height: int}|null, slots: array<int, array{layer_no: int, type: string, path: string, band: list<array{0: float, 1: float}>|null}>, shading: array{url: string, width: int, height: int}|null, photos: array<string, array{id: int, url: string, width: int, height: int}>}>
      */
     public function published(Collection $sponges, Collection $creams): array
     {
@@ -43,7 +43,7 @@ class CakeDrawings
     /**
      * Every drawing that has at least one slot, keyed by layer count: for previews in the admin.
      *
-     * @return array<int, array{width: int, height: int, base_svg: string, slots: array<int, array{layer_no: int, type: string, path: string}>}>
+     * @return array<int, array{width: int, height: int, base_svg: string, base_image: array{url: string, width: int, height: int}|null, slots: array<int, array{layer_no: int, type: string, path: string, band: list<array{0: float, 1: float}>|null}>}>
      */
     public function all(): array
     {
@@ -55,7 +55,7 @@ class CakeDrawings
             ->all();
     }
 
-    /** @return array{width: int, height: int, base_svg: string, slots: array<int, array{layer_no: int, type: string, path: string}>} */
+    /** @return array{width: int, height: int, base_svg: string, base_image: array{url: string, width: int, height: int}|null, slots: array<int, array{layer_no: int, type: string, path: string, band: list<array{0: float, 1: float}>|null}>} */
     public function drawing(CakeVariant $variant): array
     {
         return [
@@ -63,13 +63,15 @@ class CakeDrawings
             'height' => $variant->view_box_height,
             // Sanitized on save already; again here so markup written straight into the database can't run either.
             'base_svg' => $this->sanitizer->sanitize((string) $variant->base_svg),
+            // The cake photo the slots are drawn on, or null for a drawing on its own.
+            'base_image' => $this->image($variant->base_image),
             // Bottom layer first and each sponge before its cream, so a cream's shadow falls on its sponge.
             'slots' => $variant->slots
                 ->sortBy([
                     ['layer_no', 'asc'],
                     fn (CakeVariantSlot $a, CakeVariantSlot $b) => array_search($a->type, CakeVariantSlot::TYPES, true) <=> array_search($b->type, CakeVariantSlot::TYPES, true),
                 ])
-                ->map(fn (CakeVariantSlot $slot) => ['layer_no' => $slot->layer_no, 'type' => $slot->type, 'path' => $slot->svg_path])
+                ->map(fn (CakeVariantSlot $slot) => ['layer_no' => $slot->layer_no, 'type' => $slot->type, 'path' => $slot->svg_path, 'band' => $slot->bandPoints()])
                 ->values()
                 ->all(),
         ];

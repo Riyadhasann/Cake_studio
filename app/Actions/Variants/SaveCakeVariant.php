@@ -15,16 +15,22 @@ class SaveCakeVariant
      * Saves the drawing and its slots. A published variant that is no longer valid is unpublished,
      * so customers never see a broken cake.
      *
-     * @param  array{view_box_width: int|string, view_box_height: int|string, base_svg?: string|null, slots: array<int|string, array<string, array<string, mixed>>>}  $input
+     * @param  array{view_box_width: int|string, view_box_height: int|string, base_svg?: string|null, cut_face?: array<string, mixed>|null, slots: array<int|string, array<string, array<string, mixed>>>}  $input
      * @return bool whether the variant had to be unpublished
      */
     public function handle(CakeVariant $variant, array $input): bool
     {
         return DB::transaction(function () use ($variant, $input) {
+            // With a cake photo the view box is the photo's pixel size and the cut face is kept; without one, neither applies.
+            $hasPhoto = (bool) $variant->base_image;
+
             $variant->update([
-                'view_box_width' => (int) $input['view_box_width'],
-                'view_box_height' => (int) $input['view_box_height'],
+                ...($hasPhoto ? [] : [
+                    'view_box_width' => (int) $input['view_box_width'],
+                    'view_box_height' => (int) $input['view_box_height'],
+                ]),
                 'base_svg' => $this->sanitizer->sanitize((string) ($input['base_svg'] ?? '')) ?: null,
+                'cut_face' => $hasPhoto ? $this->cutFace($input['cut_face'] ?? null) : null,
             ]);
 
             // Slots beyond the layer count can't be edited here; drop them.
@@ -53,6 +59,26 @@ class SaveCakeVariant
 
             return false;
         });
+    }
+
+    /**
+     * The validated cut face as plain numbers, or null when none was marked.
+     *
+     * @param  array<string, mixed>|null  $cut
+     * @return array{top: list<array{0: float, 1: float}>, bottom: list<array{0: float, 1: float}>, sponge_share: float}|null
+     */
+    private function cutFace(?array $cut): ?array
+    {
+        if (! $cut) {
+            return null;
+        }
+
+        $points = fn (mixed $edge): array => array_map(
+            fn (mixed $point) => [(float) $point[0], (float) $point[1]],
+            array_values((array) $edge),
+        );
+
+        return ['top' => $points($cut['top']), 'bottom' => $points($cut['bottom']), 'sponge_share' => (float) $cut['sponge_share']];
     }
 
     /** @param  array<string, mixed>  $slot */

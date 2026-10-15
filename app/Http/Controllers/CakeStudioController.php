@@ -7,12 +7,13 @@ use App\Models\CakeSize;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
 use App\Services\CakeDrawings;
+use App\Services\LayerStrips;
 use App\Services\PublicUploads;
 use Illuminate\View\View;
 
 class CakeStudioController extends Controller
 {
-    public function index(CakeDrawings $drawings, PublicUploads $uploads): View
+    public function index(CakeDrawings $drawings, PublicUploads $uploads, LayerStrips $strips): View
     {
         // The page only needs these fields. layer_image and texture_image are paths inside public/, or null.
         $forPage = fn ($flavor) => [
@@ -25,6 +26,8 @@ class CakeStudioController extends Controller
             'texture' => $uploads->size($flavor->texture_image) ? asset($flavor->texture_image) : null,
             // [width, height] in pixels, so the drawing can crop the image to a slot like object-fit: cover
             'image_size' => $uploads->size($flavor->layer_image),
+            // The strip of art in the layer image (e.g. a V-shaped slice), mapped arm by arm onto a slot of a cake photo
+            'strip' => $strips->of($flavor->layer_image),
         ];
 
         // ['frosting' => url or null, 'plate' => url or null]

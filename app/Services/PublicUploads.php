@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 class PublicUploads
 {
     /** The only folders this app writes to, and so the only ones it ever deletes from. */
-    public const FOLDERS = ['cake-layers', 'cake-textures', 'cake-photos', 'cake-shading'];
+    public const FOLDERS = ['cake-layers', 'cake-textures', 'cake-photos', 'cake-shading', 'cake-bases'];
 
     /** Larger images are stored as uploaded: decoding them could exhaust PHP's memory (about 4 bytes per pixel). */
     private const MAX_CONVERT_PIXELS = 2048 * 2048;
@@ -101,6 +101,24 @@ class PublicUploads
      */
     public function size(?string $path): ?array
     {
+        $file = $this->file($path);
+
+        if (! $file) {
+            return null;
+        }
+
+        if (str_ends_with(strtolower($file), '.svg')) {
+            return $this->svgSize((string) file_get_contents($file, length: 8192));
+        }
+
+        $info = @getimagesize($file);
+
+        return $info && $info[0] > 0 && $info[1] > 0 ? [$info[0], $info[1]] : null;
+    }
+
+    /** The file behind a path inside public/, or null when it is missing. */
+    public function file(?string $path): ?string
+    {
         if (! $path || str_contains($path, '..')) {
             return null;
         }
@@ -110,17 +128,7 @@ class PublicUploads
             ? Storage::disk('public')->path(substr($path, strlen('storage/')))
             : public_path($path);
 
-        if (! is_file($file)) {
-            return null;
-        }
-
-        if (str_ends_with(strtolower($path), '.svg')) {
-            return $this->svgSize((string) file_get_contents($file, length: 8192));
-        }
-
-        $info = @getimagesize($file);
-
-        return $info && $info[0] > 0 && $info[1] > 0 ? [$info[0], $info[1]] : null;
+        return is_file($file) ? $file : null;
     }
 
     /**

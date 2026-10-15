@@ -48,8 +48,16 @@ class CakeVariantController extends Controller
     {
         $variant->load(['slots', 'flavorImages']);
 
+        // The cut face to start from: this drawing's, else one marked on another drawing's photo of the same size
+        // (usually the same photo), so it is marked once for every layer count.
+        $cutFace = $variant->cut_face ?? ($variant->base_image ? CakeVariant::whereKeyNot($variant->id)
+            ->whereNotNull('base_image')->whereNotNull('cut_face')
+            ->where('view_box_width', $variant->view_box_width)->where('view_box_height', $variant->view_box_height)
+            ->value('cut_face') : null);
+
         return view('admin.cake-variants.edit', [
             'variant' => $variant,
+            'cutFace' => is_string($cutFace) ? json_decode($cutFace, true) : $cutFace,
             // Every flavor, so photos of flavors taken off the menu still show a name; the upload form lists active ones.
             'flavors' => [
                 'sponge' => SpongeFlavor::ordered()->get(['id', 'name', 'is_active']),
@@ -62,7 +70,7 @@ class CakeVariantController extends Controller
 
     public function update(UpdateCakeVariantRequest $request, CakeVariant $variant, SaveCakeVariant $save): RedirectResponse
     {
-        /** @var array{view_box_width: int|string, view_box_height: int|string, base_svg?: string|null, slots: array<int|string, array<string, array<string, mixed>>>} $input */
+        /** @var array{view_box_width: int|string, view_box_height: int|string, base_svg?: string|null, cut_face?: array<string, mixed>|null, slots: array<int|string, array<string, array<string, mixed>>>} $input */
         $input = $request->validated();
         $unpublished = $save->handle($variant, $input);
 

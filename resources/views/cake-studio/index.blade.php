@@ -7,6 +7,7 @@
             creams: @js($creams),
             parts: @js($parts),
             variantLayers: @js(array_keys($variants)),
+            variantBases: @js(collect($variants)->map(fn ($variant) => $variant['base_image']['url'] ?? null)->filter()),
             variantPhotos: @js(collect($variants)->map(fn ($variant) => collect($variant['photos'])->map(fn ($photo) => ['id' => $photo['id'], 'url' => $photo['url']]))),
             defaultSpongeId: @js($defaultSpongeId),
             defaultCreamId: @js($defaultCreamId),
@@ -220,6 +221,7 @@
                 parts: config.parts ?? {},
                 variantLayers: config.variantLayers ?? [], // layer counts with a published SVG drawing
                 variantPhotos: config.variantPhotos ?? {}, // {layers: {"sponge-3-1": {id, url}}}: a flavor's photo for one slot
+                variantBases: config.variantBases ?? {}, // {layers: url}: the cake photo a drawing is drawn on
                 broken: [], // image URLs that failed to load, so we fall back to the drawing
 
                 minLayers: minLayers,
@@ -255,6 +257,10 @@
                 // A published SVG drawing exists for the chosen layer count; otherwise the layered preview is used.
                 get hasVariant() {
                     return this.variantLayers.includes(this.layerCount);
+                },
+                // That drawing is on a cake photo, which is then the whole cake (no drawn plate or frosting).
+                get hasPhotoBase() {
+                    return this.hasVariant && Boolean(this.variantBases[this.layerCount]);
                 },
                 get totalPrice() {
                     return this.unitPrice * this.quantity;
@@ -324,7 +330,42 @@
                     const photo = this.slotPhoto(layerNo, type);
                     if (photo) return `url(#cake-photo-${photo.id})`;
                     if (this.flavorTexture(list, id)) return `url(#cake-texture-${type}-${id})`;
+                    if (this.slotStrip(layerNo, type)) return this.flavorColor(list, id); // the strip is drawn over it
                     if (this.flavorImage(list, id)) return `url(#cake-image-${type}-${id})`;
+                    return this.flavorColor(list, id);
+                },
+                // The flavor's layer image as a strip mapped onto the band, on a cake photo when nothing more specific
+                // (a photo for this slot, a texture) applies: {url, width, height, top, bottom}, else null.
+                slotStrip(layerNo, type) {
+                    if (!this.hasPhotoBase || this.slotPhoto(layerNo, type)) return null;
+                    const [list, id] = this.slotFlavor(layerNo, type);
+                    const strip = this.flavor(list, id)?.strip;
+                    const url = this.flavorImage(list, id);
+                    return strip && url && !this.flavorTexture(list, id) ? { url, ...strip } : null;
+                },
+                // The affine map from one arm of the strip in the image (0 = left, 1 = right) onto the same arm of
+                // the band [top left, top middle, top right, bottom right, bottom middle, bottom left].
+                armTransform(layerNo, type, arm, band) {
+                    const strip = this.slotStrip(layerNo, type);
+                    if (!strip) return null;
+                    const [l0, a0, r0, , a1, l1] = band;
+                    const [o, u, v] = arm === 0 ? [strip.top[0], strip.top[1], strip.bottom[0]] : [strip.top[1], strip.top[2], strip.bottom[1]];
+                    const [o2, u2, v2] = arm === 0 ? [l0, a0, l1] : [a0, r0, a1];
+                    // Along the arm (U) and across it (V), in the image and in the band.
+                    const [ux, uy, vx, vy] = [u[0] - o[0], u[1] - o[1], v[0] - o[0], v[1] - o[1]];
+                    const [Ux, Uy, Vx, Vy] = [u2[0] - o2[0], u2[1] - o2[1], v2[0] - o2[0], v2[1] - o2[1]];
+                    const det = ux * vy - vx * uy;
+                    if (!det) return null;
+                    const a = (Ux * vy - Vx * uy) / det;
+                    const c = (Vx * ux - Ux * vx) / det;
+                    const b = (Uy * vy - Vy * uy) / det;
+                    const d = (Vy * ux - Uy * vx) / det;
+                    const e = o2[0] - (a * o[0] + c * o[1]);
+                    const f = o2[1] - (b * o[0] + d * o[1]);
+                    return `matrix(${[a, b, c, d, e, f].map(n => +n.toFixed(5)).join(' ')})`;
+                },
+                slotColor(layerNo, type) {
+                    const [list, id] = this.slotFlavor(layerNo, type);
                     return this.flavorColor(list, id);
                 },
                 slotHasArt(layerNo, type) {
@@ -364,7 +405,10 @@
 
                     if (!this.variantLayers.length) return;
                     const preload = (urls) => urls.forEach(url => { new Image().src = url; });
-                    const photosOf = (layers) => Object.values(this.variantPhotos[layers] ?? {}).map(photo => photo.url);
+                    const photosOf = (layers) => [
+                        this.variantBases[layers],
+                        ...Object.values(this.variantPhotos[layers] ?? {}).map(photo => photo.url),
+                    ].filter(Boolean);
                     const whenLoaded = (fn) => document.readyState === 'complete' ? fn() : window.addEventListener('load', fn, { once: true });
 
                     whenLoaded(() => preload([

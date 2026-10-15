@@ -32,5 +32,11 @@ class SpongeFlavorSeeder extends Seeder
 
         // Anything else stays in the database (old orders point at it) but leaves the studio.
         SpongeFlavor::whereNotIn('name', array_column($flavors, 'name'))->update(['is_active' => false]);
+
+        // The design page opens on Chocolate. Keep the admin's own default while it is still on the menu.
+        if (! SpongeFlavor::where('is_default', true)->where('is_active', true)->exists()) {
+            SpongeFlavor::query()->update(['is_default' => false]);
+            SpongeFlavor::where('name', 'Chocolate')->update(['is_default' => true]);
+        }
     }
 }

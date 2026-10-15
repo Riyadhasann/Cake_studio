@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property array{top: list<array{0: float|int, 1: float|int}>, bottom: list<array{0: float|int, 1: float|int}>, sponge_share: float|int}|null $cut_face
+ */
 class CakeVariant extends Model
 {
     public const LAYER_COUNTS = [2, 3, 4];
@@ -18,11 +21,14 @@ class CakeVariant extends Model
         'view_box_width',
         'view_box_height',
         'base_svg',
+        'base_image',
+        'cut_face',
         'shading_image',
         'is_published',
     ];
 
     protected $casts = [
+        'cut_face' => 'array',
         'layers' => 'integer',
         'view_box_width' => 'integer',
         'view_box_height' => 'integer',
@@ -50,6 +56,26 @@ class CakeVariant extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
+    }
+
+    /**
+     * Replaces every slot with the bands of the marked cut face. Does nothing without one.
+     */
+    public function fitSlotsToCutFace(): void
+    {
+        if (! $this->cut_face) {
+            return;
+        }
+
+        $this->slots()->delete();
+
+        foreach (CakeVariantSlot::cutFacePaths($this->cut_face, $this->layers) as $layerNo => $paths) {
+            foreach ($paths as $type => $path) {
+                $this->slots()->create(['layer_no' => $layerNo, 'type' => $type, 'svg_path' => $path]);
+            }
+        }
+
+        $this->unsetRelation('slots');
     }
 
     public function canPublish(): bool

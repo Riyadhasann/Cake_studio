@@ -28,9 +28,10 @@
         <div>
             <h1 class="heading text-5xl">{{ $variant->layers }}-layer shape</h1>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
-                Draw one sponge and one cream shape per layer (layer 1 is the bottom) in view box units. The base SVG is drawn
-                on top of the shapes, so keep the outline and decorations there. The preview updates as you type; scripts,
-                links, images and styles are removed when you save.
+                Upload a photo of the cake with an empty cut face, mark the cut on it and fit the shapes: every sponge and
+                cream shape is then filled with the customer's flavors (the defaults first). Or draw the shapes yourself in view
+                box units (layer 1 is the bottom). The base SVG is drawn on top of the shapes, so keep outlines and decorations
+                there, never sponge or cream. Scripts, links, images and styles are removed when you save.
             </p>
         </div>
         <div class="flex items-center gap-4">
@@ -56,11 +57,29 @@
         </div>
     @endif
 
+    @include('admin.cake-variants._base')
+
+    @php
+        // Six points of the cut face for the editor: top left, middle, right, then bottom left, middle, right.
+        $cut = old('cut_face', $cutFace);
+        $cutPoints = [];
+        foreach (['top', 'bottom'] as $edge) {
+            foreach (range(0, 2) as $i) {
+                $point = $cut[$edge][$i] ?? null;
+                $cutPoints[] = ['x' => $point[0] ?? '', 'y' => $point[1] ?? ''];
+            }
+        }
+    @endphp
+
     <form action="{{ route('admin.cake-variants.update', $variant) }}" method="POST"
           x-data="cakeVariantEditor({{ Js::from([
               'width' => (int) old('view_box_width', $variant->view_box_width),
               'height' => (int) old('view_box_height', $variant->view_box_height),
               'baseSvg' => old('base_svg', $variant->base_svg ?? ''),
+              'baseImage' => $variant->base_image ? asset($variant->base_image) : null,
+              'layers' => $variant->layers,
+              'cutPoints' => $cutPoints,
+              'spongeShare' => (float) ($cut['sponge_share'] ?? 0.72),
               'slots' => $slotRows,
               'elements' => $allowedElements,
               'attributes' => $allowedAttributes,
@@ -75,13 +94,16 @@
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div>
                         <label for="view_box_width" class="label">View box width</label>
-                        <input id="view_box_width" type="number" name="view_box_width" x-model.number="width" required min="1" max="5000" step="1" class="field">
+                        <input id="view_box_width" type="number" name="view_box_width" x-model.number="width" required min="1" max="5000" step="1" class="field" @readonly($variant->base_image)>
                     </div>
                     <div>
                         <label for="view_box_height" class="label">View box height</label>
-                        <input id="view_box_height" type="number" name="view_box_height" x-model.number="height" required min="1" max="5000" step="1" class="field">
+                        <input id="view_box_height" type="number" name="view_box_height" x-model.number="height" required min="1" max="5000" step="1" class="field" @readonly($variant->base_image)>
                     </div>
                 </div>
+                @if ($variant->base_image)
+                    <p class="-mt-2 text-xs text-ink/60">Set by the cake photo: its size in pixels.</p>
+                @endif
                 <div>
                     <label for="base_svg" class="label">Base SVG (outline and decorations, drawn on top)</label>
                     <textarea id="base_svg" name="base_svg" x-model="baseSvg" rows="8" maxlength="20000" spellcheck="false"
@@ -93,6 +115,58 @@
                     <p class="mt-2 text-xs text-clay" x-show="baseError" x-cloak>The markup is not well-formed: check that every tag is closed.</p>
                 </div>
             </section>
+
+            @if ($variant->base_image)
+                <section class="panel space-y-5 p-6">
+                    <div>
+                        <h2 class="heading text-3xl">Cut face</h2>
+                        <p class="mt-2 text-sm leading-6 text-ink/70">
+                            Mark the empty cut in the photo with three points along its top edge and three along its bottom edge
+                            (left, middle, right; for a straight cut put the middle point on the line). Click "Place by clicking",
+                            then click the six points on the preview in order. Place them just outside the empty area so no gap shows.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-3 sm:grid-cols-3">
+                        @foreach (['Top left', 'Top middle', 'Top right', 'Bottom left', 'Bottom middle', 'Bottom right'] as $p => $pointLabel)
+                            @php $edge = $p < 3 ? 'top' : 'bottom'; $i = $p % 3; @endphp
+                            <fieldset class="rounded-2xl border p-3" :class="placing === {{ $p }} ? 'border-brand' : 'border-line'">
+                                <legend class="px-1 text-xs font-medium text-ink">{{ $pointLabel }}</legend>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label class="text-xs text-ink/70">X
+                                        <input type="number" step="any" x-model.number="cutPoints[{{ $p }}].x" class="field mt-1 px-3 py-2">
+                                    </label>
+                                    <label class="text-xs text-ink/70">Y
+                                        <input type="number" step="any" x-model.number="cutPoints[{{ $p }}].y" class="field mt-1 px-3 py-2">
+                                    </label>
+                                </div>
+                                {{-- Sent only once all six points are set --}}
+                                <input type="hidden" name="cut_face[{{ $edge }}][{{ $i }}][0]" :value="cutPoints[{{ $p }}].x" :disabled="!cutComplete">
+                                <input type="hidden" name="cut_face[{{ $edge }}][{{ $i }}][1]" :value="cutPoints[{{ $p }}].y" :disabled="!cutComplete">
+                            </fieldset>
+                        @endforeach
+                    </div>
+
+                    <div>
+                        <label for="sponge_share" class="label">Sponge share of each layer: <span x-text="Math.round(spongeShare * 100) + '%'"></span></label>
+                        <input id="sponge_share" type="range" min="0.3" max="0.95" step="0.01" x-model.number="spongeShare" class="w-full accent-brand">
+                        <input type="hidden" name="cut_face[sponge_share]" :value="spongeShare" :disabled="!cutComplete">
+                        <p class="mt-1 text-xs text-ink/60">The rest of each layer is its cream, on top of the sponge.</p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3">
+                        <button type="button" class="btn-outline btn-sm" @click="placing = placing === null ? 0 : null"
+                                x-text="placing === null ? 'Place by clicking' : 'Click: ' + pointNames[placing] + ' (stop)'"></button>
+                        <button type="button" class="btn btn-sm" @click="fitShapes()" :disabled="!cutComplete">Fit the shapes to the cut</button>
+                    </div>
+                    <p class="text-xs text-ink/60" x-show="fitted" x-cloak>Shapes fitted. Save the shape to keep them.</p>
+                    @foreach (['cut_face', 'cut_face.top.*.*', 'cut_face.bottom.*.*', 'cut_face.sponge_share'] as $field)
+                        @error($field)
+                            <p class="text-xs text-clay">{{ $message }}</p>
+                        @enderror
+                    @endforeach
+                </section>
+            @endif
 
             <section class="panel p-6">
                 <h2 class="heading text-3xl">Shapes</h2>
@@ -149,11 +223,15 @@
                 <div class="mt-4 rounded-2xl bg-petal p-4">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ $variant->view_box_width }} {{ $variant->view_box_height }}"
                          :viewBox="`0 0 ${Math.max(1, width || 1)} ${Math.max(1, height || 1)}`"
-                         class="mx-auto block h-auto max-h-[70vh] w-full" role="img" aria-label="Preview of the {{ $variant->layers }}-layer cake shape">
+                         class="mx-auto block h-auto max-h-[70vh] w-full" :class="placing !== null && 'cursor-crosshair'"
+                         @click="placePoint($event)" role="img" aria-label="Preview of the {{ $variant->layers }}-layer cake shape">
                         <rect x="0" y="0" :width="width" :height="height" fill="none" stroke="#e4d3cb" stroke-dasharray="6 6" vector-effect="non-scaling-stroke" />
+                        @if ($variant->base_image)
+                            <image href="{{ asset($variant->base_image) }}" x="0" y="0" :width="width" :height="height" preserveAspectRatio="none" />
+                        @endif
                         @foreach ($slotRows as $i => $row)
                             <path :d="pathOf(slots[{{ $i }}])"
-                                  fill="{{ $row['type'] === 'sponge' ? '#e9c79f' : '#fff7ec' }}"
+                                  fill="{{ $row['type'] === 'sponge' ? '#e9c79f' : '#fff7ec' }}" @if ($variant->base_image) fill-opacity=".85" @endif
                                   :stroke="active === {{ $i }} ? '#905954' : '#d8bfa5'"
                                   :stroke-width="active === {{ $i }} ? 3 : 1"
                                   vector-effect="non-scaling-stroke" />
@@ -168,6 +246,14 @@
                                    clip-path="url(#editor-slots)" style="mix-blend-mode: multiply" pointer-events="none" />
                         @endif
                         <g x-html="safeBase"></g>
+                        @if ($variant->base_image)
+                            {{-- The marked cut face and its six points --}}
+                            <polygon :points="cutOutline" fill="none" stroke="#905954" stroke-width="2" stroke-dasharray="8 5" vector-effect="non-scaling-stroke" pointer-events="none" />
+                            @foreach (range(0, 5) as $p)
+                                <circle :cx="cutPoints[{{ $p }}].x" :cy="cutPoints[{{ $p }}].y" r="7" x-show="pointSet({{ $p }})"
+                                        :fill="placing === {{ $p }} ? '#905954' : '#fff'" stroke="#905954" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none" />
+                            @endforeach
+                        @endif
                     </svg>
                 </div>
             </div>
@@ -194,10 +280,69 @@
                     + `V${fmt(y + r)}A${fmt(r)} ${fmt(r)} 0 0 1 ${fmt(x + r)} ${fmt(y)}Z`;
             };
 
+            // Same geometry as CakeVariantSlot::cutFacePaths, so the preview matches what the seeder makes.
+            const fitBands = (cut, layers) => {
+                const share = Math.max(0.05, Math.min(0.95, Number(cut.sponge_share)));
+                const overlap = 0.002;
+                const at = (depth) => cut.top.map((top, i) => [
+                    top[0] + depth * (cut.bottom[i][0] - top[0]),
+                    top[1] + depth * (cut.bottom[i][1] - top[1]),
+                ]);
+                const band = (from, to) => {
+                    const points = [...at(Math.max(0, from - overlap)), ...at(Math.min(1, to + overlap)).reverse()];
+                    return 'M' + points.map(([x, y]) => `${fmt(x)} ${fmt(y)}`).join('L') + 'Z';
+                };
+                const paths = {};
+                for (let layerNo = 1; layerNo <= layers; layerNo++) {
+                    const top = 1 - layerNo / layers;
+                    const creamEnd = top + (1 - share) / layers;
+                    paths[layerNo] = { sponge: band(creamEnd, 1 - (layerNo - 1) / layers), cream: band(top, creamEnd) };
+                }
+                return paths;
+            };
+
             return {
                 ...config,
                 active: null,
                 baseError: false,
+                placing: null, // index of the cut face point the next click on the preview sets
+                fitted: false,
+                pointNames: ['top left', 'top middle', 'top right', 'bottom left', 'bottom middle', 'bottom right'],
+
+                pointSet(p) {
+                    const point = this.cutPoints[p];
+                    return point.x !== '' && point.y !== '' && Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y));
+                },
+                get cutComplete() {
+                    return this.cutPoints.every((_, p) => this.pointSet(p));
+                },
+                // The face's outline: along the top edge, then back along the bottom edge.
+                get cutOutline() {
+                    if (!this.cutComplete) return '';
+                    const points = [...this.cutPoints.slice(0, 3), ...this.cutPoints.slice(3).reverse()];
+                    return points.map((point) => `${point.x},${point.y}`).join(' ');
+                },
+                placePoint(event) {
+                    if (this.placing === null || !this.baseImage) return;
+                    const svg = event.currentTarget;
+                    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(svg.getScreenCTM().inverse());
+                    this.cutPoints[this.placing] = { x: Math.round(point.x), y: Math.round(point.y) };
+                    this.placing = this.placing < 5 ? this.placing + 1 : null;
+                },
+                fitShapes() {
+                    if (!this.cutComplete) return;
+                    const xy = (point) => [Number(point.x), Number(point.y)];
+                    const paths = fitBands({
+                        top: this.cutPoints.slice(0, 3).map(xy),
+                        bottom: this.cutPoints.slice(3).map(xy),
+                        sponge_share: this.spongeShare,
+                    }, this.layers);
+                    this.slots.forEach((slot) => {
+                        slot.mode = 'path';
+                        slot.path = paths[slot.layer]?.[slot.type] ?? slot.path;
+                    });
+                    this.fitted = true;
+                },
 
                 pathOf(slot) {
                     if (slot.mode !== 'rect') {

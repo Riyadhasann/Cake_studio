@@ -31,5 +31,11 @@ class CreamFlavorSeeder extends Seeder
 
         // Anything else stays in the database (old orders point at it) but leaves the studio.
         CreamFlavor::whereNotIn('name', array_column($flavors, 'name'))->update(['is_active' => false]);
+
+        // The design page opens on Butter Cream. Keep the admin's own default while it is still on the menu.
+        if (! CreamFlavor::where('is_default', true)->where('is_active', true)->exists()) {
+            CreamFlavor::query()->update(['is_default' => false]);
+            CreamFlavor::where('name', 'Butter Cream')->update(['is_default' => true]);
+        }
     }
 }

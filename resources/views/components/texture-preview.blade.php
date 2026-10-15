@@ -41,6 +41,9 @@
         <svg x-show="layers === {{ $layers }}" @if ($layers !== $firstLayers) x-cloak @endif
              viewBox="0 0 {{ $drawing['width'] }} {{ $drawing['height'] }}" class="mx-auto mt-3 block max-h-56 w-full"
              role="img" aria-label="The texture on a {{ $layers }}-layer cake">
+            @if ($drawing['base_image'])
+                <image href="{{ $drawing['base_image']['url'] }}" x="0" y="0" width="{{ $drawing['width'] }}" height="{{ $drawing['height'] }}" preserveAspectRatio="none" />
+            @endif
             @foreach ($drawing['slots'] as $slot)
                 @if ($slot['type'] === $type)
                     <path d="{{ $slot['path'] }}"

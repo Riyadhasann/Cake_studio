@@ -1,12 +1,12 @@
 {{--
     The cake preview on the design page. Lives inside the cakeStudio() Alpine scope.
 
-    When the admin has published an SVG drawing for the chosen layer count, the cake is that drawing:
-    every slot is filled with the flavor's photo for that slot, else its texture, else its layer image,
-    else its color, then shaded (the drawing's shading image, or soft gradients). Otherwise the
-    cake is stacked from one element per sponge and cream (the layered preview).
-    SVG content is rendered here in Blade because Alpine's <template x-for> doesn't work inside <svg>;
-    only each slot's fill is bound, so changing a pick repaints just that slot.
+    When the admin has published an SVG drawing for the chosen layer count, the cake is that drawing
+    (x-cake-variant-svg): on the admin's cake photo when it has one, which then fills the stage,
+    else between the plate and the frosting. Every slot is filled with the flavor's photo for that slot,
+    else its texture, else its layer image, else its color, then shaded (the drawing's shading image,
+    or soft gradients). Otherwise the cake is stacked from one element per sponge and cream (the layered preview).
+    SVG content is rendered in Blade because Alpine's <template x-for> doesn't work inside <svg>.
 --}}
 @props(['sponges', 'creams', 'variants'])
 @php
@@ -142,6 +142,21 @@
         overflow: visible;
         animation: cake-layer-in .35s ease-out;
     }
+    /* A drawing on a cake photo is the whole cake: the stage takes the photo's proportions. */
+    .cake-stage.is-photo {
+        display: block;
+        aspect-ratio: auto;
+        padding: 0;
+        background: #fff;
+    }
+    .cake-svg.cake-photo {
+        width: 100%;
+        margin: 0;
+    }
+    /* On a photo the layers sit flush on each other: no shadow under the cream. */
+    .cake-photo .cake-slot-cream {
+        filter: none;
+    }
     .cake-slot {
         transition: fill .25s ease;
     }
@@ -159,7 +174,7 @@
 </style>
 
 <div class="overflow-hidden rounded-[1.75rem] border border-line">
-    <div class="cake-stage" role="img" :aria-label="previewLabel">
+    <div class="cake-stage" :class="{ 'is-photo': hasPhotoBase }" role="img" :aria-label="previewLabel">
         @if ($variants)
             {{-- Fills shared by every drawing: one texture and one image pattern per flavor that has them. --}}
             <svg class="cake-defs" aria-hidden="true" focusable="false">
@@ -207,7 +222,16 @@
             </svg>
         @endif
 
-        <div class="cake-stack">
+        {{-- A drawing on a cake photo: the photo is the whole cake (plate and top included), so it fills the stage --}}
+        @foreach ($variants as $layers => $variant)
+            @if ($variant['base_image'])
+                <template x-if="hasVariant && layerCount === {{ $layers }}">
+                    <x-cake-variant-svg :layers="$layers" :variant="$variant" />
+                </template>
+            @endif
+        @endforeach
+
+        <div class="cake-stack" x-show="!hasPhotoBase">
             <template x-if="partImage('plate')">
                 <img class="cake-plate-img" :src="partImage('plate')" alt="" @@error="markBroken($el.getAttribute('src'))">
             </template>
@@ -217,31 +241,11 @@
 
             {{-- The admin's drawing for this layer count --}}
             @foreach ($variants as $layers => $variant)
-                <template x-if="hasVariant && layerCount === {{ $layers }}">
-                    <svg class="cake-svg" viewBox="0 0 {{ $variant['width'] }} {{ $variant['height'] }}" data-layers="{{ $layers }}" aria-hidden="true" focusable="false">
-                        @foreach ($variant['slots'] as $slot)
-                            <path d="{{ $slot['path'] }}" class="cake-slot cake-slot-{{ $slot['type'] }}" :fill="slotFill({{ $slot['layer_no'] }}, '{{ $slot['type'] }}')" />
-                            @if ($slot['type'] === 'sponge')
-                                <path d="{{ $slot['path'] }}" fill="url(#cake-crumbs)" pointer-events="none" x-show="!slotHasArt({{ $slot['layer_no'] }}, 'sponge')" />
-                            @endif
-                            @unless ($variant['shading'])
-                                <path d="{{ $slot['path'] }}" fill="url(#cake-shade-{{ $slot['type'] }})" pointer-events="none" />
-                            @endunless
-                        @endforeach
-                        @if ($variant['shading'])
-                            {{-- The admin's grayscale light and shadow, multiplied over the slots only (white changes nothing) --}}
-                            <clipPath id="cake-slots-{{ $layers }}">
-                                @foreach ($variant['slots'] as $slot)
-                                    <path d="{{ $slot['path'] }}" />
-                                @endforeach
-                            </clipPath>
-                            <image href="{{ $variant['shading']['url'] }}" x="0" y="0" width="{{ $variant['width'] }}" height="{{ $variant['height'] }}" preserveAspectRatio="none"
-                                   clip-path="url(#cake-slots-{{ $layers }})" style="mix-blend-mode: multiply" pointer-events="none" />
-                        @endif
-                        {{-- Outline and decorations last, so the slots never cover them. Sanitized by the controller. --}}
-                        <g>{!! $variant['base_svg'] !!}</g>
-                    </svg>
-                </template>
+                @unless ($variant['base_image'])
+                    <template x-if="hasVariant && layerCount === {{ $layers }}">
+                        <x-cake-variant-svg :layers="$layers" :variant="$variant" />
+                    </template>
+                @endunless
             @endforeach
 
             {{-- No drawing for this layer count: one element per sponge and per cream --}}
