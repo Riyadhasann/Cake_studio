@@ -61,7 +61,7 @@
                                     <span class="text-ink/70">{{ $order->customer_phone }}</span><br>
                                     <span class="text-ink/70">{{ $order->customer_address }}</span>
                                     @if ($order->notes)
-                                        <p class="mt-1 italic text-ink/70">Note: {{ $order->notes }}</p>
+                                        <p class="mt-1 text-ink/70">Note: {{ $order->notes }}</p>
                                     @endif
                                 </td>
 
@@ -73,7 +73,7 @@
                                                 {{ $c->cakeSize->label }} cake, {{ count($c->layer_summary) }} {{ count($c->layer_summary) === 1 ? 'layer' : 'layers' }}
                                                 <x-layer-list :layers="$c->layer_summary" class="mt-1" />
                                                 @if ($c->message)
-                                                    <br><span class="italic text-ink/70">&ldquo;{{ $c->message }}&rdquo;</span>
+                                                    <br><span class="text-ink/70">&ldquo;{{ $c->message }}&rdquo;</span>
                                                 @endif
                                             </li>
                                         @endforeach

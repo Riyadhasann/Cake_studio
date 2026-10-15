@@ -6,12 +6,12 @@
     @endif
 
     @if ($script)
-        <p class="mt-4 font-script text-4xl leading-none text-brand sm:text-5xl">{{ $script }}</p>
+        <p class="mt-3 font-display text-xl font-medium text-brand sm:text-2xl">{{ $script }}</p>
     @endif
 
-    <h1 class="heading mt-3 text-5xl sm:text-6xl">{{ $title }}</h1>
+    <h1 class="heading mt-2 text-4xl sm:text-5xl">{{ $title }}</h1>
 
     @if ($slot->isNotEmpty())
-        <p class="mx-auto mt-5 max-w-xl text-sm leading-7 text-ink/75">{{ $slot }}</p>
+        <p class="mx-auto mt-4 max-w-xl text-base leading-7 text-ink/75">{{ $slot }}</p>
     @endif
 </div>

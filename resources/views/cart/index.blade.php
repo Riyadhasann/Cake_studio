@@ -42,7 +42,7 @@
                             <p class="font-display text-2xl font-medium leading-snug">{{ $item['size_label'] }} cake, {{ $layerCount }} {{ $layerCount === 1 ? 'layer' : 'layers' }}</p>
                             <x-layer-list :layers="$item['layers']" class="mt-1" />
                             @if (! empty($item['message']))
-                                <p class="mt-1 text-sm italic text-ink/70">&ldquo;{{ $item['message'] }}&rdquo;</p>
+                                <p class="mt-1 text-sm text-ink/70">&ldquo;{{ $item['message'] }}&rdquo;</p>
                             @endif
                             <p class="mt-2 text-sm text-ink/70">{{ $qty }} &times; ৳{{ number_format($item['price'], 2) }}</p>
                         </div>

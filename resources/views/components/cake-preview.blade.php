@@ -172,7 +172,7 @@
     }
 </style>
 
-<div class="overflow-hidden rounded-[1.75rem] border border-line">
+<div class="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
     <div class="cake-stage" :class="{ 'is-photo': hasPhotoBase }" role="img" :aria-label="previewLabel">
         @if ($variants)
             {{-- Fills shared by every drawing: one image pattern per flavor that has a layer image. --}}

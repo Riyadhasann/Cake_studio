@@ -74,7 +74,7 @@
                                 {{ $c->cakeSize->label }} cake, {{ count($c->layer_summary) }} {{ count($c->layer_summary) === 1 ? 'layer' : 'layers' }}
                                 <x-layer-list :layers="$c->layer_summary" class="mt-1" />
                                 @if ($c->message)
-                                    <br><span class="italic text-ink/70">&ldquo;{{ $c->message }}&rdquo;</span>
+                                    <br><span class="text-ink/70">&ldquo;{{ $c->message }}&rdquo;</span>
                                 @endif
                             </li>
                         @endforeach
