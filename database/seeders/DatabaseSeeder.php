@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             CreamFlavorSeeder::class,
             CakeVariantSeeder::class,
             CakePhotoSeeder::class,
+            CakeDesignSeeder::class,
         ]);
     }
 }

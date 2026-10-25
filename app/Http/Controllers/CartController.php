@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PlaceOrderRequest;
 use App\Http\Requests\StoreCakeCustomizationRequest;
+use App\Models\CakeDesign;
 use App\Models\CakeSize;
 use App\Models\CreamFlavor;
 use App\Models\Order;
@@ -45,9 +46,17 @@ class CartController extends Controller
             ];
         }
 
+        // The design's price comes from the database too.
+        $design = $request->filled('cake_design_id') ? CakeDesign::with('frames')->findOrFail($request->integer('cake_design_id')) : null;
+        $unitPrice += $design ? (float) $design->extra_price : 0;
+        $cover = $design?->frames->first()?->image;
+
         $cart->add([
             'size_id' => $size->id,
             'size_label' => $size->label,
+            'design_id' => $design?->id,
+            'design_name' => $design?->name,
+            'design_image' => $cover,
             'layers' => $layers,
             'message' => $validated['message'] ?? null,
             'quantity' => (int) $validated['quantity'],
@@ -105,6 +114,9 @@ class CartController extends Controller
                     'message' => $item['message'],
                     'quantity' => $item['quantity'] ?? 1,
                     'price' => $item['price'],
+                    // Cart items added before designs existed have none.
+                    'cake_design_id' => $item['design_id'] ?? null,
+                    'design_name' => $item['design_name'] ?? null,
                 ]);
 
                 $customization->layers()->createMany(array_map(fn (array $layer) => [

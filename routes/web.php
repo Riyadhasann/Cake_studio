@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\CakeDesignController;
 use App\Http\Controllers\Admin\CakePhotoController;
 use App\Http\Controllers\Admin\CakeSizeController;
 use App\Http\Controllers\Admin\CakeVariantController;
 use App\Http\Controllers\Admin\CakeVariantImageController;
 use App\Http\Controllers\Admin\CakeVisualController;
+use App\Http\Controllers\Admin\FlavorSurfaceController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\CakeStudioController;
 use App\Http\Controllers\CartController;
@@ -33,6 +35,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/cake-images/photo', [CakePhotoController::class, 'update'])->name('admin.cake-photo.update');
         Route::delete('/admin/cake-images/photo', [CakePhotoController::class, 'destroy'])->name('admin.cake-photo.destroy');
         Route::post('/admin/cake-images/{type}/order', [CakeVisualController::class, 'reorder'])->whereIn('type', ['sponge', 'cream'])->name('admin.cake-visuals.reorder');
+        Route::get('/admin/designs', [CakeDesignController::class, 'index'])->name('admin.designs.index');
+        Route::post('/admin/designs', [CakeDesignController::class, 'store'])->name('admin.designs.store');
+        Route::put('/admin/designs/{design}', [CakeDesignController::class, 'update'])->whereNumber('design')->name('admin.designs.update');
+        Route::put('/admin/designs/{design}/fit', [CakeDesignController::class, 'updateFit'])->whereNumber('design')->name('admin.designs.fit');
+        Route::post('/admin/designs/{design}/toppings', [CakeDesignController::class, 'storeTopping'])->whereNumber('design')->name('admin.designs.toppings.store');
+        Route::put('/admin/designs/{design}/toppings/{index}', [CakeDesignController::class, 'updateTopping'])->whereNumber(['design', 'index'])->name('admin.designs.toppings.update');
+        Route::delete('/admin/designs/{design}/toppings/{index}', [CakeDesignController::class, 'destroyTopping'])->whereNumber(['design', 'index'])->name('admin.designs.toppings.destroy');
+        Route::delete('/admin/designs/{design}', [CakeDesignController::class, 'destroy'])->whereNumber('design')->name('admin.designs.destroy');
+        Route::post('/admin/designs/{design}/frames', [CakeDesignController::class, 'storeFrames'])->whereNumber('design')->name('admin.designs.frames.store');
+        Route::delete('/admin/designs/{design}/frames/{frame}', [CakeDesignController::class, 'destroyFrame'])->whereNumber(['design', 'frame'])->name('admin.designs.frames.destroy');
+        Route::post('/admin/cake-images/{type}/{id}/3d', [FlavorSurfaceController::class, 'update'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.cake-visuals.surface.update');
+        Route::delete('/admin/cake-images/{type}/{id}/3d', [FlavorSurfaceController::class, 'destroy'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.cake-visuals.surface.destroy');
 
         Route::resource('/admin/sizes', CakeSizeController::class)
             ->only(['index', 'store', 'edit', 'update', 'destroy'])

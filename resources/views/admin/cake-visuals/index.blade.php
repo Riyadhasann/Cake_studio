@@ -1,4 +1,5 @@
 <x-studio-layout title="Cake images" :admin="true">
+    @vite('resources/js/cake-3d.js')
     <x-back-link :href="route('dashboard')" label="Back to Dashboard" />
 
     @php
@@ -17,14 +18,14 @@
             return $ids;
         };
 
-        $fileInput = 'w-full text-sm text-ink/80 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-medium file:text-brand hover:file:bg-brand-soft';
-        $step = 'flex size-9 shrink-0 items-center justify-center rounded-full bg-brand font-display text-lg text-white';
+        $fileInput = 'w-full text-sm text-ink/90 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-medium file:text-brand hover:file:bg-brand-soft';
+        $step = 'flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-cream';
     @endphp
 
     <div class="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div>
             <h1 class="heading text-5xl">Cake images</h1>
-            <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
+            <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
                 What customers see in the cake preview, set up in four steps.
             </p>
         </div>
@@ -44,13 +45,13 @@
             @if ($photo)
                 <img src="{{ asset($photo) }}" alt="The cake photo" class="w-full rounded-xl border border-line bg-white">
             @else
-                <div class="flex aspect-[4/3] items-center justify-center rounded-xl border border-dashed border-line bg-petal px-6 text-center text-sm text-ink/60">
+                <div class="flex aspect-[4/3] items-center justify-center rounded-xl border border-dashed border-line bg-petal px-6 text-center text-sm text-ink/80">
                     No photo yet
                 </div>
             @endif
 
             <div class="space-y-4">
-                <p class="text-sm leading-7 text-ink/75">
+                <p class="text-sm leading-7 text-ink/90">
                     A photo of the whole cake with a slice cut out. Leave the cut <strong class="text-ink">empty</strong>
                     (see-through, or a gray checkerboard): the sponge and cream layers are filled into it automatically,
                     for 2, 3 and 4 layers. PNG, JPG or WebP, up to 4 MB.
@@ -75,12 +76,12 @@
 
                 @if ($photo)
                     <div class="flex flex-wrap gap-5 text-xs">
-                        <a href="{{ route('admin.cake-variants.index') }}" class="text-ink/70 underline underline-offset-4 hover:text-brand">Adjust the cut by hand</a>
+                        <a href="{{ route('admin.cake-variants.index') }}" class="text-ink/80 underline underline-offset-4 hover:text-brand">Adjust the cut by hand</a>
                         <form action="{{ route('admin.cake-photo.destroy') }}" method="POST"
                               onsubmit="return confirm('Remove the cake photo? The design page goes back to the drawn cake.')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-ink/70 underline underline-offset-4 hover:text-clay">Remove photo</button>
+                            <button type="submit" class="text-ink/80 underline underline-offset-4 hover:text-clay">Remove photo</button>
                         </form>
                     </div>
                 @endif
@@ -94,7 +95,7 @@
             <span class="{{ $step }}">2</span>
             <h2 class="heading text-3xl">Default cake</h2>
         </div>
-        <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
+        <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
             The design page opens with every layer in these flavors. When a customer picks another one, only that layer changes.
         </p>
 
@@ -124,7 +125,7 @@
                 <span class="{{ $step }}">{{ $number }}</span>
                 <h2 class="heading text-3xl">{{ $title }}</h2>
             </div>
-            <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
+            <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
                 One picture per {{ $type }} flavor, shaped like that layer in the cut: for a cake with a slice cut out, a
                 V-shaped strip on a see-through background. It is stretched to fit each layer. Without a picture, the layer
                 is drawn in the flavor's color. The arrows set the order on the design page.
@@ -141,8 +142,8 @@
 
     {{-- Only for the drawn cake, used while there is no photo --}}
     <details class="panel mt-6 p-6" @if (! $photo) open @endif>
-        <summary class="cursor-pointer font-display text-2xl text-ink">Frosting and plate <span class="text-base text-ink/60">(only used without a cake photo)</span></summary>
-        <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
+        <summary class="cursor-pointer font-display text-2xl text-ink">Frosting and plate <span class="text-base text-ink/80">(only used without a cake photo)</span></summary>
+        <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
             The drawn cake has frosting on top and a plate under it, the same for every flavor. Transparent PNGs work best:
             frosting about 1400 × 400 px, plate about 1800 × 160 px.
         </p>
@@ -152,4 +153,67 @@
             @endforeach
         </div>
     </details>
+
+    {{-- Live 3D preview of one flavor's 3D look, opened from its card. It stays open while the grain size is moved. --}}
+    @php
+        $surfaceOf = fn ($flavor, string $type) => $flavor ? [
+            'color' => $flavor->color,
+            'side' => $flavor->side_texture ? asset($flavor->side_texture) : null,
+            'top' => $type === 'cream' && $flavor->top_texture ? asset($flavor->top_texture) : null,
+            'scale' => (float) $flavor->tile_scale,
+        ] : [];
+    @endphp
+    <aside x-data="cakeSurfacePreview({ sponge: @js($surfaceOf($defaultSponge, 'sponge')), cream: @js($surfaceOf($defaultCream, 'cream')) })"
+           @cake-3d-preview.window="open($event.detail)" @keydown.escape.window="close()"
+           x-show="flavor" x-cloak x-transition
+           class="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-white shadow-xl"
+           aria-label="3D preview">
+        <div class="flex items-center justify-between gap-2 border-b border-line px-4 py-2.5">
+            <p class="truncate text-sm font-semibold text-brand" x-text="flavor ? flavor.name + ' in 3D' : ''"></p>
+            <button type="button" @click="close()" class="flex size-7 items-center justify-center rounded-full text-ink/80 hover:bg-petal hover:text-brand" aria-label="Close the 3D preview">&times;</button>
+        </div>
+        <div class="relative" style="aspect-ratio: 1; background: radial-gradient(70% 55% at 50% 45%, #fffcf5 0%, #fbf3e4 50%, #f1e4cc 100%);">
+            <div x-ref="stage" class="absolute inset-0" tabindex="0" role="group" aria-roledescription="3D cake" aria-label="3D preview, drag or use the arrow keys to turn it"></div>
+            <p x-show="error" x-text="error" class="absolute inset-0 grid place-items-center p-6 text-center text-sm text-ink"></p>
+        </div>
+        <p class="px-4 py-2.5 text-xs text-ink/80">Seams are smoothed out when you save. Move the grain size until the crumb looks natural.</p>
+    </aside>
+
+    <script>
+        function cakeSurfacePreview(defaults) {
+            let viewer = null; // kept out of Alpine's data, which would wrap three.js in proxies
+
+            return {
+                flavor: null,
+                error: '',
+
+                async open(flavor) {
+                    this.flavor = flavor;
+                    this.error = '';
+                    try {
+                        if (!viewer) {
+                            if (!window.canDraw3d()) throw new Error('no WebGL');
+                            const factory = await window.whenCake3d();
+                            await this.$nextTick();
+                            viewer = await factory.create(this.$refs.stage);
+                        }
+                        viewer.render(this.spec(flavor));
+                    } catch (e) {
+                        this.error = 'This browser can’t show the 3D preview.';
+                    }
+                },
+                close() {
+                    if (!this.flavor) return;
+                    this.flavor = null;
+                    window.dispatchEvent(new CustomEvent('cake-3d-preview-closed'));
+                },
+                // A 3-layer, 2 kg cake: this flavor on every layer, with the default sponge or cream for the other part.
+                spec(flavor) {
+                    const own = { color: flavor.color, side: flavor.side, top: flavor.top, scale: flavor.scale };
+                    const layer = flavor.type === 'sponge' ? { sponge: own, cream: defaults.cream } : { sponge: defaults.sponge, cream: own };
+                    return { kg: 2, layers: [layer, layer, layer] };
+                },
+            };
+        }
+    </script>
 </x-studio-layout>

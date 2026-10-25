@@ -25,7 +25,7 @@
         align-items: center;
         aspect-ratio: 4 / 5;
         padding-bottom: 8%;
-        background: radial-gradient(120% 80% at 50% 100%, #fdf3ef 0%, #f8eeec 60%, #f3e3df 100%);
+        background: radial-gradient(120% 80% at 50% 100%, #fffaf5 0%, #fbeee2 55%, #f3dcc8 100%);
         overflow: hidden;
     }
     .cake-stack {
@@ -46,7 +46,7 @@
         margin-top: -1cqw;
         border-radius: 999px;
         background: linear-gradient(#ffffff, #e2d3cb);
-        border: 1px solid rgba(144, 89, 84, .18);
+        border: 1px solid rgba(59, 38, 34, .12);
         box-shadow: 0 2cqw 3.5cqw rgba(80, 45, 40, .20);
     }
     .cake-layer {
@@ -172,7 +172,7 @@
     }
 </style>
 
-<div class="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+<div class="overflow-hidden rounded-2xl border border-line bg-white shadow-[0_6px_16px_-8px_rgba(74,36,18,0.25)]">
     <div class="cake-stage" :class="{ 'is-photo': hasPhotoBase }" role="img" :aria-label="previewLabel">
         @if ($variants)
             {{-- Fills shared by every drawing: one image pattern per flavor that has a layer image. --}}

@@ -20,15 +20,11 @@ beforeEach(function () {
     $this->admin->forceFill(['is_admin' => true])->save();
 });
 
-test('flavor textures are gone: no columns, no routes, nothing on the admin page', function () {
+// The 2D texture_image is gone; the 3D cake's side_texture / top_texture are a separate feature (Cake3dTest).
+test('the old 2D flavor textures are gone: no columns, no routes', function () {
     expect(Schema::hasColumn('sponge_flavors', 'texture_image'))->toBeFalse()
         ->and(Schema::hasColumn('cream_flavors', 'texture_image'))->toBeFalse()
         ->and(Route::has('admin.cake-visuals.texture.update'))->toBeFalse();
-
-    $this->actingAs($this->admin)
-        ->get(route('admin.cake-visuals.index'))
-        ->assertOk()
-        ->assertDontSee('texture', false);
 });
 
 test('the cake images page walks through the photo, the default cake and the flavor pictures', function () {

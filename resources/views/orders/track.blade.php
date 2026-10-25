@@ -72,16 +72,17 @@
                             <li class="py-3">
                                 <span class="font-medium">{{ $c->quantity }} &times;</span>
                                 {{ $c->cakeSize->label }} cake, {{ count($c->layer_summary) }} {{ count($c->layer_summary) === 1 ? 'layer' : 'layers' }}
+                                <span class="mt-1 block text-ink/90"><span class="font-medium text-ink">Design:</span> {{ $c->design_name ?? 'Plain' }}</span>
                                 <x-layer-list :layers="$c->layer_summary" class="mt-1" />
                                 @if ($c->message)
-                                    <br><span class="text-ink/70">&ldquo;{{ $c->message }}&rdquo;</span>
+                                    <br><span class="text-ink/80">&ldquo;{{ $c->message }}&rdquo;</span>
                                 @endif
                             </li>
                         @endforeach
                     </ul>
 
                     <p class="mt-3 flex items-baseline justify-between border-t border-line pt-4">
-                        <span class="text-sm text-ink/70">Total</span>
+                        <span class="text-sm text-ink/80">Total</span>
                         <span class="font-display text-3xl font-medium">৳{{ number_format($order->total, 2) }}</span>
                     </p>
                 </div>

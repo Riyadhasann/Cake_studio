@@ -1,7 +1,7 @@
 @props(['layers'])
 @php $total = count($layers); @endphp
 
-<ol {{ $attributes->merge(['class' => 'text-sm text-ink/80']) }}>
+<ol {{ $attributes->merge(['class' => 'text-sm text-ink/90']) }}>
     @foreach ($layers as $layer)
         @php
             $where = match (true) {

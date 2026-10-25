@@ -27,7 +27,7 @@
     <div class="mt-6 flex flex-wrap items-end justify-between gap-6">
         <div>
             <h1 class="heading text-5xl">{{ $variant->layers }}-layer shape</h1>
-            <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
+            <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
                 Where the {{ $variant->layers }} sponge and cream layers sit in the cake. With a cake photo they are fitted into
                 its cut automatically; this page is only needed to adjust them.
             </p>
@@ -36,7 +36,7 @@
             @if ($variant->is_published)
                 <span class="rounded-full bg-sage-soft px-3 py-1 text-xs text-sage">Published</span>
             @else
-                <span class="rounded-full bg-petal px-3 py-1 text-xs text-ink/70">Draft</span>
+                <span class="rounded-full bg-petal px-3 py-1 text-xs text-ink/80">Draft</span>
             @endif
             @include('admin.cake-variants._publish', ['variant' => $variant, 'problems' => $problems])
         </div>
@@ -45,7 +45,7 @@
     @include('admin.cake-variants._alerts')
 
     @if ($problems)
-        <div class="mt-4 rounded-2xl border border-line bg-petal px-5 py-4 text-sm text-ink/80">
+        <div class="mt-4 rounded-2xl border border-line bg-petal px-5 py-4 text-sm text-ink/90">
             <p class="font-medium">Before this shape can be published:</p>
             <ul class="mt-1 list-inside list-disc">
                 @foreach ($problems as $problem)
@@ -97,7 +97,7 @@
                 <summary class="cursor-pointer font-display text-2xl text-ink">
                     {{ $variant->base_image ? 'Advanced: draw the shapes by hand' : 'Draw the shapes' }}
                 </summary>
-                <p class="mt-2 text-sm leading-6 text-ink/70">
+                <p class="mt-2 text-sm leading-6 text-ink/80">
                     One sponge and one cream shape per layer (layer 1 is the bottom), in view box units. The base SVG is drawn
                     on top of the shapes: keep outlines and decorations there, never sponge or cream. Scripts, links, images
                     and styles are removed when you save.
@@ -116,14 +116,14 @@
                     </div>
                 </div>
                 @if ($variant->base_image)
-                    <p class="-mt-2 text-xs text-ink/60">Set by the cake photo: its size in pixels.</p>
+                    <p class="-mt-2 text-xs text-ink/80">Set by the cake photo: its size in pixels.</p>
                 @endif
                 <div>
                     <label for="base_svg" class="label">Base SVG (outline and decorations, drawn on top)</label>
                     <textarea id="base_svg" name="base_svg" x-model="baseSvg" rows="8" maxlength="20000" spellcheck="false"
-                              placeholder='e.g. &lt;path d="M0 0H700" stroke="#3b2a27" fill="none"/&gt;'
+                              placeholder='e.g. &lt;path d="M0 0H700" stroke="#2b3f39" fill="none"/&gt;'
                               class="field font-mono text-xs"></textarea>
-                    <p class="mt-2 text-xs text-ink/60" x-show="!baseError">
+                    <p class="mt-2 text-xs text-ink/80" x-show="!baseError">
                         Allowed: {{ implode(', ', $allowedElements) }}. Colors may refer to gradients defined here, e.g. <code>url(#shine)</code>.
                     </p>
                     <p class="mt-2 text-xs text-clay" x-show="baseError" x-cloak>The markup is not well-formed: check that every tag is closed.</p>
@@ -133,7 +133,7 @@
 
             <section>
                 <h2 class="heading text-3xl">Shapes</h2>
-                <p class="mt-2 text-sm text-ink/70">Enter an SVG path, or a rectangle that is turned into a path when you save. Leave a path empty to remove that shape.</p>
+                <p class="mt-2 text-sm text-ink/80">Enter an SVG path, or a rectangle that is turned into a path when you save. Leave a path empty to remove that shape.</p>
 
                 <div class="mt-6 divide-y divide-line">
                     @foreach (array_reverse($slotRows, true) as $i => $row)
@@ -144,7 +144,7 @@
                                     <span class="mr-2 inline-block size-3 rounded-full align-middle {{ $row['type'] === 'sponge' ? 'bg-[#e9c79f]' : 'border border-[#d8bfa5] bg-[#fff7ec]' }}"></span>
                                     Layer {{ $row['layer'] }} {{ $row['type'] }}
                                 </legend>
-                                <div class="flex gap-4 text-xs text-ink/70">
+                                <div class="flex gap-4 text-xs text-ink/80">
                                     <label class="flex items-center gap-1.5"><input type="radio" name="{{ $name }}[mode]" value="path" x-model="slots[{{ $i }}].mode"> Path</label>
                                     <label class="flex items-center gap-1.5"><input type="radio" name="{{ $name }}[mode]" value="rect" x-model="slots[{{ $i }}].mode"> Rectangle</label>
                                 </div>
@@ -159,7 +159,7 @@
                             <div x-show="slots[{{ $i }}].mode === 'rect'" x-cloak class="grid grid-cols-2 gap-3 sm:grid-cols-5">
                                 @foreach (['x' => 'X', 'y' => 'Y', 'width' => 'Width', 'height' => 'Height', 'radius' => 'Corner radius'] as $field => $fieldLabel)
                                     <div>
-                                        <label for="slot-{{ $i }}-{{ $field }}" class="mb-1 block text-xs text-ink/70">{{ $fieldLabel }}</label>
+                                        <label for="slot-{{ $i }}-{{ $field }}" class="mb-1 block text-xs text-ink/80">{{ $fieldLabel }}</label>
                                         <input id="slot-{{ $i }}-{{ $field }}" type="number" step="any" name="{{ $name }}[{{ $field }}]"
                                                x-model="slots[{{ $i }}].{{ $field }}" :disabled="slots[{{ $i }}].mode !== 'rect'" class="field px-3 py-2">
                                     </div>
@@ -184,20 +184,20 @@
         <aside class="lg:sticky lg:top-6 lg:self-start">
             <div class="panel p-6">
                 <h2 class="heading text-3xl">Preview</h2>
-                <p class="mt-1 text-xs text-ink/60">Sponge shapes are tan, cream shapes are light. Hover or edit a shape to highlight it.</p>
+                <p class="mt-1 text-xs text-ink/80">Sponge shapes are tan, cream shapes are light. Hover or edit a shape to highlight it.</p>
                 <div class="mt-4 rounded-2xl bg-petal p-4">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ $variant->view_box_width }} {{ $variant->view_box_height }}"
                          :viewBox="`0 0 ${Math.max(1, width || 1)} ${Math.max(1, height || 1)}`"
                          class="mx-auto block h-auto max-h-[70vh] w-full" :class="placing !== null && 'cursor-crosshair'"
                          @click="placePoint($event)" role="img" aria-label="Preview of the {{ $variant->layers }}-layer cake shape">
-                        <rect x="0" y="0" :width="width" :height="height" fill="none" stroke="#e4d3cb" stroke-dasharray="6 6" vector-effect="non-scaling-stroke" />
+                        <rect x="0" y="0" :width="width" :height="height" fill="none" stroke="#f1e2d6" stroke-dasharray="6 6" vector-effect="non-scaling-stroke" />
                         @if ($variant->base_image)
                             <image href="{{ asset($variant->base_image) }}" x="0" y="0" :width="width" :height="height" preserveAspectRatio="none" />
                         @endif
                         @foreach ($slotRows as $i => $row)
                             <path :d="pathOf(slots[{{ $i }}])"
                                   fill="{{ $row['type'] === 'sponge' ? '#e9c79f' : '#fff7ec' }}" @if ($variant->base_image) fill-opacity=".85" @endif
-                                  :stroke="active === {{ $i }} ? '#905954' : '#d8bfa5'"
+                                  :stroke="active === {{ $i }} ? '#b5562a' : '#d8bfa5'"
                                   :stroke-width="active === {{ $i }} ? 3 : 1"
                                   vector-effect="non-scaling-stroke" />
                         @endforeach
@@ -213,10 +213,10 @@
                         <g x-html="safeBase"></g>
                         @if ($variant->base_image)
                             {{-- The marked cut face and its six points --}}
-                            <polygon :points="cutOutline" fill="none" stroke="#905954" stroke-width="2" stroke-dasharray="8 5" vector-effect="non-scaling-stroke" pointer-events="none" />
+                            <polygon :points="cutOutline" fill="none" stroke="#b5562a" stroke-width="2" stroke-dasharray="8 5" vector-effect="non-scaling-stroke" pointer-events="none" />
                             @foreach (range(0, 5) as $p)
                                 <circle :cx="cutPoints[{{ $p }}].x" :cy="cutPoints[{{ $p }}].y" r="7" x-show="pointSet({{ $p }})"
-                                        :fill="placing === {{ $p }} ? '#905954' : '#fff'" stroke="#905954" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none" />
+                                        :fill="placing === {{ $p }} ? '#b5562a' : '#fff'" stroke="#b5562a" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none" />
                             @endforeach
                         @endif
                     </svg>

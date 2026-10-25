@@ -2,13 +2,13 @@
 @php
     $flavorNames = collect($flavors)->map(fn ($list) => $list->pluck('name', 'id'));
     $photosBySlot = $variant->flavorImages->groupBy(fn ($photo) => "{$photo->layer_no}-{$photo->flavor_type}");
-    $fileInput = 'w-full text-sm text-ink/80 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-medium file:text-brand hover:file:bg-brand-soft';
+    $fileInput = 'w-full text-sm text-ink/90 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-medium file:text-brand hover:file:bg-brand-soft';
 @endphp
 
 <div class="mt-12 grid gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
     <section class="panel p-6">
         <h2 class="heading text-3xl">Shading</h2>
-        <p class="mt-2 text-sm leading-6 text-ink/70">
+        <p class="mt-2 text-sm leading-6 text-ink/80">
             Optional. A grayscale PNG or WebP with the drawing's proportions ({{ $variant->view_box_width }} × {{ $variant->view_box_height }}),
             multiplied over the shapes: white changes nothing, gray darkens. It replaces the built-in soft shading. Up to 2 MB.
         </p>
@@ -29,14 +29,14 @@
                   onsubmit="return confirm('Remove the shading image?')" class="mt-3 text-center">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="text-xs text-ink/70 underline underline-offset-4 hover:text-clay">Remove shading</button>
+                <button type="submit" class="text-xs text-ink/80 underline underline-offset-4 hover:text-clay">Remove shading</button>
             </form>
         @endif
     </section>
 
     <section class="panel p-6" x-data="{ slot: '1-sponge' }">
         <h2 class="heading text-3xl">Flavor photos</h2>
-        <p class="mt-2 text-sm leading-6 text-ink/70">
+        <p class="mt-2 text-sm leading-6 text-ink/80">
             Optional. A photo of one flavor for one shape replaces that flavor's layer image there, cropped from the center to fit the shape.
             PNG, JPG or WebP, up to 2 MB. Uploading again for the same shape and flavor replaces the photo.
         </p>
@@ -87,7 +87,7 @@
                         @foreach ($photos as $photo)
                             <figure class="w-36">
                                 <img src="{{ asset($photo->image) }}" alt="" class="h-16 w-36 rounded-lg border border-line object-cover">
-                                <figcaption class="mt-1 flex items-center justify-between gap-2 text-xs text-ink/70">
+                                <figcaption class="mt-1 flex items-center justify-between gap-2 text-xs text-ink/80">
                                     <span class="truncate">{{ $flavorNames[$type][$photo->flavor_id] ?? 'Deleted flavor' }}</span>
                                     <form action="{{ route('admin.cake-variants.photos.destroy', [$variant, $photo]) }}" method="POST"
                                           onsubmit="return confirm('Remove this photo?')">
@@ -101,7 +101,7 @@
                     </div>
                 </div>
             @empty
-                <p class="py-4 text-sm text-ink/60">No photos yet: every shape uses the flavor's layer image or color.</p>
+                <p class="py-4 text-sm text-ink/80">No photos yet: every shape uses the flavor's layer image or color.</p>
             @endforelse
         </div>
     </section>
