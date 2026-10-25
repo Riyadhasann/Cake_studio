@@ -17,6 +17,8 @@ class CakeCustomization extends Model
         'message',
         'quantity',
         'price',
+        'cake_design_id', // null for a plain cake
+        'design_name',    // kept when the design is deleted later
     ];
 
     protected $casts = [
@@ -34,6 +36,12 @@ class CakeCustomization extends Model
     public function cakeSize(): BelongsTo
     {
         return $this->belongsTo(CakeSize::class);
+    }
+
+    /** @return BelongsTo<CakeDesign, $this> */
+    public function design(): BelongsTo
+    {
+        return $this->belongsTo(CakeDesign::class, 'cake_design_id');
     }
 
     /** @return BelongsTo<SpongeFlavor, $this> */

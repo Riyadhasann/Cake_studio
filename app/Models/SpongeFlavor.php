@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_active
  * @property bool $is_default
  * @property int $sort_order
+ * @property string|null $side_texture
+ * @property string $tile_scale
  */
 class SpongeFlavor extends Model
 {
@@ -26,6 +28,8 @@ class SpongeFlavor extends Model
         'is_active',
         'is_default',
         'sort_order',
+        'side_texture',
+        'tile_scale',
     ];
 
     protected $casts = [
@@ -33,6 +37,7 @@ class SpongeFlavor extends Model
         'is_active' => 'boolean',
         'is_default' => 'boolean',
         'sort_order' => 'integer',
+        'tile_scale' => 'decimal:2',
     ];
 
     /**

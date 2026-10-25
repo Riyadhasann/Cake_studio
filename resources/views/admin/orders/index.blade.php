@@ -26,11 +26,11 @@
         </div>
 
         @if ($orders->isEmpty())
-            <p class="mt-8 text-ink/70">No orders yet.</p>
+            <p class="mt-8 text-ink/80">No orders yet.</p>
         @else
             <div class="panel mt-8 overflow-x-auto">
                 <table class="w-full min-w-[56rem] text-left text-sm">
-                    <thead class="bg-petal text-xs font-medium tracking-wide text-ink/70">
+                    <thead class="bg-petal text-xs font-medium tracking-wide text-ink/80">
                         <tr>
                             <th class="px-5 py-3.5">Order</th>
                             <th class="px-5 py-3.5">Customer</th>
@@ -53,15 +53,15 @@
                             <tr class="align-top">
                                 <td class="px-5 py-4">
                                     <span class="font-display text-2xl font-medium">#{{ $order->id }}</span><br>
-                                    <span class="text-ink/70">{{ $order->created_at->format('M j, g:ia') }}</span>
+                                    <span class="text-ink/80">{{ $order->created_at->format('M j, g:ia') }}</span>
                                 </td>
 
                                 <td class="px-5 py-4">
                                     <span class="font-medium">{{ $order->customer_name }}</span><br>
-                                    <span class="text-ink/70">{{ $order->customer_phone }}</span><br>
-                                    <span class="text-ink/70">{{ $order->customer_address }}</span>
+                                    <span class="text-ink/80">{{ $order->customer_phone }}</span><br>
+                                    <span class="text-ink/80">{{ $order->customer_address }}</span>
                                     @if ($order->notes)
-                                        <p class="mt-1 text-ink/70">Note: {{ $order->notes }}</p>
+                                        <p class="mt-1 text-ink/80">Note: {{ $order->notes }}</p>
                                     @endif
                                 </td>
 
@@ -71,9 +71,10 @@
                                             <li>
                                                 <span class="font-medium">{{ $c->quantity }} &times;</span>
                                                 {{ $c->cakeSize->label }} cake, {{ count($c->layer_summary) }} {{ count($c->layer_summary) === 1 ? 'layer' : 'layers' }}
+                                                <span class="mt-1 block text-ink/90"><span class="font-medium text-ink">Design:</span> {{ $c->design_name ?? 'Plain' }}</span>
                                                 <x-layer-list :layers="$c->layer_summary" class="mt-1" />
                                                 @if ($c->message)
-                                                    <br><span class="text-ink/70">&ldquo;{{ $c->message }}&rdquo;</span>
+                                                    <br><span class="text-ink/80">&ldquo;{{ $c->message }}&rdquo;</span>
                                                 @endif
                                             </li>
                                         @endforeach
@@ -84,7 +85,7 @@
                                     @if ($order->delivered_at)
                                         <span class="font-medium text-sage">Delivered</span><br>
                                         {{ $order->delivered_at->format('D, M j, g:ia') }}<br>
-                                        <span class="text-xs text-ink/70">Requested: {{ $order->delivery_date?->format('M j') ?? '—' }}</span>
+                                        <span class="text-xs text-ink/80">Requested: {{ $order->delivery_date?->format('M j') ?? '—' }}</span>
                                     @else
                                         {{ $order->delivery_date?->format('D, M j') ?? '—' }}
                                     @endif
@@ -95,7 +96,7 @@
                                 <td class="px-5 py-4">
                                     <span class="rounded-full px-3 py-1 text-xs font-medium {{ $badge }}">{{ ucfirst($order->status) }}</span>
                                     @if ($order->status === 'cancelled')
-                                        <p class="mt-2 max-w-[14rem] text-xs text-ink/70">Reason: {{ $order->cancel_reason }}</p>
+                                        <p class="mt-2 max-w-[14rem] text-xs text-ink/80">Reason: {{ $order->cancel_reason }}</p>
                                     @endif
                                 </td>
 
@@ -117,7 +118,7 @@
                                               onsubmit="return confirm('Permanently delete order #{{ $order->id }}? This cannot be undone.')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-xs text-ink/70 underline underline-offset-4 hover:text-clay">Delete</button>
+                                            <button type="submit" class="text-xs text-ink/80 underline underline-offset-4 hover:text-clay">Delete</button>
                                         </form>
                                     </div>
                                 </td>
@@ -141,7 +142,7 @@
             <form :action="cancelUrl" method="POST" class="w-full max-w-md rounded-[1.75rem] bg-paper p-8">
                 @csrf
                 <h2 class="heading text-4xl">Cancel order <span x-text="'#' + cancelId"></span></h2>
-                <p class="mt-2 text-sm text-ink/70">The customer will see this reason when they check their order.</p>
+                <p class="mt-2 text-sm text-ink/80">The customer will see this reason when they check their order.</p>
 
                 <label for="cancel_reason" class="label mt-6">Reason for cancellation</label>
                 <textarea
@@ -155,7 +156,7 @@
                     maxlength="500"
                     class="field"
                 ></textarea>
-                <p class="mt-1 text-right text-xs text-ink/70" x-text="reason.length + '/500'"></p>
+                <p class="mt-1 text-right text-xs text-ink/80" x-text="reason.length + '/500'"></p>
 
                 <div class="mt-6 space-y-3">
                     <button type="submit" class="inline-flex w-full items-center justify-center rounded-full border border-clay bg-clay px-8 py-3.5 text-[0.7rem] font-medium uppercase tracking-[0.2em] text-white transition-colors hover:bg-clay/90">

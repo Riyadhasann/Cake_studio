@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CakeDesign;
 use App\Models\CakePart;
 use App\Models\CakeSize;
 use App\Models\CreamFlavor;
@@ -26,6 +27,12 @@ class CakeStudioController extends Controller
             'image_size' => $uploads->size($flavor->layer_image),
             // The strip of art in the layer image (e.g. a V-shaped slice), mapped arm by arm onto a slot of a cake photo
             'strip' => $strips->of($flavor->layer_image),
+            // What the 3D cake wraps around the layer; without a side picture it draws a pattern in the color
+            'surface' => [
+                'side' => $flavor->side_texture ? asset($flavor->side_texture) : null,
+                'top' => $flavor instanceof CreamFlavor && $flavor->top_texture ? asset($flavor->top_texture) : null,
+                'scale' => (float) $flavor->tile_scale,
+            ],
         ];
 
         // ['frosting' => url or null, 'plate' => url or null]
@@ -36,7 +43,22 @@ class CakeStudioController extends Controller
         $sponges = SpongeFlavor::where('is_active', true)->ordered()->get();
         $creams = CreamFlavor::where('is_active', true)->ordered()->get();
 
+        // Finished designs with at least one photo: [id, name, extra_price, frames => [url, ...], fit], the first frame is
+        // the cover, which the 3D cake wears (fit: where the cake sits in it; toppings: cut-outs stood on its top).
+        $designs = CakeDesign::where('is_active', true)->ordered()->with('frames')->get()
+            ->filter(fn (CakeDesign $design) => $design->frames->isNotEmpty())
+            ->map(fn (CakeDesign $design) => [
+                'id' => $design->id,
+                'name' => $design->name,
+                'extra_price' => $design->extra_price,
+                'frames' => $design->frames->map(fn ($frame) => asset($frame->image))->values()->all(),
+                'fit' => $design->fitOrDefault(),
+                'toppings' => array_map(fn (array $topping) => [...$topping, 'image' => asset($topping['image'])], $design->toppingList()),
+            ])
+            ->values();
+
         return view('cake-studio.index', [
+            'designs' => $designs,
             'sizes' => CakeSize::ordered()->get(),
             'sponges' => $sponges->map($forPage)->values(),
             'creams' => $creams->map($forPage)->values(),

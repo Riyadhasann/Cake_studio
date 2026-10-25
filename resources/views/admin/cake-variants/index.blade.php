@@ -2,7 +2,7 @@
     <x-back-link :href="route('dashboard')" label="Back to Dashboard" />
 
     <h1 class="heading mt-6 text-5xl">Cake shapes</h1>
-    <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/75">
+    <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
         Where the sponge and cream layers sit in the cake, for 2, 3 and 4 layers. When you upload the cake photo on the
         <a href="{{ route('admin.cake-visuals.index') }}" class="underline">Cake images</a> page, the layers are fitted
         into its cut automatically, so you only need this page to adjust them. Only published shapes are shown to customers.
@@ -12,7 +12,7 @@
 
     <div class="panel mt-8 overflow-x-auto">
         <table class="w-full min-w-[36rem] text-left text-sm">
-            <thead class="bg-petal text-xs font-medium tracking-wide text-ink/70">
+            <thead class="bg-petal text-xs font-medium tracking-wide text-ink/80">
                 <tr>
                     <th class="px-5 py-3.5">Layers</th>
                     <th class="px-5 py-3.5">Cake photo</th>
@@ -32,7 +32,7 @@
                                 @if ($variant->base_image)
                                     <img src="{{ asset($variant->base_image) }}" alt="" class="h-12 rounded-lg border border-line">
                                 @else
-                                    <span class="text-ink/50">None (drawn cake)</span>
+                                    <span class="text-ink/70">None (drawn cake)</span>
                                 @endif
                             </td>
                             <td class="px-5 py-4">{{ $variant->slots->count() === 2 * $variant->layers ? 'Yes' : $variant->slots->count().' of '.(2 * $variant->layers).' shapes' }}</td>
@@ -40,7 +40,7 @@
                                 @if ($variant->is_published)
                                     <span class="rounded-full bg-sage-soft px-3 py-1 text-xs text-sage">Published</span>
                                 @else
-                                    <span class="rounded-full bg-petal px-3 py-1 text-xs text-ink/70">Draft</span>
+                                    <span class="rounded-full bg-petal px-3 py-1 text-xs text-ink/80">Draft</span>
                                 @endif
                                 @if ($problems)
                                     <ul class="mt-2 max-w-xs list-inside list-disc text-xs text-clay">
@@ -57,7 +57,7 @@
                                 </div>
                             </td>
                         @else
-                            <td class="px-5 py-4 text-ink/50" colspan="3">No drawing yet: the design page uses the layered preview.</td>
+                            <td class="px-5 py-4 text-ink/70" colspan="3">No drawing yet: the design page uses the layered preview.</td>
                             <td class="px-5 py-4">
                                 <form action="{{ route('admin.cake-variants.store') }}" method="POST">
                                     @csrf

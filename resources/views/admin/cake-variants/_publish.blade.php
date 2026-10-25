@@ -4,7 +4,7 @@
           onsubmit="return confirm('Unpublish this drawing? The design page goes back to the layered preview for {{ $variant->layers }} layers.')">
         @csrf
         @method('DELETE')
-        <button type="submit" class="text-xs text-ink/70 underline underline-offset-4 hover:text-clay">Unpublish</button>
+        <button type="submit" class="text-xs text-ink/80 underline underline-offset-4 hover:text-clay">Unpublish</button>
     </form>
 @else
     <form action="{{ route('admin.cake-variants.publish', $variant) }}" method="POST">

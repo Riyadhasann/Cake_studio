@@ -29,7 +29,7 @@
         @if (empty($items))
             <div class="panel mt-10 p-10 text-center">
                 <p class="heading text-3xl">Your cart is empty</p>
-                <p class="mt-2 text-sm text-ink/70">Design a cake and it will appear here.</p>
+                <p class="mt-2 text-sm text-ink/80">Design a cake and it will appear here.</p>
                 <a href="{{ route('cake-studio.index') }}" class="btn mt-6">Design a cake</a>
             </div>
         @else
@@ -40,11 +40,12 @@
                         <div class="min-w-0">
                             @php $layerCount = count($item['layers']); @endphp
                             <p class="font-display text-2xl font-medium leading-snug">{{ $item['size_label'] }} cake, {{ $layerCount }} {{ $layerCount === 1 ? 'layer' : 'layers' }}</p>
+                            <p class="mt-1 text-sm text-ink/90"><span class="font-medium text-ink">Design:</span> {{ $item['design_name'] ?? 'Plain' }}</p>
                             <x-layer-list :layers="$item['layers']" class="mt-1" />
                             @if (! empty($item['message']))
-                                <p class="mt-1 text-sm text-ink/70">&ldquo;{{ $item['message'] }}&rdquo;</p>
+                                <p class="mt-1 text-sm text-ink/80">&ldquo;{{ $item['message'] }}&rdquo;</p>
                             @endif
-                            <p class="mt-2 text-sm text-ink/70">{{ $qty }} &times; ৳{{ number_format($item['price'], 2) }}</p>
+                            <p class="mt-2 text-sm text-ink/80">{{ $qty }} &times; ৳{{ number_format($item['price'], 2) }}</p>
                         </div>
 
                         <div class="shrink-0 text-right">
@@ -53,14 +54,14 @@
                                   onsubmit="return confirm('Remove this cake from your cart?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="mt-2 text-xs text-ink/70 underline underline-offset-4 hover:text-clay">Remove</button>
+                                <button type="submit" class="mt-2 text-xs text-ink/80 underline underline-offset-4 hover:text-clay">Remove</button>
                             </form>
                         </div>
                     </div>
                 @endforeach
 
                 <div class="flex items-baseline justify-between p-6">
-                    <span class="text-sm text-ink/70">Total</span>
+                    <span class="text-sm text-ink/80">Total</span>
                     <span class="font-display text-4xl font-medium">৳{{ number_format($total, 2) }}</span>
                 </div>
             </div>
@@ -92,7 +93,7 @@
                 </div>
 
                 <div>
-                    <label for="notes" class="label">Special notes <span class="font-normal text-ink/70">(optional)</span></label>
+                    <label for="notes" class="label">Special notes <span class="font-normal text-ink/80">(optional)</span></label>
                     <textarea id="notes" name="notes" rows="2" class="field">{{ old('notes') }}</textarea>
                 </div>
 

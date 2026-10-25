@@ -20,6 +20,8 @@ class StoreCakeCustomizationRequest extends FormRequest
             'cake_size_id' => ['required', 'exists:cake_sizes,id'],
             'message' => ['nullable', 'string', 'max:255'],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
+            // A finished design for the outside of the cake, or none for a plain cake.
+            'cake_design_id' => ['nullable', 'integer', Rule::exists('cake_designs', 'id')->where('is_active', true)],
 
             // The layer count IS the size of this array: 2, 3 or 4 entries.
             'layers' => ['required', 'array', 'min:2', 'max:4'],
@@ -45,6 +47,7 @@ class StoreCakeCustomizationRequest extends FormRequest
             'layers.*.sponge_flavor_id.exists' => 'One of the chosen sponge flavors is not available.',
             'layers.*.cream_flavor_id.required' => 'Choose a cream flavor for every layer.',
             'layers.*.cream_flavor_id.exists' => 'One of the chosen cream flavors is not available.',
+            'cake_design_id.exists' => 'The chosen cake design is not available.',
         ];
     }
 
