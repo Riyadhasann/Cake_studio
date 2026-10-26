@@ -1,8 +1,8 @@
 /*
  * The shop and admin pages (x-studio-layout). Compiled by Vite, so nothing is built in the browser.
- * Bakery theme: warm cream page, white cards, terracotta for the picked choice and links,
- * dark chocolate for the main buttons, dark brown text, serif headings.
- * Text is brown on light colors, or white on terracotta (4.8:1) and chocolate (11:1).
+ * Green theme: white page, soft grey cards, brand green for buttons, links, picked choices and prices,
+ * deep green for hovers, Poppins throughout. Every color below comes from the palette variables; the older
+ * token names (brand, cocoa, ink, ...) used across the views are kept as aliases of them.
  */
 @import 'tailwindcss';
 
@@ -10,31 +10,46 @@
 @source '../js';
 
 @theme {
-    /* Headings in DM Serif Display (one solid weight), everything else in Nunito Sans. */
-    --font-display: 'DM Serif Display', Georgia, serif;
-    --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 
-    --color-paper: #faf7f4; /* page: light and quiet, so the cards and the cake stand out */
-    --color-petal: #f7f1ec; /* unpicked tiles, tinted surfaces */
-    --color-line: #e8ddd4; /* borders */
-    --color-ink: #2b1a12; /* text: near-black brown, easy to read */
-    --color-brand: #b5562a; /* terracotta */
-    --color-brand-dark: #8f4220;
-    --color-brand-soft: #fbe9dd;
-    --color-gold: #e3a15a; /* caramel */
-    --color-gold-soft: #fdf0e0;
-    --color-cocoa: #5e2d13; /* dark chocolate: main buttons */
-    --color-cocoa-dark: #47210d;
-    --color-cream: #ffffff; /* cards */
-    --color-brown: #6b4a3c; /* secondary labels */
-    --color-sage: #3f6b3a;
-    --color-sage-soft: #e7f1e4;
-    --color-clay: #a8362f;
-    --color-clay-soft: #fbe8e6;
+    /* Palette (the only hex values in the theme) */
+    --color-primary: #3a9e56; /* brand green: primary buttons, links, active states, icons, prices, success */
+    --color-primary-dark: #2e7d44; /* deep green: section headers, primary button hover */
+    --color-text: #222222; /* headings and main text */
+    --color-text-secondary: #666666; /* paragraphs, descriptions */
+    --color-text-muted: #999999; /* labels, captions, placeholders, meta */
+    --color-border: #e1e1e1; /* input borders, dividers, card outlines */
+    --color-border-light: #ebebeb; /* subtle separators */
+    --color-bg: #ffffff; /* page */
+    --color-bg-soft: #f9f9f9; /* alternating sections, cards */
+    --color-bg-muted: #f2f3f5; /* input fills, tables */
+    --color-danger: #b11a1a; /* errors, out of stock, delete */
+    --color-danger-soft: #bd5353; /* softer alerts */
 
-    --shadow-card: 0 1px 3px rgb(43 26 18 / 0.1), 0 6px 14px -4px rgb(43 26 18 / 0.14), 0 18px 40px -12px rgb(43 26 18 / 0.3);
-    --shadow-box: 0 1px 2px rgb(43 26 18 / 0.1), 0 4px 10px -2px rgb(43 26 18 / 0.16), 0 10px 22px -8px rgb(43 26 18 / 0.24); /* boxes inside cards */
-    --shadow-lift: 0 2px 5px rgb(43 26 18 / 0.12), 0 10px 20px -6px rgb(43 26 18 / 0.2), 0 22px 44px -14px rgb(43 26 18 / 0.34);
+    /* Aliases used by the views */
+    --color-paper: var(--color-bg-muted);
+    --color-petal: var(--color-bg-muted);
+    --color-line: var(--color-border);
+    --color-ink: var(--color-text);
+    --color-brand: var(--color-primary);
+    --color-brand-dark: var(--color-primary-dark);
+    --color-brand-soft: color-mix(in srgb, var(--color-primary) 14%, var(--color-bg));
+    --color-gold: var(--color-primary);
+    --color-gold-soft: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
+    --color-cocoa: var(--color-primary);
+    --color-cocoa-dark: var(--color-primary-dark);
+    --color-cream: var(--color-bg-soft);
+    --color-brown: var(--color-text-secondary);
+    --color-sage: var(--color-primary-dark);
+    --color-sage-soft: color-mix(in srgb, var(--color-primary) 12%, var(--color-bg));
+    --color-clay: var(--color-danger);
+    --color-clay-soft: color-mix(in srgb, var(--color-danger-soft) 14%, var(--color-bg));
+
+    --shadow-card: 0 1px 3px color-mix(in srgb, var(--color-text) 10%, transparent), 0 4px 10px -2px color-mix(in srgb, var(--color-text) 10%, transparent), 0 16px 36px -12px color-mix(in srgb, var(--color-text) 28%, transparent);
+    --shadow-box: 0 1px 2px color-mix(in srgb, var(--color-text) 12%, transparent), 0 4px 10px -3px color-mix(in srgb, var(--color-text) 18%, transparent), 0 10px 22px -10px color-mix(in srgb, var(--color-text) 22%, transparent); /* boxes inside cards */
+    --shadow-lift: 0 2px 6px color-mix(in srgb, var(--color-text) 14%, transparent), 0 10px 22px -6px color-mix(in srgb, var(--color-text) 22%, transparent), 0 24px 44px -14px color-mix(in srgb, var(--color-text) 32%, transparent);
+    --shadow-brand: 0 1px 2px color-mix(in srgb, var(--color-primary-dark) 30%, transparent), 0 6px 14px -4px color-mix(in srgb, var(--color-primary) 50%, transparent), 0 14px 28px -12px color-mix(in srgb, var(--color-primary-dark) 45%, transparent); /* green buttons and the cake count */
 
     --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
     --ease-spring: cubic-bezier(0.3, 1.6, 0.5, 1);
@@ -72,9 +87,30 @@
         color: var(--color-ink);
     }
 
-    /* DM Serif Display has a single weight; browsers would otherwise fake a blurry bold */
+    /* Headings dark and semibold, paragraphs grey and airy, plain links green */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
     .font-display {
-        font-weight: 400 !important;
+        color: var(--color-text);
+        font-weight: 600;
+    }
+    p {
+        color: var(--color-text-secondary);
+        line-height: 1.7;
+    }
+    a:not([class]) {
+        color: var(--color-primary);
+        transition: color 0.2s ease;
+    }
+    a:not([class]):hover {
+        color: var(--color-primary-dark);
+    }
+    ::placeholder {
+        color: var(--color-text-muted);
     }
 
     [x-cloak] {
@@ -82,17 +118,17 @@
     }
 }
 
-/* Reusable classes, so views say "btn" instead of repeating 20 utilities. Compact on purpose: small type, tight boxes, soft shadows. */
+/* Reusable classes, so views say "btn" instead of repeating 20 utilities. Compact on purpose: small type, tight boxes, clear shadows so cards and buttons stand off the white page. */
 @layer components {
     .eyebrow {
         @apply text-xs font-bold tracking-wider text-brand uppercase;
     }
     .heading {
-        @apply font-display leading-tight font-normal text-ink;
+        @apply font-display leading-tight font-semibold text-ink;
     }
     /* Main buttons: dark chocolate with white text. */
     .btn {
-        @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-cocoa bg-cocoa px-4 py-2 text-sm font-semibold text-white shadow-[0_1px_2px_rgb(43_26_18/0.25),0_6px_14px_-4px_rgb(94_45_19/0.55)] transition hover:border-cocoa-dark hover:bg-cocoa-dark focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-cocoa bg-cocoa px-4 py-2 text-sm font-semibold text-white shadow-brand transition hover:border-cocoa-dark hover:bg-cocoa-dark focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60;
     }
     .btn-outline {
         @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-ink shadow-box transition hover:border-brand/50 hover:shadow-lift hover:text-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60;
@@ -104,13 +140,13 @@
         @apply rounded-xl border border-line bg-cream shadow-card;
     }
     .field {
-        @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink shadow-box transition placeholder:text-ink/45 focus:border-brand focus:ring-3 focus:ring-brand/15 focus:outline-none aria-invalid:border-clay;
+        @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink shadow-box transition placeholder:text-text-muted focus:border-brand focus:ring-3 focus:ring-brand/15 focus:outline-none aria-invalid:border-clay;
     }
     .label {
         @apply mb-1.5 block text-sm font-semibold text-ink;
     }
     .chip {
-        @apply inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-2 py-0.5 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(43_26_18/0.12),0_3px_8px_-2px_rgb(43_26_18/0.18)];
+        @apply inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-2 py-0.5 text-xs font-semibold text-ink shadow-box;
     }
     .nav-link {
         @apply rounded-lg px-3 py-1.5 text-sm font-semibold text-ink/80 transition hover:bg-petal hover:text-brand aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand-dark;
@@ -129,10 +165,11 @@
     .inset-box {
         @apply rounded-lg border border-line bg-paper shadow-box;
     }
-    /* Dropdowns stand out: terracotta outline, tinted fill and a lifted shadow, with the chevron in brand color */
+    /* Dropdowns stand out: green outline, tinted fill and a lifted shadow, with the chevron in brand color */
     select.field {
         @apply appearance-none border-brand/50 bg-brand-soft/30 pr-9 font-semibold shadow-lift hover:border-brand;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23b5562a'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+        /* chevron: %233a9e56 is --color-primary (a data URI can't read variables) */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%233a9e56'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 0.6rem center;
         background-size: 1.1rem;
@@ -146,13 +183,30 @@
 }
 
 /*
+ * The builder's "Design your cake" hero sits on resources/images/Title_banner.png (pale green, a cake drawing on the
+ * right and a row of cake doodles along the bottom). It breaks out of <main> to span the window edge to edge (html and
+ * body clip sideways overflow, so 100vw never adds a scrollbar); the text keeps to the left and clear of the doodles.
+ */
+.title-banner {
+    margin-inline: calc(50% - 50vw);
+    background: var(--color-bg-soft) url('../images/Title_banner.png') right bottom / cover no-repeat;
+    padding-block: 2rem 5rem;
+}
+@media (min-width: 768px) {
+    .title-banner {
+        min-height: 20rem;
+        padding-block: 2.75rem 6.5rem;
+    }
+}
+
+/*
  * Every cake picture stands in the same scene (resources/images/cake-scene.svg): a cream panelled wall, ivory fluted
  * columns, window light and a round white marble table. .cake-scene paints it behind a box; .cake-scene-item stands a
  * picture on the table's empty spot (about 64% wide, its base on the contact shadow).
  */
 .cake-scene,
 .stage-3d {
-    background: #efe6d2 url('../images/cake-scene.svg') center / cover no-repeat;
+    background: var(--color-bg-soft) url('../images/cake-scene.svg') center / cover no-repeat;
 }
 .cake-scene-item {
     position: absolute;
@@ -179,26 +233,9 @@
     scroll-snap-align: start;
 }
 
-/*
- * The page: a warm cream-to-apricot glow from the top left (the brand's #FFF1D6 → #FCD39C → #F2AE7E, lifted well toward white
- * so text and cards stay easy to read), in many small steps for a smooth shade, plus a faint second glow at the bottom right.
- * Fixed, so it fills the window however long the page is.
- */
+/* The page: plain white */
 .page-bg {
-    background-color: #fffaf3;
-    background-image:
-        radial-gradient(60% 50% at 100% 100%, rgb(250 205 170 / 0.22) 0%, rgb(250 205 170 / 0) 70%),
-        radial-gradient(circle at 15% 0%,
-            #fffdf9 0%,
-            #fffaf2 12%,
-            #fff6ea 24%,
-            #fff2e1 36%,
-            #ffedd7 48%,
-            #fee7cd 60%,
-            #fde1c4 72%,
-            #fcdabb 86%,
-            #fad4b4 100%);
-    background-attachment: fixed;
+    background-color: var(--color-bg);
 }
 
 /* MOTION: everything here is switched off for "reduce motion" (bottom of this file). */
@@ -214,7 +251,7 @@
         background-color 0.3s ease;
 }
 .site-header.is-scrolled {
-    box-shadow: 0 6px 20px -8px rgb(43 26 18 / 0.3);
+    box-shadow: 0 8px 24px -10px color-mix(in srgb, var(--color-text) 35%, transparent);
 }
 ::view-transition-old(root) {
     animation: page-out 0.18s ease both;
@@ -260,7 +297,7 @@
 }
 .btn:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 14px 28px -14px rgb(94 45 19 / 0.7);
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--color-primary-dark) 35%, transparent), 0 18px 32px -12px color-mix(in srgb, var(--color-primary-dark) 60%, transparent);
 }
 .btn:active:not(:disabled),
 .btn-outline:active:not(:disabled) {
@@ -299,7 +336,7 @@
     }
 }
 
-/* Step numbers send out one caramel ring when their card comes into view */
+/* Step numbers send out one green ring when their card comes into view */
 .step-dot {
     position: relative;
     transition:
@@ -317,14 +354,14 @@
 }
 .panel:hover .step-dot {
     background: var(--color-brand);
-    color: #fff;
+    color: var(--color-bg);
 }
 @keyframes ring {
     from {
-        box-shadow: 0 0 0 0 rgb(227 161 90 / 0.8);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 80%, transparent);
     }
     to {
-        box-shadow: 0 0 0 14px rgb(227 161 90 / 0);
+        box-shadow: 0 0 0 14px color-mix(in srgb, var(--color-primary) 0%, transparent);
     }
 }
 

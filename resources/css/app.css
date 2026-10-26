@@ -23,16 +23,17 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    /* Brand green, the same as --color-primary in studio.css */
+    --color-accent: #3a9e56;
+    --color-accent-content: #2e7d44;
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: #3a9e56;
+        --color-accent-content: #6cc485;
+        --color-accent-foreground: var(--color-white);
     }
 }
 

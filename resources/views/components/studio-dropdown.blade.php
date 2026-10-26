@@ -38,7 +38,7 @@
         @keydown.enter.prevent="document.getElementById('{{ $id }}-option-' + active)?.click()"
         @keydown.space.prevent="document.getElementById('{{ $id }}-option-' + active)?.click()"
         @keydown.tab="open = false"
-        class="absolute inset-x-0 z-30 mt-1 max-h-72 origin-top overflow-auto rounded-lg border-2 border-brand/40 bg-white p-1 shadow-[0_16px_36px_-10px_rgb(43_26_18/0.35)] focus:outline-none">
+        class="absolute inset-x-0 z-30 mt-1 max-h-72 origin-top overflow-auto rounded-lg border-2 border-brand/40 bg-white p-1 shadow-lift focus:outline-none">
         <template x-for="(o, i) in {{ $options }}" :key="i">
             <li :id="'{{ $id }}-option-' + i" role="option" :aria-selected="{{ $selected }}"
                 @click="{{ $pick }}; open = false; $refs.button.focus()" @mouseenter="active = i"

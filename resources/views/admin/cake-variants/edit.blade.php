@@ -197,7 +197,7 @@
                         @foreach ($slotRows as $i => $row)
                             <path :d="pathOf(slots[{{ $i }}])"
                                   fill="{{ $row['type'] === 'sponge' ? '#e9c79f' : '#fff7ec' }}" @if ($variant->base_image) fill-opacity=".85" @endif
-                                  :stroke="active === {{ $i }} ? '#b5562a' : '#d8bfa5'"
+                                  :style="{ stroke: active === {{ $i }} ? 'var(--color-primary)' : '#d8bfa5' }"
                                   :stroke-width="active === {{ $i }} ? 3 : 1"
                                   vector-effect="non-scaling-stroke" />
                         @endforeach
@@ -213,10 +213,10 @@
                         <g x-html="safeBase"></g>
                         @if ($variant->base_image)
                             {{-- The marked cut face and its six points --}}
-                            <polygon :points="cutOutline" fill="none" stroke="#b5562a" stroke-width="2" stroke-dasharray="8 5" vector-effect="non-scaling-stroke" pointer-events="none" />
+                            <polygon :points="cutOutline" fill="none" style="stroke: var(--color-primary)" stroke-width="2" stroke-dasharray="8 5" vector-effect="non-scaling-stroke" pointer-events="none" />
                             @foreach (range(0, 5) as $p)
                                 <circle :cx="cutPoints[{{ $p }}].x" :cy="cutPoints[{{ $p }}].y" r="7" x-show="pointSet({{ $p }})"
-                                        :fill="placing === {{ $p }} ? '#b5562a' : '#fff'" stroke="#b5562a" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none" />
+                                        :style="{ fill: placing === {{ $p }} ? 'var(--color-primary)' : '#fff', stroke: 'var(--color-primary)' }" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none" />
                             @endforeach
                         @endif
                     </svg>

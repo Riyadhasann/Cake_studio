@@ -43,7 +43,7 @@ window.countTo = (el, value, format) => {
     };
     el._frame = requestAnimationFrame(step);
     el.parentElement?.animate(
-        [{ transform: 'scale(1)' }, { transform: 'scale(1.06)', color: '#b5562a' }, { transform: 'scale(1)' }],
+        [{ transform: 'scale(1)' }, { transform: 'scale(1.06)', color: 'var(--color-primary)' }, { transform: 'scale(1)' }],
         { duration: 450, easing: 'ease-out' },
     );
 };
