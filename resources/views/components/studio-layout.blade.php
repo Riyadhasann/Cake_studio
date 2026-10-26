@@ -36,13 +36,13 @@
         <meta property="og:title" content="{{ $pageTitle }}">
         <meta property="og:description" content="{{ $description }}">
     @endif
-    <meta name="theme-color" content="#fffaf2">
+    <meta name="theme-color" content="#ffffff">
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito+Sans:opsz,wght@6..12,400..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     {{-- Scroll reveal on customer pages only; set before the first paint so cards don't flash in and out --}}
     @if (! $admin)
@@ -57,7 +57,7 @@
     <a href="#main" class="sr-only z-50 rounded-lg bg-cocoa px-3 py-1.5 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3">Skip to content</a>
 
     <header x-data="{ open: false }" @keydown.escape.window="open = false"
-            class="site-header sticky top-0 z-40 border-b border-line bg-white/90 shadow-[0_2px_8px_-2px_rgb(43_26_18/0.12)] backdrop-blur-md">
+            class="site-header sticky top-0 z-40 border-b border-line bg-white/90 shadow-box backdrop-blur-md">
         <div class="mx-auto flex h-14 items-center justify-between gap-4 px-4 sm:px-6 {{ $admin ? 'max-w-7xl' : 'max-w-6xl' }}">
             <a href="{{ $admin ? route('admin.orders.index') : route('cake-studio.index') }}" class="flex shrink-0 items-center gap-2" aria-label="{{ $shop }}{{ $admin ? ' admin' : '' }}">
                 <span class="grid size-8 place-items-center rounded-lg bg-brand text-white shadow-sm" aria-hidden="true">

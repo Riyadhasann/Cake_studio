@@ -22,20 +22,22 @@
         class="pb-24 md:pb-0"
     >
         {{-- Hero: what this page does, and what there is to choose from --}}
-        <div class="max-w-2xl" data-reveal>
-            <p class="eyebrow">Cake Studio</p>
-            <h1 class="heading mt-3 text-4xl sm:text-5xl">Design your <span class="text-brand">dream cake</span></h1>
-            <p class="mt-4 text-base font-medium leading-7 text-ink/80">
-                Pick a size, stack 2 to 4 layers and choose a sponge and a cream for each. The cake changes as you choose.
-            </p>
+        <div class="title-banner" data-reveal>
+            <div class="mx-auto max-w-6xl px-4 sm:px-6"><div class="max-w-2xl">
+                <p class="eyebrow">Cake Studio</p>
+                <h1 class="heading mt-3 text-4xl sm:text-5xl">Design your <span class="text-brand"> cake</span></h1>
+                <p class="mt-4 text-base font-medium leading-7 text-ink/80">
+                    Stack 2 to 4 layers, choose a sponge and a cream for each, add a design and a message, then pick a size. The cake changes as you choose.
+                </p>
+            </div></div>
         </div>
 
         @if (session('success'))
-            <div class="alert alert-success mt-4" role="status">{{ session('success') }}</div>
+            <div class="alert alert-success mt-6" role="status">{{ session('success') }}</div>
         @endif
 
         @if ($placed = session('order_placed'))
-            <div class="alert alert-success mt-4 flex flex-wrap items-center justify-between gap-3" role="status">
+            <div class="alert alert-success mt-6 flex flex-wrap items-center justify-between gap-3" role="status">
                 <p>
                     <span class="font-bold">Order #{{ $placed['id'] }} placed.</span>
                     Total ৳{{ number_format($placed['total'], 2) }}{{ $placed['delivery_date'] ? ', delivery '.$placed['delivery_date'] : '' }}.
@@ -45,12 +47,12 @@
             </div>
         @endif
 
-        <div class="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:gap-6">
+        <div class="mt-8 grid grid-cols-1 items-start gap-5 lg:grid-cols-12 lg:gap-6">
 
             {{-- The cake as chosen so far, and (tablets and up) a summary with the price and the cart button: stacked on phones, side by side on tablets, a sticky left column on laptops --}}
-            <aside class="min-w-0 space-y-3 md:grid md:grid-cols-2 md:items-start md:gap-3 md:space-y-0 lg:sticky lg:top-20 lg:col-span-5 lg:block lg:space-y-3">
-                <div class="panel mx-auto w-full max-w-sm p-3 md:max-w-none">
-                    <div class="mb-2 flex items-center justify-between gap-3 px-1">
+            <aside class="min-w-0 space-y-5 md:grid md:grid-cols-2 md:items-start md:gap-5 md:space-y-0 lg:sticky lg:top-20 lg:col-span-5 lg:block lg:space-y-5">
+                <div class="panel mx-auto w-full max-w-sm p-4 md:max-w-none">
+                    <div class="mb-3 flex items-center justify-between gap-3 px-1">
                         <p class="flex items-center gap-2 text-sm font-bold text-ink">
                             <span class="relative flex size-2.5" aria-hidden="true">
                                 <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand/50 motion-reduce:animate-none"></span>
@@ -107,10 +109,10 @@
                             @endforeach
                         </div>
                     </div>
-                    <p x-show="error3d" x-text="error3d" x-cloak role="alert" class="mt-2 text-center text-xs font-medium text-clay"></p>
+                    <p x-show="error3d" x-text="error3d" x-cloak role="alert" class="mt-3 text-center text-xs font-medium text-clay"></p>
                 </div>
 
-                <div class="panel hidden p-4 md:block">
+                <div class="panel hidden p-5 md:block">
                     <div class="flex items-center justify-between gap-3">
                         <h2 class="text-base font-bold">Your cake</h2>
                         <div class="flex gap-1.5 text-xs font-bold">
@@ -120,7 +122,7 @@
                     </div>
 
                     {{-- The picked design --}}
-                    <div class="mt-2 flex items-center gap-3 border-b border-line pb-2 text-sm">
+                    <div class="mt-4 flex items-center gap-3 border-y border-line py-2.5 text-sm">
                         <span class="w-16 shrink-0 text-xs font-semibold text-brown">Design</span>
                         <template x-if="selectedDesign">
                             <img :src="selectedDesign.frames[0]" alt="" class="cake-scene size-8 rounded-md border border-line object-contain px-1 pt-0.5 pb-1">
@@ -131,7 +133,7 @@
                     {{-- Listed top to bottom, like the cake in the picture --}}
                     <ol class="divide-y divide-line text-sm" aria-label="Layers, from the top">
                         <template x-for="row in layersTopDown" :key="row.index">
-                            <li class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
+                            <li class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
                                 <span class="w-16 shrink-0 text-xs font-semibold text-brown" x-text="'Layer ' + (row.index + 1)"></span>
                                 <span class="inline-flex items-center gap-1.5 font-medium">
                                     <span class="size-3.5 rounded-full border border-black/10" :style="{ backgroundColor: flavorColor(sponges, row.layer.sponge_id) }"></span>
@@ -147,59 +149,50 @@
                     </ol>
 
                     <p x-show="errorMessage" x-text="errorMessage" x-cloak role="alert"
-                       class="alert alert-error mt-3"></p>
+                       class="alert alert-error mt-4"></p>
 
-                    <div class="inset-box mt-3 flex items-end justify-between gap-4 px-3 py-2.5" aria-live="polite" aria-atomic="true">
+                    <div class="inset-box mt-4 flex items-end justify-between gap-4 px-4 py-3" aria-live="polite" aria-atomic="true">
                         <div>
                             <p class="text-xs font-semibold text-brown">Total</p>
-                            <p class="mt-0.5 text-2xl font-extrabold leading-none text-ink">৳<span x-effect="countTo($el, totalPrice, format)"></span></p>
+                            <p class="mt-1 text-2xl font-extrabold leading-none text-ink">৳<span x-effect="countTo($el, totalPrice, format)"></span></p>
                         </div>
                         <p class="text-sm font-semibold text-ink/80" x-text="quantity + ' × ৳' + format(unitPrice)"></p>
                     </div>
 
-                    <button type="button" @click="openConfirm()" class="btn mt-3 w-full">
-                        Add to Cart
-                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.64l-3.22-3.22a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H3.75A.75.75 0 0 1 3 10Z" clip-rule="evenodd"/></svg>
-                    </button>
-                    <p class="mt-2 text-center text-xs text-ink/70">You can still review everything in your cart before you order.</p>
+                    {{-- How many cakes, then add them --}}
+                    <div class="mt-4 flex items-center justify-between gap-3">
+                        <span class="text-xs font-semibold text-brown">Cakes</span>
+                        <div class="mr-auto inline-flex shrink-0 items-center rounded-lg border-2 border-brand bg-brand-soft p-0.5 shadow-brand" role="group" aria-label="How many cakes">
+                            <button type="button" @click="decrement()" :disabled="quantity <= 1" aria-label="Decrease quantity"
+                                class="grid size-8 place-items-center rounded-md bg-white text-lg font-bold text-brand-dark shadow-box transition hover:bg-brand hover:text-white disabled:bg-transparent disabled:text-ink/30 disabled:shadow-none disabled:hover:text-ink/30">&minus;</button>
+                            <span class="w-8 text-center text-base font-extrabold text-brand-dark" x-text="quantity" aria-live="polite"></span>
+                            <button type="button" @click="increment()" :disabled="quantity >= maxQuantity" aria-label="Increase quantity"
+                                class="grid size-8 place-items-center rounded-md bg-white text-lg font-bold text-brand-dark shadow-box transition hover:bg-brand hover:text-white disabled:bg-transparent disabled:text-ink/30 disabled:shadow-none disabled:hover:text-ink/30">+</button>
+                        </div>
+                        <button type="button" @click="openConfirm()" class="btn btn-sm">
+                            Add to Cart
+                            <svg class="size-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.64l-3.22-3.22a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H3.75A.75.75 0 0 1 3 10Z" clip-rule="evenodd"/></svg>
+                        </button>
+                    </div>
+                    <p class="mt-3 text-center text-xs text-ink/70">You can still review everything in your cart before you order.</p>
                 </div>
             </aside>
 
             {{-- Right: the choices, as numbered steps --}}
             <div class="min-w-0 lg:col-span-7">
-                <div class="space-y-3">
-                    <section id="step-size" class="panel scroll-mt-20 p-4">
+                <div class="space-y-5">
+                    <section id="step-layers" class="panel scroll-mt-20 p-5">
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <div class="flex items-center gap-2.5">
                                     <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">1</span>
-                                    <h2 id="size-heading" class="text-base font-bold leading-none">Choose a size</h2>
-                                </div>
-                                <p class="mt-1 text-sm text-ink/70">The size sets the starting price.</p>
-                            </div>
-                            <span class="chip shrink-0" x-text="selectedSize?.label ?? ''"></span>
-                        </div>
-                        <div class="mt-3" role="group" aria-labelledby="size-heading">
-                            <x-studio-dropdown id="size-picker" labelledby="size-heading" icon="size"
-                                               options="sizes" selected="sizeId === o.id" pick="sizeId = o.id"
-                                               label="o.label" meta="'৳' + Number(o.price).toLocaleString('en-US')"
-                                               current="selectedSize?.label ?? 'Choose a size'"
-                                               current-meta="selectedSize ? 'From ৳' + Number(selectedSize.price).toLocaleString('en-US') : ''" />
-                        </div>
-                    </section>
-
-                    <section id="step-layers" class="panel scroll-mt-20 p-4">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <div class="flex items-center gap-2.5">
-                                    <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">2</span>
                                     <h2 id="layers-heading" class="text-base font-bold leading-none">How many layers?</h2>
                                 </div>
-                                <p class="mt-1 text-sm text-ink/70">More layers make a taller cake. The price stays the same.</p>
+                                <p class="mt-1.5 text-sm text-ink/70">More layers make a taller cake. The price stays the same.</p>
                             </div>
                             <span class="chip shrink-0" x-text="layerCount + ' layers'"></span>
                         </div>
-                        <div class="mt-3">
+                        <div class="mt-4">
                             <x-studio-dropdown id="layers-picker" labelledby="layers-heading" icon="layers"
                                                options="layerOptions" selected="layerCount === o" pick="setLayerCount(o)"
                                                label="o + ' layers'" meta="['', '', 'Classic', 'Tall', 'Extra tall'][o]"
@@ -207,17 +200,17 @@
                         </div>
                     </section>
 
-                    <section id="step-flavors" class="panel scroll-mt-20 p-4">
+                    <section id="step-flavors" class="panel scroll-mt-20 p-5">
                         <div>
                             <div class="flex items-center gap-2.5">
-                                <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">3</span>
+                                <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">2</span>
                                 <h2 class="text-base font-bold leading-none">Pick the flavors</h2>
                             </div>
-                            <p class="mt-1 text-sm text-ink/70">A sponge and a cream for each layer. Layer 1 is at the bottom.</p>
+                            <p class="mt-1.5 text-sm text-ink/70">A sponge and a cream for each layer. Layer 1 is at the bottom.</p>
                         </div>
 
                         {{-- One tab per layer, with its two flavors as dots --}}
-                        <div class="mt-3 flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Layers">
+                        <div class="mt-4 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Layers">
                             <template x-for="(layer, index) in layers" :key="index">
                                 <button type="button" role="tab" :id="'layer-tab-' + index" :aria-selected="activeLayer === index" :aria-controls="'layer-panel-' + index"
                                         :tabindex="activeLayer === index ? 0 : -1" @click="activeLayer = index"
@@ -236,7 +229,7 @@
                         {{-- The picked layer's sponge and cream. Removed layers disappear from here and from the data. --}}
                         <template x-for="(layer, index) in layers" :key="index">
                             <div x-show="activeLayer === index" role="tabpanel" :id="'layer-panel-' + index" :aria-labelledby="'layer-tab-' + index"
-                                 class="inset-box mt-2 p-3">
+                                 class="inset-box mt-3 p-4">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
                                     <p class="text-sm font-semibold text-ink">
                                         <span x-text="flavorName(sponges, layer.sponge_id)"></span> sponge
@@ -249,35 +242,29 @@
                                     </button>
                                 </div>
 
-                                <p class="mt-3 text-xs font-bold text-brown" aria-hidden="true">Sponge</p>
-                                <div class="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3" role="group" :aria-label="layerTitle(index) + ': sponge'">
+                                <p class="mt-4 text-xs font-bold text-brown" aria-hidden="true">Sponge</p>
+                                <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3" role="group" :aria-label="layerTitle(index) + ': sponge'">
                                     <template x-for="sponge in sponges" :key="sponge.id">
                                         <button type="button" @click="setSponge(index, sponge.id)" :aria-pressed="layer.sponge_id === sponge.id"
-                                                class="choice flex items-center gap-2 px-2.5 py-2">
-                                            <span class="size-4 shrink-0 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(43_26_18/0.2)]" :style="{ backgroundColor: flavorColor(sponges, sponge.id) }"></span>
-                                            <span class="min-w-0 flex-1 leading-tight">
-                                                <span class="block font-semibold" x-text="sponge.name"></span>
-                                                <span class="block text-xs font-normal text-ink/65" x-text="Number(sponge.extra_price) > 0 ? '+৳' + Number(sponge.extra_price) : 'Included'"></span>
-                                            </span>
+                                                class="choice flex items-center gap-2 px-2.5 py-1.5">
+                                            <span class="size-3.5 shrink-0 rounded-full border-2 border-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-text)_20%,transparent)]" :style="{ backgroundColor: flavorColor(sponges, sponge.id) }"></span>
+                                            <span class="min-w-0 flex-1 truncate leading-tight font-semibold" x-text="sponge.name"></span>
                                         </button>
                                     </template>
                                 </div>
 
-                                <p class="mt-3 text-xs font-bold text-brown" aria-hidden="true">Cream</p>
-                                <div class="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3" role="group" :aria-label="layerTitle(index) + ': cream'">
+                                <p class="mt-5 text-xs font-bold text-brown" aria-hidden="true">Cream</p>
+                                <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3" role="group" :aria-label="layerTitle(index) + ': cream'">
                                     <template x-for="cream in creams" :key="cream.id">
                                         <button type="button" @click="setCream(index, cream.id)" :aria-pressed="layer.cream_id === cream.id"
-                                                class="choice flex items-center gap-2 px-2.5 py-2">
-                                            <span class="size-4 shrink-0 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(43_26_18/0.2)]" :style="{ backgroundColor: flavorColor(creams, cream.id) }"></span>
-                                            <span class="min-w-0 flex-1 leading-tight">
-                                                <span class="block font-semibold" x-text="cream.name"></span>
-                                                <span class="block text-xs font-normal text-ink/65" x-text="Number(cream.extra_price) > 0 ? '+৳' + Number(cream.extra_price) : 'Included'"></span>
-                                            </span>
+                                                class="choice flex items-center gap-2 px-2.5 py-1.5">
+                                            <span class="size-3.5 shrink-0 rounded-full border-2 border-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-text)_20%,transparent)]" :style="{ backgroundColor: flavorColor(creams, cream.id) }"></span>
+                                            <span class="min-w-0 flex-1 truncate leading-tight font-semibold" x-text="cream.name"></span>
                                         </button>
                                     </template>
                                 </div>
 
-                                <div x-show="index < layers.length - 1" class="mt-3 flex justify-end">
+                                <div x-show="index < layers.length - 1" class="mt-4 flex justify-end">
                                     <button type="button" @click="focusLayerTab(index + 1)" class="btn-outline btn-sm">
                                         Next: <span x-text="layerTitle(index + 1)"></span>
                                     </button>
@@ -286,20 +273,20 @@
                         </template>
                     </section>
 
-                    <section id="step-design" class="panel scroll-mt-20 p-4">
+                    <section id="step-design" class="panel scroll-mt-20 p-5">
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <div class="flex items-center gap-2.5">
-                                    <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">4</span>
+                                    <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">3</span>
                                     <h2 id="design-heading" class="text-base font-bold leading-none">Pick a design</h2>
                                 </div>
-                                <p class="mt-1 text-sm text-ink/70">The finished look outside. You still choose the layers inside.</p>
+                                <p class="mt-1.5 text-sm text-ink/70">The finished look outside. You still choose the layers inside.</p>
                             </div>
                             <span class="chip shrink-0" x-text="selectedDesign?.name ?? 'Plain'"></span>
                         </div>
 
-                        <div class="relative mt-3" x-data="{ atStart: true, atEnd: false, update() { const el = this.$refs.track; this.atStart = el.scrollLeft < 4; this.atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4; }, slide(dir) { this.$refs.track.scrollBy({ left: dir * this.$refs.track.clientWidth * 0.8, behavior: 'smooth' }); } }" x-init="$nextTick(() => update())">
-                            <div x-ref="track" @scroll.debounce.50ms="update()" class="slider flex gap-2 overflow-x-auto pb-1" role="group" aria-labelledby="design-heading">
+                        <div class="relative mt-4" x-data="{ atStart: true, atEnd: false, update() { const el = this.$refs.track; this.atStart = el.scrollLeft < 4; this.atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4; }, slide(dir) { this.$refs.track.scrollBy({ left: dir * this.$refs.track.clientWidth * 0.8, behavior: 'smooth' }); } }" x-init="$nextTick(() => update())">
+                            <div x-ref="track" @scroll.debounce.50ms="update()" class="slider flex gap-3 overflow-x-auto pb-1" role="group" aria-labelledby="design-heading">
                                 {{-- No design: the plain layered cake --}}
                                 <button type="button" @click="selectDesign(null)" :aria-pressed="designId === null" class="choice flex w-32 shrink-0 flex-col p-1.5 text-center">
                                     <span class="cake-scene relative block aspect-square w-full overflow-hidden rounded-md" aria-hidden="true">
@@ -334,19 +321,19 @@
                         </div>
                     </section>
 
-                    <section id="step-message" class="panel scroll-mt-20 p-4">
+                    <section id="step-message" class="panel scroll-mt-20 p-5">
                         <div>
                             <div class="flex items-center justify-between gap-4">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">5</span>
+                                    <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">4</span>
                                     <label for="message" class="text-base font-bold leading-none">Message on the cake</label>
                                 </div>
                                 <span class="text-xs text-ink/65" x-text="message.length + '/255'"></span>
                             </div>
-                            <p class="mt-1 text-sm text-ink/70">Optional. Leave it empty for no writing.</p>
+                            <p class="mt-1.5 text-sm text-ink/70">Optional. Leave it empty for no writing.</p>
                         </div>
-                        <textarea id="message" x-model="message" maxlength="255" rows="2" placeholder="e.g. Happy Birthday, Mina!" class="field mt-3"></textarea>
-                        <div class="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Message ideas">
+                        <textarea id="message" x-model="message" maxlength="255" rows="2" placeholder="e.g. Happy Birthday, Mina!" class="field mt-4"></textarea>
+                        <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Message ideas">
                             @foreach (['Happy Birthday!', 'Congratulations!', 'Happy Anniversary!', 'With love'] as $idea)
                                 <button type="button" @click="message = @js($idea)"
                                         class="btn-outline btn-sm">{{ $idea }}</button>
@@ -354,19 +341,23 @@
                         </div>
                     </section>
 
-                    <section id="step-quantity" class="panel scroll-mt-20 p-4">
-                        <div class="flex flex-wrap items-center justify-between gap-4">
-                            <div class="flex items-center gap-2.5">
-                                <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">6</span>
-                                <h2 id="quantity-heading" class="text-base font-bold leading-none">How many cakes?</h2>
+                    <section id="step-size" class="panel scroll-mt-20 p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="flex items-center gap-2.5">
+                                    <span class="step-dot grid size-5 shrink-0 place-items-center rounded-full bg-cocoa text-[0.65rem] font-bold text-white" aria-hidden="true">5</span>
+                                    <h2 id="size-heading" class="text-base font-bold leading-none">Choose a size</h2>
+                                </div>
+                                <p class="mt-1.5 text-sm text-ink/70">The size sets the starting price.</p>
                             </div>
-                            <div class="inline-flex items-center rounded-lg border border-line bg-white p-0.5 shadow-sm" role="group" aria-labelledby="quantity-heading">
-                                <button type="button" @click="decrement()" :disabled="quantity <= 1" aria-label="Decrease quantity"
-                                    class="grid size-8 place-items-center rounded-md text-lg font-bold text-brand transition hover:bg-brand-soft disabled:text-ink/30 disabled:hover:bg-transparent">&minus;</button>
-                                <span class="w-8 text-center text-sm font-bold" x-text="quantity" aria-live="polite"></span>
-                                <button type="button" @click="increment()" :disabled="quantity >= maxQuantity" aria-label="Increase quantity"
-                                    class="grid size-8 place-items-center rounded-md text-lg font-bold text-brand transition hover:bg-brand-soft disabled:text-ink/30 disabled:hover:bg-transparent">+</button>
-                            </div>
+                            <span class="chip shrink-0" x-text="selectedSize?.label ?? ''"></span>
+                        </div>
+                        <div class="mt-4" role="group" aria-labelledby="size-heading">
+                            <x-studio-dropdown id="size-picker" labelledby="size-heading" icon="size"
+                                               options="sizes" selected="sizeId === o.id" pick="sizeId = o.id"
+                                               label="o.label" meta="'৳' + Number(o.price).toLocaleString('en-US')"
+                                               current="selectedSize?.label ?? 'Choose a size'"
+                                               current-meta="selectedSize ? 'From ৳' + Number(selectedSize.price).toLocaleString('en-US') : ''" />
                         </div>
                     </section>
                 </div>
@@ -374,14 +365,23 @@
         </div>
 
         {{-- Phones: the price and the cart button stay at the bottom of the screen --}}
-        <div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(59,38,34,0.25)] backdrop-blur md:hidden">
+        <div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-10px_color-mix(in_srgb,var(--color-text)_30%,transparent)] backdrop-blur md:hidden">
             <p x-show="errorMessage" x-text="errorMessage" x-cloak role="alert" class="mb-2 text-sm font-medium text-clay"></p>
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <p class="text-xs font-semibold text-ink/80" x-text="(selectedSize?.label ?? '') + ' · ' + layerCount + ' layers · ' + quantity + ' × ৳' + format(unitPrice)"></p>
                     <p class="text-xl font-extrabold leading-tight text-ink">৳<span x-effect="countTo($el, totalPrice, format)"></span></p>
                 </div>
-                <button type="button" @click="openConfirm()" class="btn">Add to Cart</button>
+                <div class="flex shrink-0 items-center gap-2">
+                    <div class="inline-flex shrink-0 items-center rounded-lg border-2 border-brand bg-brand-soft p-0.5 shadow-brand" role="group" aria-label="How many cakes">
+                        <button type="button" @click="decrement()" :disabled="quantity <= 1" aria-label="Decrease quantity"
+                            class="grid size-8 place-items-center rounded-md bg-white text-lg font-bold text-brand-dark shadow-box transition hover:bg-brand hover:text-white disabled:bg-transparent disabled:text-ink/30 disabled:shadow-none disabled:hover:text-ink/30">&minus;</button>
+                        <span class="w-8 text-center text-base font-extrabold text-brand-dark" x-text="quantity" aria-live="polite"></span>
+                        <button type="button" @click="increment()" :disabled="quantity >= maxQuantity" aria-label="Increase quantity"
+                            class="grid size-8 place-items-center rounded-md bg-white text-lg font-bold text-brand-dark shadow-box transition hover:bg-brand hover:text-white disabled:bg-transparent disabled:text-ink/30 disabled:shadow-none disabled:hover:text-ink/30">+</button>
+                    </div>
+                    <button type="button" @click="openConfirm()" class="btn">Add to Cart</button>
+                </div>
             </div>
         </div>
 
@@ -400,7 +400,7 @@
             <div x-ref="dialog" class="dialog-pop max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-xl bg-white p-5 shadow-xl">
                                 <h2 id="confirm-title" class="text-lg font-bold">Add this cake to your cart?</h2>
 
-                <div class="inset-box mt-3 p-3 text-left text-sm">
+                <div class="inset-box mt-4 p-4 text-left text-sm">
                     <p class="font-bold" x-text="quantity + ' × ' + selectedSize?.label + ', ' + layerCount + ' layers'"></p>
                     <p class="mt-1 font-medium text-ink" x-text="'Design: ' + (selectedDesign?.name ?? 'Plain')"></p>
                     <ol class="mt-2 space-y-1 text-ink/90">
@@ -417,9 +417,9 @@
                     </p>
                 </div>
 
-                <p class="mt-2 text-xs text-ink/65">You can still review everything in your cart before you order.</p>
+                <p class="mt-3 text-xs text-ink/65">You can still review everything in your cart before you order.</p>
 
-                <div class="mt-4 flex flex-col gap-2 sm:flex-row-reverse sm:justify-start">
+                <div class="mt-5 flex flex-col gap-2 sm:flex-row-reverse sm:justify-start">
                     <button type="button" x-ref="confirmButton" @click="confirmAndCheckout()" :disabled="isSaving" class="btn">
                         <span x-text="isSaving ? 'Adding…' : 'Add to cart'"></span>
                     </button>
