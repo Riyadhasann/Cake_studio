@@ -5,7 +5,7 @@
         $fileInput = 'w-full text-sm text-ink/90 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-bold file:text-brand hover:file:bg-brand-soft';
     @endphp
 
-    <h1 class="heading mt-6 text-5xl">Cake designs</h1>
+    <h1 class="heading mt-6 text-3xl">Cake designs</h1>
     <p class="mt-3 max-w-3xl text-sm leading-7 text-ink/90">
         Finished looks customers can pick for the outside of their cake; they still choose the sponge and cream inside.
         Upload one photo of the design, or a full turn of photos taken around the cake (for example 24 to 36, numbered
@@ -16,8 +16,8 @@
     @include('admin.sizes._alerts')
 
     {{-- Add a design --}}
-    <section class="panel mt-8 p-6">
-        <h2 class="heading text-3xl">Add a design</h2>
+    <section class="panel mt-5 p-4">
+        <h2 class="heading text-xl">Add a design</h2>
         <form action="{{ route('admin.designs.store') }}" method="POST" enctype="multipart/form-data" class="mt-5 grid gap-4 md:grid-cols-[1fr_12rem_1fr_auto] md:items-end">
             @csrf
             <div>
@@ -37,14 +37,14 @@
     </section>
 
     {{-- The designs --}}
-    <div class="mt-6 space-y-6">
+    <div class="mt-6 space-y-4">
         @forelse ($designs as $design)
-            <section class="panel p-6">
-                <div class="grid gap-6 lg:grid-cols-[14rem_1fr]">
+            <section class="panel p-4">
+                <div class="grid gap-4 lg:grid-cols-[14rem_1fr]">
                     <div>
-                        <div class="aspect-square overflow-hidden rounded-2xl border border-line bg-white">
+                        <div class="cake-scene relative aspect-square overflow-hidden rounded-xl border border-line shadow-box">
                             @if ($design->frames->first())
-                                <img src="{{ asset($design->frames->first()->image) }}" alt="{{ $design->name }}" class="h-full w-full object-contain">
+                                <img src="{{ asset($design->frames->first()->image) }}" alt="{{ $design->name }}" class="cake-scene-item">
                             @endif
                         </div>
                         <p class="mt-2 text-center text-xs font-semibold text-ink/80">
@@ -79,7 +79,7 @@
                         <ul class="mt-2 flex flex-wrap gap-2">
                             @foreach ($design->frames as $frame)
                                 <li class="relative">
-                                    <img src="{{ asset($frame->image) }}" alt="{{ $design->name }}, photo {{ $loop->iteration }}" class="size-20 rounded-xl border border-line bg-white object-contain">
+                                    <img src="{{ asset($frame->image) }}" alt="{{ $design->name }}, photo {{ $loop->iteration }}" class="cake-scene size-20 rounded-xl border border-line object-contain px-3 pt-2 pb-3">
                                     <span class="absolute left-1 top-1 rounded-full bg-cocoa px-1.5 text-[0.6rem] font-bold text-white">{{ $loop->iteration }}</span>
                                     @if ($design->frames->count() > 1)
                                         <form action="{{ route('admin.designs.frames.destroy', [$design, $frame]) }}" method="POST" class="absolute -right-1.5 -top-1.5">
@@ -102,7 +102,7 @@
 
                         {{-- Where the cake sits in the cover photo: the 3D cake wears the photo from this outline --}}
                         @if ($design->frames->first())
-                            <details class="mt-6 rounded-2xl border border-line bg-petal/60 p-4">
+                            <details class="mt-6 rounded-xl border border-line bg-petal/60 p-4">
                                 <summary class="cursor-pointer text-sm font-bold text-ink">3D fit <span class="font-medium text-ink/80">· line the outline up with the cake's side</span></summary>
                                 <form action="{{ route('admin.designs.fit', $design) }}" method="POST" x-data="designFit(@js($design->fitOrDefault()))"
                                       class="mt-4 grid gap-5 md:grid-cols-[16rem_1fr]">
@@ -206,7 +206,7 @@
                 </div>
             </section>
         @empty
-            <p class="panel p-6 text-sm text-ink/80">No designs yet. Customers only see the plain cake until you add one.</p>
+            <p class="panel p-4 text-sm text-ink/80">No designs yet. Customers only see the plain cake until you add one.</p>
         @endforelse
     </div>
 

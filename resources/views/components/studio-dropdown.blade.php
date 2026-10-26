@@ -11,9 +11,9 @@
             aria-haspopup="listbox" :aria-expanded="open" aria-labelledby="{{ $labelledby }} {{ $id }}-button"
             @click="open = !open; active = Math.max(0, ({{ $options }}).findIndex(o => {{ $selected }})); if (open) $nextTick(() => $refs.list.focus())"
             @keydown.arrow-down.prevent="open = true; active = Math.max(0, ({{ $options }}).findIndex(o => {{ $selected }})); $nextTick(() => $refs.list.focus())"
-            class="group flex w-full items-center gap-3 rounded-2xl border-2 bg-white px-3 py-2.5 text-left shadow-[0_4px_12px_-4px_rgba(74,36,18,0.2)] transition hover:border-brand/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
-            :class="open ? 'border-brand ring-4 ring-brand/15' : 'border-line'">
-        <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-brand text-white shadow-[0_6px_12px_-6px_rgba(181,86,42,0.7)]" aria-hidden="true">
+            class="group flex w-full items-center gap-2.5 rounded-lg border-2 bg-linear-to-r from-brand-soft/70 to-white px-2.5 py-1.5 text-left shadow-lift transition hover:border-brand hover:from-brand-soft focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/25"
+            :class="open ? 'border-brand ring-3 ring-brand/15' : 'border-brand/45'">
+        <span class="grid size-7 shrink-0 place-items-center rounded-md bg-brand text-white shadow-sm" aria-hidden="true">
             @if ($icon === 'layers')
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>
             @else
@@ -21,10 +21,10 @@
             @endif
         </span>
         <span class="min-w-0 flex-1">
-            <span class="block truncate text-base font-bold leading-tight text-ink" x-text="{{ $current }}"></span>
-            <span class="block text-sm font-semibold text-brand" x-text="{{ $currentMeta }}"></span>
+            <span class="block truncate text-sm font-bold leading-tight text-ink" x-text="{{ $current }}"></span>
+            <span class="block text-xs font-semibold text-brand" x-text="{{ $currentMeta }}"></span>
         </span>
-        <svg class="h-5 w-5 shrink-0 text-ink/70 transition-transform duration-200" :class="open && 'rotate-180 text-brand'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        <svg class="h-5 w-5 shrink-0 rounded-md bg-white p-0.5 text-brand shadow-sm transition-transform duration-200" :class="open && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
     </button>
 
     <ul x-show="open" x-cloak x-ref="list" role="listbox" tabindex="-1" aria-labelledby="{{ $labelledby }}"
@@ -38,13 +38,13 @@
         @keydown.enter.prevent="document.getElementById('{{ $id }}-option-' + active)?.click()"
         @keydown.space.prevent="document.getElementById('{{ $id }}-option-' + active)?.click()"
         @keydown.tab="open = false"
-        class="absolute inset-x-0 z-30 mt-2 max-h-72 origin-top overflow-auto rounded-2xl border border-line bg-white p-1.5 shadow-[0_24px_48px_-16px_rgba(74,36,18,0.25)] focus:outline-none">
+        class="absolute inset-x-0 z-30 mt-1 max-h-72 origin-top overflow-auto rounded-lg border-2 border-brand/40 bg-white p-1 shadow-[0_16px_36px_-10px_rgb(43_26_18/0.35)] focus:outline-none">
         <template x-for="(o, i) in {{ $options }}" :key="i">
             <li :id="'{{ $id }}-option-' + i" role="option" :aria-selected="{{ $selected }}"
                 @click="{{ $pick }}; open = false; $refs.button.focus()" @mouseenter="active = i"
-                class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors"
+                class="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors"
                 :class="active === i ? 'bg-brand-soft' : ''">
-                <span class="grid size-5 shrink-0 place-items-center rounded-full border-2 transition"
+                <span class="grid size-4 shrink-0 place-items-center rounded-full border-2 transition"
                       :class="{{ $selected }} ? 'border-brand bg-brand text-white' : 'border-line bg-white text-transparent'" aria-hidden="true">
                     <svg class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
                 </span>

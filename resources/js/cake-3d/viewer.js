@@ -5,7 +5,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 /*
  * A round layer cake that looks photographed rather than drawn: per layer a sponge and a cream band whose edges
  * are slightly uneven (a hand-made cake is never a perfect cylinder), a frosted top with spatula swirls, piped
- * rosettes, on a porcelain plate, lit by a warm studio light with soft shadows and darkening where layers meet.
+ * rosettes, on the same champagne-gold pedestal stand as the designs, lit by a warm studio light with soft shadows and darkening where layers meet.
  * Each layer wears its flavor's picture, or a crumb or cream pattern drawn from its color while none is uploaded.
  *
  * Spec passed to render(): { kg, layers: [{ sponge: Surface, cream: Surface }], design? }, bottom layer first,
@@ -40,6 +40,9 @@ const VIEWS = { front: 1.4, angle: 1.13, top: 0.16 }; // camera angle from strai
 const MIN_PHI = 0.12;
 const MAX_PHI = Math.PI / 2 - 0.06; // never from under the plate
 const FALLBACK_COLOR = { sponge: '#e8cfa4', cream: '#fbf1e1' };
+// The table scene behind the stage (resources/images/cake-scene.svg, 300 x 400, background-size: cover): the stand's
+// foot is kept on its empty spot, y = 298 of 400 (just above the centre of the scene's contact shadow).
+const SCENE = { aspect: 300 / 400, footY: 298 / 400 };
 
 /** Cake radius for a size: 1 kg 1.8, 2 kg 2.0, 3 kg 2.2, kept within 1.6 to 2.6. */
 export function radiusForKg(kg) {
@@ -155,11 +158,34 @@ export function createCakeViewer(container) {
         if (t >= 1) tween = null;
     }
 
+    // Keeps the foot of the stand on the scene's table: the view is shifted up or down so the foot lands on the
+    // table's spot, wherever the camera is. Looking down from nearly overhead the foot is hidden under the cake, so
+    // the shift fades out there (it would push the cake off the stage).
+    let footY = 0;
+    const foot = new THREE.Vector3();
+    function standOnTable() {
+        camera.clearViewOffset();
+        if (!cake) return;
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        if (!w || !h) return;
+
+        // Where the spot is on the stage: the share of the scene's height that cover shows, then the spot within it.
+        const shown = Math.min(1, SCENE.aspect / (w / h));
+        const spotNdc = 1 - 2 * ((SCENE.footY - (1 - shown) / 2) / shown);
+
+        camera.updateMatrixWorld();
+        const footNdc = foot.set(0, footY, 0).project(camera).y;
+        const shift = (spotNdc - footNdc) * smoothstep(0.55, 1.0, controls.getPolarAngle());
+        if (Math.abs(shift) > 0.001) camera.setViewOffset(w, h, 0, (shift * h) / 2, w, h);
+    }
+
     // Draw only while the viewer is on screen and the tab is visible.
     let onScreen = true;
     const tick = (now) => {
         stepTween(now);
         controls.update();
+        standOnTable();
         renderer.render(scene, camera);
     };
     const updateLoop = () => renderer.setAnimationLoop(onScreen && !document.hidden ? tick : null);
@@ -205,12 +231,13 @@ export function createCakeViewer(container) {
         const first = !cake;
         const built = photo
             ? buildDesignCake(photo, design.fit, toppings.filter((t) => loaded.get(t.image)).map((t) => ({ ...t, texture: loaded.get(t.image) })), radius, anisotropy)
-            : { group: buildCake(layers, radius, loaded, anisotropy), height: layers.length * (SPONGE_H + CREAM_H) + TOP_H, foot: PLATE_FOOT };
+            : buildCake(layers, radius, loaded, anisotropy);
         if (cake) {
             scene.remove(cake);
             disposeGroup(cake);
         }
         cake = built.group;
+        footY = built.foot;
         scene.add(cake);
 
         const height = built.height;
@@ -236,8 +263,8 @@ export function createCakeViewer(container) {
         Object.assign(key.shadow.camera, { left: -box, right: box, top: box, bottom: -box, near: 1, far: 30 });
         key.shadow.camera.updateProjectionMatrix();
 
-        // Frame the whole cake and plate. The narrower of the two view angles decides: the stage is taller than wide.
-        // A design also stands on a pedestal (built.foot is the bottom of the stand).
+        // Frame the whole cake and its pedestal stand (built.foot is the bottom of the stand).
+        // The narrower of the two view angles decides: the stage is taller than wide.
         const halfV = THREE.MathUtils.degToRad(camera.fov / 2);
         const halfH = Math.atan(Math.tan(halfV) * camera.aspect);
         let distance;
@@ -248,11 +275,11 @@ export function createCakeViewer(container) {
             const tall = ((height + radius * 0.35 - built.foot) / 2) * 1.08 / Math.tan(halfV);
             distance = Math.max(across, tall) + plate;
         } else {
-            const reach = Math.hypot(radius * 1.3, height / 2 + 0.3);
+            const reach = Math.hypot(radius * 1.25, (height - built.foot) / 2 + 0.2);
             distance = (reach / Math.sin(Math.min(halfV, halfH))) * 1.08;
         }
         // The toppings stand about a third of the radius above a design's top.
-        fit = { distance, targetY: photo ? (height + radius * 0.35 + built.foot) / 2 : height * 0.42 };
+        fit = { distance, targetY: photo ? (height + radius * 0.35 + built.foot) / 2 : (height + built.foot) / 2 };
         controls.minDistance = fit.distance * 0.55;
         controls.maxDistance = fit.distance * 1.6;
         moveCamera(first ? 0 : 600, turnToFront ? 0 : null);
@@ -283,6 +310,7 @@ export function createCakeViewer(container) {
     return { render, setView, dispose };
 }
 
+/** A plain cake from its layers: { group, height, foot } (foot: the bottom of its stand). */
 function buildCake(layers, radius, loaded, anisotropy) {
     const group = new THREE.Group();
     const circumference = 2 * Math.PI * radius;
@@ -312,27 +340,30 @@ function buildCake(layers, radius, loaded, anisotropy) {
     const creamTone = averageColor(loaded.get(topCream.top) ?? loaded.get(topCream.side), topCream.color || FALLBACK_COLOR.cream);
     group.add(makeRosettes(radius, y + TOP_H, creamTone));
 
-    // A porcelain plate on a table that catches the shadows.
-    const plateRadius = radius * 1.25;
-    add(new THREE.Mesh(plateGeometry(plateRadius), new THREE.MeshPhysicalMaterial({
-        color: 0xf7f5f1, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.6, // lights the lip from below too
-    }))).castShadow = false;
+    // The same pedestal stand as the designs.
+    const foot = addStand(group, radius);
 
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(radius * 12, radius * 12), new THREE.ShadowMaterial({ color: 0x5a4028, opacity: 0.2 }));
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = PLATE_FOOT;
-    floor.receiveShadow = true;
-    group.add(floor);
+    return { group, height: y + TOP_H, foot };
+}
+
+/** Stands a cake (sitting at y = 0) on the champagne-gold pedestal, with a soft shadow under its foot. Returns the foot's height. */
+function addStand(group, radius) {
+    const stand = standGeometry(radius);
+    const mesh = new THREE.Mesh(stand.geometry, new THREE.MeshPhysicalMaterial({
+        color: 0xcbbf9f, metalness: 0.6, roughness: 0.32, clearcoat: 0.6, clearcoatRoughness: 0.2, envMapIntensity: 1.1,
+    }));
+    mesh.receiveShadow = true; // the cake's shadow falls on the plate
+    group.add(mesh);
 
     const contact = new THREE.Mesh(
-        new THREE.PlaneGeometry(plateRadius * 2.5, plateRadius * 2.5),
+        new THREE.PlaneGeometry(radius * 1.4, radius * 1.4),
         new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false }),
     );
     contact.rotation.x = -Math.PI / 2;
-    contact.position.y = PLATE_FOOT + 0.002;
+    contact.position.y = stand.foot + 0.002;
     group.add(contact);
 
-    return group;
+    return stand.foot;
 }
 
 /** Where a cake sits in a design photo when the admin hasn't fitted it: the bundled photos' average. */
@@ -423,20 +454,9 @@ function buildDesignCake(photo, fitIn, toppings, radius, anisotropy) {
     });
 
     // The pedestal stand from the photos: a wide plate on a slim stem and a flared foot, in champagne gold.
-    const stand = standGeometry(radius);
-    add(new THREE.Mesh(stand.geometry, new THREE.MeshPhysicalMaterial({
-        color: 0xcbbf9f, metalness: 0.6, roughness: 0.32, clearcoat: 0.6, clearcoatRoughness: 0.2, envMapIntensity: 1.1,
-    }))).castShadow = false;
+    const foot = addStand(group, radius);
 
-    const contact = new THREE.Mesh(
-        new THREE.PlaneGeometry(radius * 1.4, radius * 1.4),
-        new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false }),
-    );
-    contact.rotation.x = -Math.PI / 2;
-    contact.position.y = stand.foot + 0.002;
-    group.add(contact);
-
-    return { group, height, foot: stand.foot, viewPhi };
+    return { group, height, foot, viewPhi };
 }
 
 /* ---------- Shapes ---------- */
@@ -518,20 +538,6 @@ function topGeometry(r, cakeRadius) {
         const strokes = Math.sin(d * 14 - angle * 1.5 + fbm(x * 2, z * 2, 3.1) * 6) * amount * 0.12 * smoothstep(0.1, 0.4, d);
         position.setY(i, (hills + strokes) * fade);
     }
-    geometry.computeVertexNormals();
-
-    return geometry;
-}
-
-/** A porcelain plate: a wide flat top with a raised lip, on a foot. The cake sits at y = 0. */
-const PLATE_FOOT = -0.11;
-function plateGeometry(R) {
-    // The outline from the middle of the underside, round the foot and the rounded lip, back to the middle of the top.
-    const outline = new THREE.SplineCurve([
-        [0.001, -0.07], [R * 0.45, -0.07], [R * 0.52, PLATE_FOOT], [R * 0.6, -0.075], [R * 0.85, -0.05],
-        [R * 1.0, -0.02], [R * 1.05, 0.015], [R * 1.035, 0.035], [R * 0.99, 0.022], [R * 0.9, 0.002], [R * 0.6, 0], [0.001, 0],
-    ].map(([x, y]) => new THREE.Vector2(x, y)));
-    const geometry = new THREE.LatheGeometry(outline.getSpacedPoints(80), SEGMENTS);
     geometry.computeVertexNormals();
 
     return geometry;

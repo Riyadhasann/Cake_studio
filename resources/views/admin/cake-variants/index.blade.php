@@ -1,7 +1,7 @@
 <x-studio-layout title="Cake shapes" :admin="true">
     <x-back-link :href="route('dashboard')" label="Back to Dashboard" />
 
-    <h1 class="heading mt-6 text-5xl">Cake shapes</h1>
+    <h1 class="heading mt-6 text-3xl">Cake shapes</h1>
     <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
         Where the sponge and cream layers sit in the cake, for 2, 3 and 4 layers. When you upload the cake photo on the
         <a href="{{ route('admin.cake-visuals.index') }}" class="underline">Cake images</a> page, the layers are fitted
@@ -10,7 +10,7 @@
 
     @include('admin.cake-variants._alerts')
 
-    <div class="panel mt-8 overflow-x-auto">
+    <div class="panel mt-5 overflow-x-auto">
         <table class="w-full min-w-[36rem] text-left text-sm">
             <thead class="bg-petal text-xs font-medium tracking-wide text-ink/80">
                 <tr>
@@ -25,7 +25,7 @@
                 @foreach ($layerCounts as $layers)
                     @php $variant = $variants->get($layers); @endphp
                     <tr class="align-top">
-                        <td class="px-5 py-4 font-display text-2xl font-medium">{{ $layers }} layers</td>
+                        <td class="px-5 py-4 font-display text-lg font-medium">{{ $layers }} layers</td>
                         @if ($variant)
                             @php $problems = $variant->publishProblems(); @endphp
                             <td class="px-5 py-4">

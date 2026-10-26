@@ -1,0 +1,379 @@
+/*
+ * The shop and admin pages (x-studio-layout). Compiled by Vite, so nothing is built in the browser.
+ * Bakery theme: warm cream page, white cards, terracotta for the picked choice and links,
+ * dark chocolate for the main buttons, dark brown text, serif headings.
+ * Text is brown on light colors, or white on terracotta (4.8:1) and chocolate (11:1).
+ */
+@import 'tailwindcss';
+
+@source '../views';
+@source '../js';
+
+@theme {
+    /* Headings in DM Serif Display (one solid weight), everything else in Nunito Sans. */
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+
+    --color-paper: #faf7f4; /* page: light and quiet, so the cards and the cake stand out */
+    --color-petal: #f7f1ec; /* unpicked tiles, tinted surfaces */
+    --color-line: #e8ddd4; /* borders */
+    --color-ink: #2b1a12; /* text: near-black brown, easy to read */
+    --color-brand: #b5562a; /* terracotta */
+    --color-brand-dark: #8f4220;
+    --color-brand-soft: #fbe9dd;
+    --color-gold: #e3a15a; /* caramel */
+    --color-gold-soft: #fdf0e0;
+    --color-cocoa: #5e2d13; /* dark chocolate: main buttons */
+    --color-cocoa-dark: #47210d;
+    --color-cream: #ffffff; /* cards */
+    --color-brown: #6b4a3c; /* secondary labels */
+    --color-sage: #3f6b3a;
+    --color-sage-soft: #e7f1e4;
+    --color-clay: #a8362f;
+    --color-clay-soft: #fbe8e6;
+
+    --shadow-card: 0 1px 3px rgb(43 26 18 / 0.1), 0 6px 14px -4px rgb(43 26 18 / 0.14), 0 18px 40px -12px rgb(43 26 18 / 0.3);
+    --shadow-box: 0 1px 2px rgb(43 26 18 / 0.1), 0 4px 10px -2px rgb(43 26 18 / 0.16), 0 10px 22px -8px rgb(43 26 18 / 0.24); /* boxes inside cards */
+    --shadow-lift: 0 2px 5px rgb(43 26 18 / 0.12), 0 10px 20px -6px rgb(43 26 18 / 0.2), 0 22px 44px -14px rgb(43 26 18 / 0.34);
+
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --ease-spring: cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-line, currentColor);
+    }
+
+    html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Nothing ever scrolls the page sideways on a phone (clip, unlike hidden, keeps the sticky header working) */
+    html,
+    body {
+        overflow-x: clip;
+    }
+
+    button:not(:disabled),
+    [role='button']:not(:disabled),
+    summary,
+    label[for] {
+        cursor: pointer;
+    }
+
+    ::selection {
+        background: var(--color-brand-soft);
+        color: var(--color-ink);
+    }
+
+    /* DM Serif Display has a single weight; browsers would otherwise fake a blurry bold */
+    .font-display {
+        font-weight: 400 !important;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+/* Reusable classes, so views say "btn" instead of repeating 20 utilities. Compact on purpose: small type, tight boxes, soft shadows. */
+@layer components {
+    .eyebrow {
+        @apply text-xs font-bold tracking-wider text-brand uppercase;
+    }
+    .heading {
+        @apply font-display leading-tight font-normal text-ink;
+    }
+    /* Main buttons: dark chocolate with white text. */
+    .btn {
+        @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-cocoa bg-cocoa px-4 py-2 text-sm font-semibold text-white shadow-[0_1px_2px_rgb(43_26_18/0.25),0_6px_14px_-4px_rgb(94_45_19/0.55)] transition hover:border-cocoa-dark hover:bg-cocoa-dark focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60;
+    }
+    .btn-outline {
+        @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-ink shadow-box transition hover:border-brand/50 hover:shadow-lift hover:text-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60;
+    }
+    .btn-sm {
+        @apply px-3 py-1.5 text-xs;
+    }
+    .panel {
+        @apply rounded-xl border border-line bg-cream shadow-card;
+    }
+    .field {
+        @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink shadow-box transition placeholder:text-ink/45 focus:border-brand focus:ring-3 focus:ring-brand/15 focus:outline-none aria-invalid:border-clay;
+    }
+    .label {
+        @apply mb-1.5 block text-sm font-semibold text-ink;
+    }
+    .chip {
+        @apply inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-2 py-0.5 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(43_26_18/0.12),0_3px_8px_-2px_rgb(43_26_18/0.18)];
+    }
+    .nav-link {
+        @apply rounded-lg px-3 py-1.5 text-sm font-semibold text-ink/80 transition hover:bg-petal hover:text-brand aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand-dark;
+    }
+    /* One choice on the design page (a flavor): a light tile that gets a terracotta outline when picked. */
+    .choice {
+        @apply relative rounded-lg border border-line bg-white text-left text-sm text-ink shadow-box hover:border-brand/50 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none;
+    }
+    .choice[aria-pressed='true'] {
+        @apply border-brand bg-brand-soft/40 font-bold ring-1 ring-brand;
+    }
+    .alert {
+        @apply rounded-lg border px-4 py-3 text-sm font-medium shadow-box;
+    }
+    /* A box inside a card (the layer's flavors, the total) */
+    .inset-box {
+        @apply rounded-lg border border-line bg-paper shadow-box;
+    }
+    /* Dropdowns stand out: terracotta outline, tinted fill and a lifted shadow, with the chevron in brand color */
+    select.field {
+        @apply appearance-none border-brand/50 bg-brand-soft/30 pr-9 font-semibold shadow-lift hover:border-brand;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23b5562a'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+        background-size: 1.1rem;
+    }
+    .alert-success {
+        @apply border-sage/30 bg-sage-soft text-ink;
+    }
+    .alert-error {
+        @apply border-clay/30 bg-clay-soft text-clay;
+    }
+}
+
+/*
+ * Every cake picture stands in the same scene (resources/images/cake-scene.svg): a cream panelled wall, ivory fluted
+ * columns, window light and a round white marble table. .cake-scene paints it behind a box; .cake-scene-item stands a
+ * picture on the table's empty spot (about 64% wide, its base on the contact shadow).
+ */
+.cake-scene,
+.stage-3d {
+    background: #efe6d2 url('../images/cake-scene.svg') center / cover no-repeat;
+}
+.cake-scene-item {
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    top: 12%;
+    bottom: 17%;
+    width: 64%;
+    height: 71%;
+    object-fit: contain;
+    object-position: center bottom;
+}
+
+/* Horizontal slider (Pick a design): snaps to each card, no visible scroll bar */
+.slider {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+}
+.slider::-webkit-scrollbar {
+    display: none;
+}
+.slider > * {
+    scroll-snap-align: start;
+}
+
+/*
+ * The page: a warm cream-to-apricot glow from the top left (the brand's #FFF1D6 → #FCD39C → #F2AE7E, lifted well toward white
+ * so text and cards stay easy to read), in many small steps for a smooth shade, plus a faint second glow at the bottom right.
+ * Fixed, so it fills the window however long the page is.
+ */
+.page-bg {
+    background-color: #fffaf3;
+    background-image:
+        radial-gradient(60% 50% at 100% 100%, rgb(250 205 170 / 0.22) 0%, rgb(250 205 170 / 0) 70%),
+        radial-gradient(circle at 15% 0%,
+            #fffdf9 0%,
+            #fffaf2 12%,
+            #fff6ea 24%,
+            #fff2e1 36%,
+            #ffedd7 48%,
+            #fee7cd 60%,
+            #fde1c4 72%,
+            #fcdabb 86%,
+            #fad4b4 100%);
+    background-attachment: fixed;
+}
+
+/* MOTION: everything here is switched off for "reduce motion" (bottom of this file). */
+
+/* Page to page: the content fades in, the header stays put (browsers without view transitions just load the page). */
+@view-transition {
+    navigation: auto;
+}
+.site-header {
+    view-transition-name: site-header;
+    transition:
+        box-shadow 0.3s ease,
+        background-color 0.3s ease;
+}
+.site-header.is-scrolled {
+    box-shadow: 0 6px 20px -8px rgb(43 26 18 / 0.3);
+}
+::view-transition-old(root) {
+    animation: page-out 0.18s ease both;
+}
+::view-transition-new(root) {
+    animation: page-in 0.35s var(--ease-out) both;
+}
+@keyframes page-out {
+    to {
+        opacity: 0;
+    }
+}
+@keyframes page-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+/* Scroll reveal: [data-reveal] and every .panel fade up, one after another (resources/js/studio.js). */
+.js-motion [data-reveal] {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+        opacity 0.6s var(--ease-out),
+        transform 0.7s var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+.js-motion [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+/* Buttons: a small lift and a press */
+.btn,
+.btn-outline {
+    transition:
+        transform 0.2s var(--ease-out),
+        box-shadow 0.2s ease,
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -14px rgb(94 45 19 / 0.7);
+}
+.btn:active:not(:disabled),
+.btn-outline:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+/* Choice tiles lift on hover and pop when picked; the check mark springs in */
+.choice {
+    transition:
+        transform 0.25s var(--ease-out),
+        box-shadow 0.25s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+.choice:hover {
+    transform: translateY(-2px);
+}
+.choice:active {
+    transform: scale(0.97);
+}
+.choice[aria-pressed='true'] {
+    animation: choice-pop 0.45s var(--ease-spring);
+}
+.choice[aria-pressed='true'] > svg {
+    animation: check-in 0.4s var(--ease-spring) both;
+}
+@keyframes choice-pop {
+    from {
+        transform: scale(0.95);
+    }
+}
+@keyframes check-in {
+    from {
+        opacity: 0;
+        transform: scale(0) rotate(-60deg);
+    }
+}
+
+/* Step numbers send out one caramel ring when their card comes into view */
+.step-dot {
+    position: relative;
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+.step-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+}
+.is-visible .step-dot::after {
+    animation: ring 1.4s 0.35s ease-out;
+}
+.panel:hover .step-dot {
+    background: var(--color-brand);
+    color: #fff;
+}
+@keyframes ring {
+    from {
+        box-shadow: 0 0 0 0 rgb(227 161 90 / 0.8);
+    }
+    to {
+        box-shadow: 0 0 0 14px rgb(227 161 90 / 0);
+    }
+}
+
+/* Cake preview: floats gently and tilts toward the pointer */
+.cake-float {
+    animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+    50% {
+        transform: translateY(-8px);
+    }
+}
+[data-tilt] {
+    transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 0.6s var(--ease-out);
+}
+
+/* A card with an open dropdown sits above the cards after it, so the list is never covered */
+.panel:has([aria-expanded='true']) {
+    position: relative;
+    z-index: 30;
+}
+
+/* Dialogs spring in each time they open */
+.dialog-pop {
+    animation: dialog-pop 0.4s var(--ease-spring);
+}
+@keyframes dialog-pop {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.95);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    ::view-transition-old(*),
+    ::view-transition-new(*),
+    ::view-transition-group(*) {
+        animation: none !important;
+    }
+    [data-tilt] {
+        transform: none;
+    }
+}

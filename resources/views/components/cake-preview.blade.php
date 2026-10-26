@@ -24,8 +24,7 @@
         justify-content: flex-end;
         align-items: center;
         aspect-ratio: 4 / 5;
-        padding-bottom: 8%;
-        background: radial-gradient(120% 80% at 50% 100%, #fffaf5 0%, #fbeee2 55%, #f3dcc8 100%);
+        padding-bottom: 20%; /* the drawn cake stands on the scene's table (.cake-scene) */
         overflow: hidden;
     }
     .cake-stack {
@@ -146,11 +145,14 @@
         display: block;
         aspect-ratio: auto;
         padding: 0;
-        background: #fff;
     }
+    /* The photo's light studio backdrop multiplies away into the scene, and its edges fade out */
     .cake-svg.cake-photo {
         width: 100%;
         margin: 0;
+        mix-blend-mode: multiply;
+        -webkit-mask-image: radial-gradient(ellipse 58% 60% at 50% 52%, #000 72%, transparent 100%);
+        mask-image: radial-gradient(ellipse 58% 60% at 50% 52%, #000 72%, transparent 100%);
     }
     /* On a photo the layers sit flush on each other: no shadow under the cream. */
     .cake-photo .cake-slot-cream {
@@ -172,8 +174,8 @@
     }
 </style>
 
-<div class="overflow-hidden rounded-2xl border border-line bg-white shadow-[0_6px_16px_-8px_rgba(74,36,18,0.25)]">
-    <div class="cake-stage" :class="{ 'is-photo': hasPhotoBase }" role="img" :aria-label="previewLabel">
+<div class="overflow-hidden rounded-lg border border-line shadow-box">
+    <div class="cake-stage cake-scene" :class="{ 'is-photo': hasPhotoBase }" role="img" :aria-label="previewLabel">
         @if ($variants)
             {{-- Fills shared by every drawing: one image pattern per flavor that has a layer image. --}}
             <svg class="cake-defs" aria-hidden="true" focusable="false">

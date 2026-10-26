@@ -67,11 +67,11 @@ class CakeCustomization extends Model
     }
 
     /**
-     * Plain arrays for views: [['position' => 1, 'sponge_name' => ..., 'cream_name' => ...], ...]
+     * Plain arrays for views: [['position' => 1, 'sponge_name' => ..., 'cream_name' => ..., 'sponge_color' => ..., 'cream_color' => ...], ...]
      * Same shape the cart uses, so one Blade component can show both.
      * Eager load layers.spongeFlavor and layers.creamFlavor to avoid extra queries.
      *
-     * @return Attribute<array<int, array{position: non-negative-int, sponge_name: string, cream_name: string}>, never>
+     * @return Attribute<array<int, array{position: non-negative-int, sponge_name: string, cream_name: string, sponge_color: string|null, cream_color: string|null}>, never>
      */
     protected function layerSummary(): Attribute
     {
@@ -80,6 +80,8 @@ class CakeCustomization extends Model
             'position' => $layer->position,
             'sponge_name' => $layer->spongeFlavor->name ?? 'Unknown',
             'cream_name' => $layer->creamFlavor->name ?? 'Unknown',
+            'sponge_color' => $layer->spongeFlavor?->color,
+            'cream_color' => $layer->creamFlavor?->color,
         ])->values()->all());
     }
 }

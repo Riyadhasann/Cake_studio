@@ -43,6 +43,9 @@ class CartController extends Controller
                 'sponge_name' => $sponge->name,
                 'cream_id' => $cream->id,
                 'cream_name' => $cream->name,
+                // For the little cake drawn next to each cart item
+                'sponge_color' => $sponge->color,
+                'cream_color' => $cream->color,
             ];
         }
 
@@ -135,6 +138,6 @@ class CartController extends Controller
 
         return redirect()
             ->route('cake-studio.index')
-            ->with('success', "Order placed! Order #{$order->id}, Total: ৳{$order->total}. Keep your order number: you can check its status any time under Track order.");
+            ->with('order_placed', ['id' => $order->id, 'total' => (float) $order->total, 'delivery_date' => $order->delivery_date?->format('D, M j')]);
     }
 }
