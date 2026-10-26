@@ -24,7 +24,7 @@
 
     <div class="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h1 class="heading text-5xl">Cake images</h1>
+            <h1 class="heading text-3xl">Cake images</h1>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
                 What customers see in the cake preview, set up in four steps.
             </p>
@@ -35,13 +35,13 @@
     @include('admin.cake-variants._alerts')
 
     {{-- 1. The cake photo --}}
-    <section class="panel mt-10 p-6">
+    <section class="panel mt-6 p-4">
         <div class="flex items-center gap-3">
             <span class="{{ $step }}">1</span>
-            <h2 class="heading text-3xl">Cake photo</h2>
+            <h2 class="heading text-xl">Cake photo</h2>
         </div>
 
-        <div class="mt-5 grid gap-6 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+        <div class="mt-5 grid gap-4 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
             @if ($photo)
                 <img src="{{ asset($photo) }}" alt="The cake photo" class="w-full rounded-xl border border-line bg-white">
             @else
@@ -90,10 +90,10 @@
     </section>
 
     {{-- 2. The flavors every layer starts with --}}
-    <section class="panel mt-6 p-6">
+    <section class="panel mt-6 p-4">
         <div class="flex items-center gap-3">
             <span class="{{ $step }}">2</span>
-            <h2 class="heading text-3xl">Default cake</h2>
+            <h2 class="heading text-xl">Default cake</h2>
         </div>
         <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
             The design page opens with every layer in these flavors. When a customer picks another one, only that layer changes.
@@ -120,10 +120,10 @@
 
     {{-- 3 and 4. A picture per flavor --}}
     @foreach (['sponge' => ['3', 'Sponge pictures', $sponges], 'cream' => ['4', 'Cream pictures', $creams]] as $type => [$number, $title, $flavors])
-        <section class="panel mt-6 p-6">
+        <section class="panel mt-6 p-4">
             <div class="flex items-center gap-3">
                 <span class="{{ $step }}">{{ $number }}</span>
-                <h2 class="heading text-3xl">{{ $title }}</h2>
+                <h2 class="heading text-xl">{{ $title }}</h2>
             </div>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
                 One picture per {{ $type }} flavor, shaped like that layer in the cut: for a cake with a slice cut out, a
@@ -141,8 +141,8 @@
     @endforeach
 
     {{-- Only for the drawn cake, used while there is no photo --}}
-    <details class="panel mt-6 p-6" @if (! $photo) open @endif>
-        <summary class="cursor-pointer font-display text-2xl text-ink">Frosting and plate <span class="text-base text-ink/80">(only used without a cake photo)</span></summary>
+    <details class="panel mt-6 p-4" @if (! $photo) open @endif>
+        <summary class="cursor-pointer font-display text-lg text-ink">Frosting and plate <span class="text-base text-ink/80">(only used without a cake photo)</span></summary>
         <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
             The drawn cake has frosting on top and a plate under it, the same for every flavor. Transparent PNGs work best:
             frosting about 1400 × 400 px, plate about 1800 × 160 px.
@@ -166,7 +166,7 @@
     <aside x-data="cakeSurfacePreview({ sponge: @js($surfaceOf($defaultSponge, 'sponge')), cream: @js($surfaceOf($defaultCream, 'cream')) })"
            @cake-3d-preview.window="open($event.detail)" @keydown.escape.window="close()"
            x-show="flavor" x-cloak x-transition
-           class="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-white shadow-xl"
+           class="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-line bg-white shadow-xl"
            aria-label="3D preview">
         <div class="flex items-center justify-between gap-2 border-b border-line px-4 py-2.5">
             <p class="truncate text-sm font-semibold text-brand" x-text="flavor ? flavor.name + ' in 3D' : ''"></p>
@@ -174,7 +174,7 @@
         </div>
         <div class="relative" style="aspect-ratio: 1; background: radial-gradient(70% 55% at 50% 45%, #fffcf5 0%, #fbf3e4 50%, #f1e4cc 100%);">
             <div x-ref="stage" class="absolute inset-0" tabindex="0" role="group" aria-roledescription="3D cake" aria-label="3D preview, drag or use the arrow keys to turn it"></div>
-            <p x-show="error" x-text="error" class="absolute inset-0 grid place-items-center p-6 text-center text-sm text-ink"></p>
+            <p x-show="error" x-text="error" class="absolute inset-0 grid place-items-center p-4 text-center text-sm text-ink"></p>
         </div>
         <p class="px-4 py-2.5 text-xs text-ink/80">Seams are smoothed out when you save. Move the grain size until the crumb looks natural.</p>
     </aside>

@@ -1,7 +1,7 @@
 {{-- One sponge, cream or fixed part on the Cake images page: its picture, upload and remove, and for flavors the menu order. --}}
 @props(['item', 'type', 'ratio', 'fit' => 'contain', 'moveUp' => null, 'moveDown' => null])
 
-<div class="rounded-2xl border border-line bg-white p-4">
+<div class="rounded-xl border border-line bg-white p-4">
     <div class="flex items-center justify-between gap-2">
         <div class="flex min-w-0 items-center gap-2">
             @if ($item->color)

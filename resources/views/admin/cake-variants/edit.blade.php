@@ -24,9 +24,9 @@
         $problems = $variant->publishProblems();
     @endphp
 
-    <div class="mt-6 flex flex-wrap items-end justify-between gap-6">
+    <div class="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h1 class="heading text-5xl">{{ $variant->layers }}-layer shape</h1>
+            <h1 class="heading text-3xl">{{ $variant->layers }}-layer shape</h1>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
                 Where the {{ $variant->layers }} sponge and cream layers sit in the cake. With a cake photo they are fitted into
                 its cut automatically; this page is only needed to adjust them.
@@ -45,7 +45,7 @@
     @include('admin.cake-variants._alerts')
 
     @if ($problems)
-        <div class="mt-4 rounded-2xl border border-line bg-petal px-5 py-4 text-sm text-ink/90">
+        <div class="mt-4 rounded-xl border border-line bg-petal px-5 py-4 text-sm text-ink/90">
             <p class="font-medium">Before this shape can be published:</p>
             <ul class="mt-1 list-inside list-disc">
                 @foreach ($problems as $problem)
@@ -82,19 +82,19 @@
               'elements' => $allowedElements,
               'attributes' => $allowedAttributes,
           ]) }})"
-          class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+          class="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         @csrf
         @method('PUT')
 
-        <div class="space-y-8">
+        <div class="space-y-5">
             @php $handDrawn = ! $variant->base_image || $errors->hasAny(['view_box_width', 'view_box_height', 'base_svg', 'slots.*']); @endphp
             @if ($variant->base_image)
                 @include('admin.cake-variants._cut-face')
             @endif
 
             {{-- Drawing the shapes by hand: needed without a photo, rarely with one --}}
-            <details class="panel p-6" @if ($handDrawn) open @endif>
-                <summary class="cursor-pointer font-display text-2xl text-ink">
+            <details class="panel p-4" @if ($handDrawn) open @endif>
+                <summary class="cursor-pointer font-display text-lg text-ink">
                     {{ $variant->base_image ? 'Advanced: draw the shapes by hand' : 'Draw the shapes' }}
                 </summary>
                 <p class="mt-2 text-sm leading-6 text-ink/80">
@@ -102,9 +102,9 @@
                     on top of the shapes: keep outlines and decorations there, never sponge or cream. Scripts, links, images
                     and styles are removed when you save.
                 </p>
-                <div class="mt-6 space-y-8">
+                <div class="mt-6 space-y-5">
             <section class="space-y-5">
-                <h2 class="heading text-3xl">Drawing</h2>
+                <h2 class="heading text-xl">Drawing</h2>
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div>
                         <label for="view_box_width" class="label">View box width</label>
@@ -132,7 +132,7 @@
 
 
             <section>
-                <h2 class="heading text-3xl">Shapes</h2>
+                <h2 class="heading text-xl">Shapes</h2>
                 <p class="mt-2 text-sm text-ink/80">Enter an SVG path, or a rectangle that is turned into a path when you save. Leave a path empty to remove that shape.</p>
 
                 <div class="mt-6 divide-y divide-line">
@@ -182,10 +182,10 @@
         </div>
 
         <aside class="lg:sticky lg:top-6 lg:self-start">
-            <div class="panel p-6">
-                <h2 class="heading text-3xl">Preview</h2>
+            <div class="panel p-4">
+                <h2 class="heading text-xl">Preview</h2>
                 <p class="mt-1 text-xs text-ink/80">Sponge shapes are tan, cream shapes are light. Hover or edit a shape to highlight it.</p>
-                <div class="mt-4 rounded-2xl bg-petal p-4">
+                <div class="mt-4 rounded-xl bg-petal p-4">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ $variant->view_box_width }} {{ $variant->view_box_height }}"
                          :viewBox="`0 0 ${Math.max(1, width || 1)} ${Math.max(1, height || 1)}`"
                          class="mx-auto block h-auto max-h-[70vh] w-full" :class="placing !== null && 'cursor-crosshair'"
@@ -225,8 +225,8 @@
         </aside>
     </form>
 
-    <details class="mt-12">
-        <summary class="cursor-pointer font-display text-2xl text-ink">Extra realism (optional): shading and per-layer photos</summary>
+    <details class="mt-6">
+        <summary class="cursor-pointer font-display text-lg text-ink">Extra realism (optional): shading and per-layer photos</summary>
         @include('admin.cake-variants._realism')
     </details>
 

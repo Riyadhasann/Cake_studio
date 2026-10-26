@@ -3,7 +3,7 @@
     $fileInput = 'w-full text-sm text-ink/90 file:mr-3 file:rounded-full file:border-0 file:bg-petal file:px-4 file:py-2 file:text-xs file:font-medium file:text-brand hover:file:bg-brand-soft';
 @endphp
 
-<section class="panel mt-8 grid gap-6 p-6 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+<section class="panel mt-5 grid gap-4 p-4 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
     <div>
         @if ($variant->base_image)
             <img src="{{ asset($variant->base_image) }}" alt="Current cake photo" class="w-full rounded-xl border border-line bg-white">
@@ -16,7 +16,7 @@
     </div>
 
     <div>
-        <h2 class="heading text-3xl">Cake photo</h2>
+        <h2 class="heading text-xl">Cake photo</h2>
         <p class="mt-2 text-sm leading-6 text-ink/80">
             The whole cake with a slice cut out and the cut left empty (see-through, or a gray checkerboard). The cut is
             found automatically and the layers are fitted into it. PNG, JPG or WebP, up to 4 MB. Usually set once for

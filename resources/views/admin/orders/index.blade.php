@@ -3,19 +3,19 @@
 
         <x-back-link :href="route('dashboard')" label="Back to Dashboard" />
 
-        <h1 class="heading mt-6 text-5xl">Orders</h1>
+        <h1 class="heading mt-6 text-3xl">Orders</h1>
 
-        <div class="mt-8 space-y-4">
+        <div class="mt-5 space-y-4">
             @if (session('success'))
-                <div class="rounded-2xl border border-sage/30 bg-sage-soft px-5 py-4 text-sm text-ink">{{ session('success') }}</div>
+                <div class="rounded-xl border border-sage/30 bg-sage-soft px-5 py-4 text-sm text-ink">{{ session('success') }}</div>
             @endif
 
             @if (session('error'))
-                <div class="rounded-2xl border border-clay/30 bg-clay-soft px-5 py-4 text-sm text-clay">{{ session('error') }}</div>
+                <div class="rounded-xl border border-clay/30 bg-clay-soft px-5 py-4 text-sm text-clay">{{ session('error') }}</div>
             @endif
 
             @if ($errors->any())
-                <div class="rounded-2xl border border-clay/30 bg-clay-soft px-5 py-4 text-sm text-clay">
+                <div class="rounded-xl border border-clay/30 bg-clay-soft px-5 py-4 text-sm text-clay">
                     <ul class="list-inside list-disc">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -26,9 +26,9 @@
         </div>
 
         @if ($orders->isEmpty())
-            <p class="mt-8 text-ink/80">No orders yet.</p>
+            <p class="mt-5 text-ink/80">No orders yet.</p>
         @else
-            <div class="panel mt-8 overflow-x-auto">
+            <div class="panel mt-5 overflow-x-auto">
                 <table class="w-full min-w-[56rem] text-left text-sm">
                     <thead class="bg-petal text-xs font-medium tracking-wide text-ink/80">
                         <tr>
@@ -52,7 +52,7 @@
                             @endphp
                             <tr class="align-top">
                                 <td class="px-5 py-4">
-                                    <span class="font-display text-2xl font-medium">#{{ $order->id }}</span><br>
+                                    <span class="font-display text-lg font-medium">#{{ $order->id }}</span><br>
                                     <span class="text-ink/80">{{ $order->created_at->format('M j, g:ia') }}</span>
                                 </td>
 
@@ -91,7 +91,7 @@
                                     @endif
                                 </td>
 
-                                <td class="px-5 py-4 font-display text-2xl font-medium">৳{{ number_format($order->total, 2) }}</td>
+                                <td class="px-5 py-4 font-display text-lg font-medium">৳{{ number_format($order->total, 2) }}</td>
 
                                 <td class="px-5 py-4">
                                     <span class="rounded-full px-3 py-1 text-xs font-medium {{ $badge }}">{{ ucfirst($order->status) }}</span>
@@ -139,9 +139,9 @@
             role="dialog"
             aria-modal="true"
         >
-            <form :action="cancelUrl" method="POST" class="w-full max-w-md rounded-[1.75rem] bg-paper p-8">
+            <form :action="cancelUrl" method="POST" class="w-full max-w-md rounded-[1.75rem] bg-paper p-5">
                 @csrf
-                <h2 class="heading text-4xl">Cancel order <span x-text="'#' + cancelId"></span></h2>
+                <h2 class="heading text-2xl">Cancel order <span x-text="'#' + cancelId"></span></h2>
                 <p class="mt-2 text-sm text-ink/80">The customer will see this reason when they check their order.</p>
 
                 <label for="cancel_reason" class="label mt-6">Reason for cancellation</label>
@@ -159,7 +159,7 @@
                 <p class="mt-1 text-right text-xs text-ink/80" x-text="reason.length + '/500'"></p>
 
                 <div class="mt-6 space-y-3">
-                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-full border border-clay bg-clay px-8 py-3.5 text-[0.7rem] font-medium uppercase tracking-[0.2em] text-white transition-colors hover:bg-clay/90">
+                    <button type="submit" class="btn w-full border-clay bg-clay hover:border-clay hover:bg-clay/90">
                         Cancel order and notify customer
                     </button>
                     <button type="button" @click="closeCancel()" class="btn-outline w-full">
