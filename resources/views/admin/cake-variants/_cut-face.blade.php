@@ -1,7 +1,7 @@
 {{-- The cut face marked on the cake photo, inside the editor form's cakeVariantEditor() scope. --}}
 <section class="panel space-y-5 p-4">
     <div>
-        <h2 class="heading text-xl">The cut</h2>
+        <h2 class="text-lg font-bold">The cut</h2>
         <p class="mt-2 text-sm leading-6 text-ink/80">
             Found in the photo when it was uploaded; the dashed line on the preview shows it. Only if the layers don't line
             up: click "Mark the cut", then click its six corners on the preview (top edge left, middle, right, then bottom

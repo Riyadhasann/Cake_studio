@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CakeDesign;
 use App\Models\CakePart;
 use App\Models\CakeSize;
+use App\Models\CakeVariant;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
 use App\Services\CakeDrawings;
@@ -44,7 +45,8 @@ class CakeStudioController extends Controller
         $creams = CreamFlavor::where('is_active', true)->ordered()->get();
 
         // Finished designs with at least one photo: [id, name, extra_price, frames => [url, ...], fit], the first frame is
-        // the cover, which the 3D cake wears (fit: where the cake sits in it; toppings: cut-outs stood on its top).
+        // the cover, which the 3D cake wears (fit: where the cake sits in it; toppings: cut-outs stood on its top;
+        // top_image: the cover with them painted out of the top).
         $designs = CakeDesign::where('is_active', true)->ordered()->with('frames')->get()
             ->filter(fn (CakeDesign $design) => $design->frames->isNotEmpty())
             ->map(fn (CakeDesign $design) => [
@@ -54,6 +56,7 @@ class CakeStudioController extends Controller
                 'frames' => $design->frames->map(fn ($frame) => asset($frame->image))->values()->all(),
                 'fit' => $design->fitOrDefault(),
                 'toppings' => array_map(fn (array $topping) => [...$topping, 'image' => asset($topping['image'])], $design->toppingList()),
+                'top_image' => $design->top_image ? asset($design->top_image) : null,
             ])
             ->values();
 
@@ -64,6 +67,8 @@ class CakeStudioController extends Controller
             'creams' => $creams->map($forPage)->values(),
             'parts' => $parts,
             'variants' => $drawings->published($sponges, $creams),
+            // 2, 3 and 4 layers, plus any layer count the admin added on the Cake shapes page
+            'layerOptions' => CakeVariant::offeredLayerCounts(),
             // The admin's default flavors, which every new layer starts with. Falls back to the first one on the menu.
             'defaultSpongeId' => ($sponges->firstWhere('is_default', true) ?? $sponges->first())?->id,
             'defaultCreamId' => ($creams->firstWhere('is_default', true) ?? $creams->first())?->id,

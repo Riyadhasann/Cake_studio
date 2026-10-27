@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\SiteSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Read from the database once per request, however many views ask.
+        $this->app->scoped(SiteSettings::class);
     }
 
     /**

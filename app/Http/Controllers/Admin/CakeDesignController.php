@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveCakeDesignRequest;
-use App\Http\Requests\Admin\SaveCakeDesignToppingRequest;
 use App\Http\Requests\Admin\StoreCakeDesignFramesRequest;
 use App\Http\Requests\Admin\UpdateCakeDesignFitRequest;
 use App\Models\CakeDesign;
 use App\Models\CakeDesignFrame;
+use App\Services\DesignPhotoReader;
 use App\Services\PublicUploads;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
@@ -18,7 +18,7 @@ use Illuminate\View\View;
 /** Cake designs customers can pick on the design page, and their photos (one, or a full turn for 360°). */
 class CakeDesignController extends Controller
 {
-    public function __construct(private PublicUploads $uploads) {}
+    public function __construct(private PublicUploads $uploads, private DesignPhotoReader $reader) {}
 
     public function index(): View
     {
@@ -41,7 +41,22 @@ class CakeDesignController extends Controller
             return $design;
         });
 
-        return to_route('admin.designs.index')->with('success', "{$design->name} added.");
+        // Fitted and its toppings cut out like the bundled designs, so it turns in 3D like them.
+        $fitted = $this->reader->fitDesign($design);
+
+        return to_route('admin.designs.index')->with('check_design', $design->id)->with('success', $fitted
+            ? "{$design->name} added and made into a 3D cake from its photo: check it below."
+            : "{$design->name} added. Its photo couldn't be read for 3D: set the 3D fit by hand.");
+    }
+
+    /** Measures the 3D fit and cuts the toppings out of the cover photo again (replacing the toppings). */
+    public function fitFromPhoto(CakeDesign $design): RedirectResponse
+    {
+        if (! $this->reader->fitDesign($design)) {
+            return back()->withErrors(['fit' => "The cover photo of {$design->name} couldn't be read: use a photo of the cake on a plain or transparent background, or set the 3D fit by hand."]);
+        }
+
+        return to_route('admin.designs.index')->with('check_design', $design->id)->with('success', "{$design->name} measured again from its photo.");
     }
 
     /** New prices apply to new cart items only: orders already placed keep their price. */
@@ -61,59 +76,30 @@ class CakeDesignController extends Controller
     {
         $design->update(['fit' => array_map(floatval(...), $request->safe()->only(array_keys(CakeDesign::DEFAULT_FIT)))]);
 
-        return to_route('admin.designs.index')->with('success', "3D fit of {$design->name} saved.");
+        return to_route('admin.designs.index')->with('check_design', $design->id)->with('success', "Outline of {$design->name} saved.");
     }
 
-    /** A topping cut-out stood round the 3D cake's top, saved as WebP (its transparency kept). */
-    public function storeTopping(SaveCakeDesignToppingRequest $request, CakeDesign $design): RedirectResponse
-    {
-        /** @var UploadedFile $image */
-        $image = $request->file('image');
-        $toppings = $design->toppingList();
-        $toppings[] = ['image' => $this->uploads->storeAsWebp($image, 'cake-designs', 92), ...$this->toppingPlacement($request)];
-        $design->update(['toppings' => $toppings]);
-
-        return to_route('admin.designs.index')->with('success', "Topping added to {$design->name}.");
-    }
-
-    public function updateTopping(SaveCakeDesignToppingRequest $request, CakeDesign $design, int $index): RedirectResponse
-    {
-        $toppings = $design->toppingList();
-        abort_unless(isset($toppings[$index]), 404);
-
-        $toppings[$index] = [...$toppings[$index], ...$this->toppingPlacement($request)];
-        $design->update(['toppings' => $toppings]);
-
-        return to_route('admin.designs.index')->with('success', "Topping of {$design->name} saved.");
-    }
-
+    /**
+     * Removes a cut-out that isn't a topping (the photo was misread). The painted-out top goes with it, so the top
+     * shows the photo again where that cut-out was.
+     */
     public function destroyTopping(CakeDesign $design, int $index): RedirectResponse
     {
         $toppings = $design->toppingList();
         abort_unless(isset($toppings[$index]), 404);
 
         $this->uploads->delete($toppings[$index]['image']);
+        $this->uploads->delete($design->top_image);
         array_splice($toppings, $index, 1);
-        $design->update(['toppings' => $toppings]);
+        $design->update(['toppings' => $toppings, 'top_image' => null]);
 
-        return to_route('admin.designs.index')->with('success', "Topping removed from {$design->name}.");
-    }
-
-    /** @return array{count: int, ring: float, size: float, angle: float} */
-    private function toppingPlacement(SaveCakeDesignToppingRequest $request): array
-    {
-        return [
-            'count' => $request->integer('count'),
-            'ring' => $request->float('ring'),
-            'size' => $request->float('size'),
-            'angle' => $request->float('angle'),
-        ];
+        return to_route('admin.designs.index')->with('check_design', $design->id)->with('success', "Topping removed from {$design->name}.");
     }
 
     /** Orders keep the design's name (the link to it is cleared). Its photos are deleted. */
     public function destroy(CakeDesign $design): RedirectResponse
     {
-        $images = $design->frames->pluck('image')->merge(array_column($design->toppingList(), 'image'));
+        $images = $design->frames->pluck('image')->merge(array_column($design->toppingList(), 'image'))->push($design->top_image)->filter();
         $design->delete();
         $images->each(fn (string $image) => $this->uploads->delete($image));
 

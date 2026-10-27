@@ -450,9 +450,9 @@
     "semantic_hash": ""
   },
   "resources/views/cake-studio/index.blade.php": {
-    "mtime": 1793013048.515962,
-    "seen": 1793015215.1580644,
-    "ast_hash": "a9f47e30d4cf616b2f67f14f71602d29",
+    "mtime": 1793077357.498014,
+    "seen": 1793079358.5778883,
+    "ast_hash": "5c45c2d314138232edaa49c12128e9c0",
     "semantic_hash": ""
   },
   "resources/views/cart/index.blade.php": {
@@ -1308,9 +1308,9 @@
     "semantic_hash": ""
   },
   "resources/js/cake-3d/viewer.js": {
-    "mtime": 1792995366.3305514,
-    "seen": 1793000281.6848645,
-    "ast_hash": "ee9461d7fd150f066f18ddd39e1488fe",
+    "mtime": 1793078293.6474342,
+    "seen": 1793079358.5778255,
+    "ast_hash": "fffaee7a5748d978d1f0d718d351fc2e",
     "semantic_hash": ""
   },
   "resources/views/admin/designs/index.blade.php": {
@@ -1433,10 +1433,10 @@
     "ast_hash": "c52e2f5a6dc4e53f5ba38efa835b6e73",
     "semantic_hash": ""
   },
-  "resources/images/Title_banner.png": {
-    "mtime": 1793013292.9204197,
-    "seen": 1793015215.1584067,
-    "ast_hash": "9c443656ff5e7f26ccaecd522fa1ee1e",
+  "resources/images/title-banner.webp": {
+    "mtime": 1793075384.3314095,
+    "seen": 1793079358.5782528,
+    "ast_hash": "49b35046e2f3ccc572886ca2a9638972",
     "semantic_hash": ""
   }
 }

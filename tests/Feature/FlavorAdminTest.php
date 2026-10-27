@@ -31,7 +31,7 @@ test('the cake images page walks through the photo, the default cake and the fla
     $this->actingAs($this->admin)
         ->get(route('admin.cake-visuals.index'))
         ->assertOk()
-        ->assertSeeInOrder(['Cake photo', 'Default cake', 'Sponge pictures', 'Cream pictures', 'Frosting and plate'])
+        ->assertSeeInOrder(['Cake photo', 'Default cake', 'Sponges', 'Creams', 'Frosting and plate'])
         ->assertSee(route('admin.cake-photo.update'), false)
         ->assertSee('Upload photo');
 });

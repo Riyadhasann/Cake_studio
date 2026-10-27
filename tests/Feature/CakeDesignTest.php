@@ -6,6 +6,7 @@ use App\Models\CakeSize;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
 use App\Models\User;
+use App\Services\DesignPhotoReader;
 use Database\Seeders\CakeDesignSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -76,6 +77,7 @@ test('the design page offers active designs that have a photo, with every photo 
         // Not fitted yet: the 3D cake wears the photo from the usual place, with no toppings stood on it
         'fit' => CakeDesign::DEFAULT_FIT,
         'toppings' => [],
+        'top_image' => null,
     ]]);
 });
 
@@ -197,36 +199,89 @@ test('admin can rename, reprice and hide a design; customers cannot reach the pa
     $this->actingAs(User::factory()->create())->get(route('admin.designs.index'))->assertForbidden();
 });
 
-test('admin adds, places and removes a topping, which the 3D cake stands round its top', function () {
-    $design = designWithPhotos('Drip');
-
+test('admin removes a cut-out that is not a topping, and its painted-out top with it', function () {
     $this->actingAs($this->admin)
-        ->post(route('admin.designs.toppings.store', $design), [
-            'image' => UploadedFile::fake()->image('kiss.png', 60, 60),
-            'count' => 12, 'ring' => 0.8, 'size' => 0.3, 'angle' => 15,
-        ])
+        ->post(route('admin.designs.store'), ['name' => 'Cherry', 'extra_price' => 0, 'frames' => [bundledPhotoUpload()]]);
+    $design = CakeDesign::sole();
+    $topping = $design->toppingList()[0];
+    $top = $design->top_image;
+
+    // The design page hands the 3D cake the cut-outs and the top with them painted out
+    $page = $this->get(route('cake-studio.index'))->viewData('designs')->first();
+    expect($page['toppings'][0]['image'])->toBe(asset($topping['image']))
+        ->and($page['top_image'])->toBe(asset($top));
+
+    $this->actingAs($this->admin)->delete(route('admin.designs.toppings.destroy', [$design, 5]))->assertNotFound();
+    $this->actingAs($this->admin)->delete(route('admin.designs.toppings.destroy', [$design, 0]))->assertRedirect();
+
+    expect($design->fresh()->toppingList())->toHaveCount(count($design->toppingList()) - 1)
+        ->and($design->fresh()->top_image)->toBeNull();
+    Storage::disk('public')->assertMissing(substr($topping['image'], strlen('storage/')));
+    Storage::disk('public')->assertMissing(substr($top, strlen('storage/')));
+});
+
+/** A bundled design photo (cake on the stand, transparent background) as an upload. */
+function bundledPhotoUpload(string $file = 'design-2.webp'): UploadedFile
+{
+    $copy = tempnam(sys_get_temp_dir(), 'design');
+    copy(database_path("seeders/images/designs/{$file}"), $copy);
+
+    return new UploadedFile($copy, $file, 'image/webp', null, true);
+}
+
+test('a design photo is measured like the bundled designs were fitted by hand, toppings cut out', function () {
+    $reading = app(DesignPhotoReader::class)->read(database_path('seeders/images/designs/design-2.webp'));
+    $fit = CakeDesignSeeder::FITS['Black Forest Cherry'];
+
+    expect($reading)->not->toBeNull()
+        ->and($reading['fit']['x'])->toEqualWithDelta($fit['x'], 0.01)
+        ->and($reading['fit']['r'])->toEqualWithDelta($fit['r'], 0.01)
+        ->and($reading['fit']['top'])->toEqualWithDelta($fit['top'], 0.03)
+        ->and($reading['fit']['bottom'])->toEqualWithDelta($fit['bottom'], 0.04)
+        // The cherries standing on the top, at the back
+        ->and($reading['toppings'])->not->toBeEmpty()
+        ->and(imagecreatefromstring($reading['toppings'][0]['webp']))->toBeInstanceOf(GdImage::class);
+
+    // The photo with the cherries painted out of the top, for the 3D cake's top
+    expect(imagecreatefromstring((string) $reading['top']))->toBeInstanceOf(GdImage::class);
+
+    // A photo with no cake standing out from its background can't be read
+    expect(app(DesignPhotoReader::class)->read(UploadedFile::fake()->image('plain.png', 400, 400)->getRealPath()))->toBeNull();
+});
+
+test('a new design is fitted for 3D from its photo, and can be measured again', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.designs.store'), ['name' => 'Cherry', 'extra_price' => 0, 'frames' => [bundledPhotoUpload()]])
         ->assertRedirect(route('admin.designs.index'))
         ->assertSessionHasNoErrors();
 
-    $topping = $design->fresh()->toppingList()[0];
-    expect($topping)->toMatchArray(['count' => 12, 'ring' => 0.8, 'size' => 0.3, 'angle' => 15.0])
-        ->and($topping['image'])->toStartWith('storage/cake-designs/')->toEndWith('.webp');
+    $design = CakeDesign::sole();
+    $toppings = $design->toppingList();
+    expect($design->fit)->not->toBeNull()
+        ->and($design->fitOrDefault()['r'])->toEqualWithDelta(CakeDesignSeeder::FITS['Black Forest Cherry']['r'], 0.01)
+        ->and($toppings)->not->toBeEmpty();
+    Storage::disk('public')->assertExists(substr($toppings[0]['image'], strlen('storage/')));
 
+    // Its 3D view opens on the admin page, the photo beside the 3D cake
     $this->actingAs($this->admin)
-        ->put(route('admin.designs.toppings.update', [$design, 0]), ['count' => 6, 'ring' => 0.5, 'size' => 0.4, 'angle' => 0])
+        ->withSession(['check_design' => $design->id])
+        ->get(route('admin.designs.index'))
+        ->assertOk()
+        ->assertSee('check it matches the photo')
+        ->assertSee('Measure from photo')
+        ->assertSee('designFit(', false);
+
+    // Measuring again replaces the toppings and removes the old cut-outs
+    $this->actingAs($this->admin)
+        ->post(route('admin.designs.fit-from-photo', $design))
+        ->assertRedirect(route('admin.designs.index'))
         ->assertSessionHasNoErrors();
-    expect($design->fresh()->toppingList()[0])->toMatchArray(['count' => 6, 'ring' => 0.5, 'image' => $topping['image']]);
+    Storage::disk('public')->assertMissing(substr($toppings[0]['image'], strlen('storage/')));
+    expect($design->fresh()->toppingList())->toHaveCount(count($toppings));
 
-    $page = $this->get(route('cake-studio.index'))->viewData('designs')->first();
-    expect($page['toppings'][0]['image'])->toBe(asset($topping['image']));
-
-    // A JPG has no transparency, and placing a topping that isn't there is a 404
-    $this->actingAs($this->admin)
-        ->post(route('admin.designs.toppings.store', $design), ['image' => UploadedFile::fake()->image('kiss.jpg'), 'count' => 1, 'ring' => 0, 'size' => 0.3, 'angle' => 0])
-        ->assertSessionHasErrors('image');
-    $this->actingAs($this->admin)->delete(route('admin.designs.toppings.destroy', [$design, 5]))->assertNotFound();
-
-    $this->actingAs($this->admin)->delete(route('admin.designs.toppings.destroy', [$design, 0]))->assertRedirect();
-    expect($design->fresh()->toppingList())->toBe([]);
-    Storage::disk('public')->assertMissing(substr($topping['image'], strlen('storage/')));
+    // A photo that can't be read keeps the design as it was
+    $plain = designWithPhotos('Plain');
+    $this->actingAs($this->admin)->post(route('admin.designs.fit-from-photo', $plain))->assertSessionHasErrors('fit');
+    expect($plain->fresh()->fit)->toBeNull();
+    $this->actingAs(User::factory()->create())->post(route('admin.designs.fit-from-photo', $design))->assertForbidden();
 });

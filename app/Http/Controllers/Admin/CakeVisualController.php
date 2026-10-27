@@ -27,8 +27,9 @@ class CakeVisualController extends Controller
         return view('admin.cake-visuals.index', [
             'photo' => $photoDrawings->first()?->base_image,
             'photoLive' => $photoDrawings->where('is_published', true)->pluck('layers')->all(),
-            'sponges' => SpongeFlavor::where('is_active', true)->ordered()->get(),
-            'creams' => CreamFlavor::where('is_active', true)->ordered()->get(),
+            // Hidden flavors are listed too (at the end), so they can be edited or put back on the menu.
+            'sponges' => SpongeFlavor::orderByDesc('is_active')->ordered()->get(),
+            'creams' => CreamFlavor::orderByDesc('is_active')->ordered()->get(),
             'parts' => CakePart::orderBy('id')->get(),
         ]);
     }

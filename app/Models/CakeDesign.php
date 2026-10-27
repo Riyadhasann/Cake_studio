@@ -23,6 +23,7 @@ class CakeDesign extends Model
         'sort_order',
         'fit',
         'toppings',
+        'top_image',
     ];
 
     protected $casts = [
@@ -34,8 +35,9 @@ class CakeDesign extends Model
     ];
 
     /**
-     * The toppings stood on the 3D cake's top: [image (path inside public/), count, ring, size, angle], see
-     * SaveCakeDesignToppingRequest.
+     * The toppings stood on the 3D cake's top: [image (path inside public/), count, ring, size, angle]. Cut out of
+     * the cover photo by DesignPhotoReader (count 1 each); ring: how far from the middle (0 middle, 0.95 the edge),
+     * size: width as a share of the radius, angle: degrees round from the front.
      *
      * @return list<array{image: string, count: int, ring: float, size: float, angle: float}>
      */

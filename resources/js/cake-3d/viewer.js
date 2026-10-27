@@ -11,8 +11,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
  * Spec passed to render(): { kg, layers: [{ sponge: Surface, cream: Surface }], design? }, bottom layer first,
  * where Surface = { color, side, scale, top? } (side and top are picture URLs or null, scale is the grain size).
  *
- * With a design ({ image, fit }) the outside is that design's photo instead: the photo is projected back onto a
- * cylinder (its front band, mirrored around the back) and onto the top, on a pedestal stand like the photos, and
+ * With a design ({ image, fit, toppings, topImage }) the outside is that design's photo instead: the photo is projected back onto a
+ * cylinder (its front half as photographed, eased in towards the edges, mirrored round the back) and onto the top, on a pedestal stand like the photos, and
  * the cake turns slowly. fit says where the cake sits in the photo, as shares of its width (x, r) and height
  * (top and bottom: the side's top and bottom edge straight in front; top_curve and bottom_curve: how far those
  * edges curve up towards the sides).
@@ -29,21 +29,28 @@ export const BUMP = { sponge: 2.2, cream: 0.35 }; // how bumpy sponge and cream 
 export const WOBBLE = { side: 0.007, top: 0.012 }; // unevenness of the side and the top, as a share of the radius
 export const EDGE_SHADE = 0.32; // darkening where sponge meets cream (0 = none)
 export const AUTO_ROTATE = true; // the plain cake turns slowly too (a design always turns); false = a still shot until dragged
-export const DESIGN_ARC = 0.8; // how far round from the front (radians) the design photo is used before it mirrors
+export const DESIGN_EDGE = 1.2; // how far round from the front (radians) the photo is read: past it the photo is too foreshortened (and its outline shows background)
+export const DESIGN_TRUE = 0.4; // up to this angle from the front the side is exactly the photo; from there to the cake's edge it eases out to DESIGN_EDGE
+export const DESIGN_SHADE = 0.15; // how much a design's side darkens as it turns away (the photo has its own light)
 export const TOPPING_SINK = 0.08; // how much of a topping's picture sits below the top (it is pressed into the cream)
-export const DESIGN_TILT = 0.3; // how far (radians) a design can be tilted to look down on it, from the photo's height
 export const DESIGN_SPIN = 1.6; // turning speed of a design (OrbitControls units: 2 = one turn in 30 s)
 export const PLAIN_SPIN = 2; // turning speed of the plain cake (same units; one turn in 30 s)
 const SEGMENTS = 192;
 const STRIP_RATIO = 6; // wider than this (width / height) is a strip, wrapped once around the cake
 
 const VIEWS = { front: 1.4, angle: 1.13, top: 0.16 }; // camera angle from straight above, in radians
-const MIN_PHI = 0.12;
-const MAX_PHI = Math.PI / 2 - 0.06; // never from under the plate
 const FALLBACK_COLOR = { sponge: '#e8cfa4', cream: '#fbf1e1' };
 // The table scene behind the stage (resources/images/cake-scene.svg, 300 x 400, background-size: cover): the stand's
 // foot is kept on its empty spot, y = 298 of 400 (just above the centre of the scene's contact shadow).
 const SCENE = { aspect: 300 / 400, footY: 298 / 400 };
+// An uploaded background (Shop & pictures) sets its own shape and table spot on the page as CSS variables.
+function sceneOfPage() {
+    const style = getComputedStyle(document.documentElement);
+    const aspect = parseFloat(style.getPropertyValue('--scene-aspect'));
+    const footY = parseFloat(style.getPropertyValue('--scene-foot'));
+
+    return { aspect: aspect > 0 ? aspect : SCENE.aspect, footY: footY > 0 && footY < 1 ? footY : SCENE.footY };
+}
 
 /** Cake radius for a size: 1 kg 1.8, 2 kg 2.0, 3 kg 2.2, kept within 1.6 to 2.6. */
 export function radiusForKg(kg) {
@@ -93,8 +100,12 @@ export function createCakeViewer(container) {
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.enablePan = false;
-    controls.minPolarAngle = MIN_PHI;
-    controls.maxPolarAngle = MAX_PHI;
+    // Dragging only turns the cake round: its height is locked (lockTilt), and an up or down swipe scrolls the page.
+    controls.minPolarAngle = controls.maxPolarAngle = VIEWS.angle;
+    renderer.domElement.style.touchAction = 'pan-y';
+    const lockTilt = (phi) => {
+        controls.minPolarAngle = controls.maxPolarAngle = phi;
+    };
     let spinning = AUTO_ROTATE && !reduceMotion;
     controls.autoRotate = spinning;
     controls.autoRotateSpeed = PLAIN_SPIN;
@@ -109,16 +120,15 @@ export function createCakeViewer(container) {
         if (spinning) resumeTimer = setTimeout(() => { controls.autoRotate = true; }, 4000);
     });
 
-    // Arrow keys turn and tilt the cake (OrbitControls would pan, which is off).
+    // Left and right arrow keys turn the cake (OrbitControls would pan, which is off).
     const onKey = (event) => {
-        const turn = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+        const turn = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
         if (!turn) return;
         event.preventDefault();
         controls.dispatchEvent({ type: 'start' });
         const offset = camera.position.clone().sub(controls.target);
         const spherical = new THREE.Spherical().setFromVector3(offset);
-        spherical.theta += turn[0] * (Math.PI / 12);
-        spherical.phi = THREE.MathUtils.clamp(spherical.phi + turn[1] * 0.12, controls.minPolarAngle, controls.maxPolarAngle);
+        spherical.theta += turn * (Math.PI / 12);
         camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(spherical));
         controls.dispatchEvent({ type: 'end' });
     };
@@ -134,6 +144,9 @@ export function createCakeViewer(container) {
         const offset = camera.position.clone().sub(controls.target);
         const from = new THREE.Spherical().setFromVector3(offset);
         const turn = theta === null ? 0 : Math.atan2(Math.sin(theta - from.theta), Math.cos(theta - from.theta));
+        // The locked height opens just enough for the move, and locks again at its end.
+        controls.minPolarAngle = Math.min(from.phi, phiGoal);
+        controls.maxPolarAngle = Math.max(from.phi, phiGoal);
         tween = {
             start: performance.now(),
             ms: reduceMotion ? 0 : ms,
@@ -156,7 +169,10 @@ export function createCakeViewer(container) {
         if (tween.theta[0] !== tween.theta[1]) spherical.theta = lerp(tween.theta);
         spherical.radius = lerp(tween.radius);
         camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(spherical));
-        if (t >= 1) tween = null;
+        if (t >= 1) {
+            tween = null;
+            lockTilt(phiGoal);
+        }
     }
 
     // Keeps the foot of the stand on the scene's table: the view is shifted up or down so the foot lands on the
@@ -164,6 +180,7 @@ export function createCakeViewer(container) {
     // the shift fades out there (it would push the cake off the stage).
     let footY = 0;
     const foot = new THREE.Vector3();
+    const backdrop = sceneOfPage();
     function standOnTable() {
         camera.clearViewOffset();
         if (!cake) return;
@@ -172,8 +189,8 @@ export function createCakeViewer(container) {
         if (!w || !h) return;
 
         // Where the spot is on the stage: the share of the scene's height that cover shows, then the spot within it.
-        const shown = Math.min(1, SCENE.aspect / (w / h));
-        const spotNdc = 1 - 2 * ((SCENE.footY - (1 - shown) / 2) / shown);
+        const shown = Math.min(1, backdrop.aspect / (w / h));
+        const spotNdc = 1 - 2 * ((backdrop.footY - (1 - shown) / 2) / shown);
 
         camera.updateMatrixWorld();
         const footNdc = foot.set(0, footY, 0).project(camera).y;
@@ -210,6 +227,7 @@ export function createCakeViewer(container) {
 
     let cake = null;
     let renderToken = 0;
+    let stillDesign = false; // showFront(): a design held still, its photographed side to the camera
     let shownDesign = null; // the design photo on show, so a new design turns its front to the camera
 
     async function render(spec) {
@@ -222,7 +240,7 @@ export function createCakeViewer(container) {
         // Every picture this cake needs, loaded once and kept for the next pick.
         const toppings = design?.toppings ?? [];
         const urls = design
-            ? [design.image, ...toppings.map((topping) => topping.image)]
+            ? [design.image, design.topImage, ...toppings.map((topping) => topping.image)].filter(Boolean)
             : [...new Set(layers.flatMap((layer) => [layer.sponge?.side, layer.cream?.side]).concat(topCream.top).filter(Boolean))];
         const loaded = new Map(await Promise.all(urls.map(async (url) => [url, await loadTexture(url)])));
         if (token !== renderToken) return; // a newer pick arrived while loading
@@ -231,7 +249,7 @@ export function createCakeViewer(container) {
         const anisotropy = renderer.capabilities.getMaxAnisotropy();
         const first = !cake;
         const built = photo
-            ? buildDesignCake(photo, design.fit, toppings.filter((t) => loaded.get(t.image)).map((t) => ({ ...t, texture: loaded.get(t.image) })), radius, anisotropy)
+            ? buildDesignCake(photo, design.fit, toppings.filter((t) => loaded.get(t.image)).map((t) => ({ ...t, texture: loaded.get(t.image) })), radius, anisotropy, loaded.get(design.topImage))
             : buildCake(layers, radius, loaded, anisotropy);
         if (cake) {
             scene.remove(cake);
@@ -245,16 +263,13 @@ export function createCakeViewer(container) {
 
         // A design turns slowly, starting from the side that was photographed, seen from the photo's height.
         const turnToFront = Boolean(photo) && design.image !== shownDesign;
-        if (turnToFront) phiGoal = built.viewPhi;
-        else if (!photo && shownDesign) phiGoal = VIEWS.angle; // back to the plain cake's usual angle
+        if (photo) phiGoal = built.viewPhi; // a new fit can change it
+        else if (shownDesign) phiGoal = VIEWS.angle; // back to the plain cake's usual angle
         shownDesign = photo ? design.image : null;
-        spinning = (photo ? true : AUTO_ROTATE) && !reduceMotion;
+        spinning = (photo ? !stillDesign : AUTO_ROTATE) && !reduceMotion;
         clearTimeout(resumeTimer);
         controls.autoRotate = spinning;
         controls.autoRotateSpeed = photo ? DESIGN_SPIN : PLAIN_SPIN;
-        // A design is seen from about the photo's height (its top and toppings are pictures): drag turns it round.
-        controls.minPolarAngle = photo ? built.viewPhi - DESIGN_TILT : MIN_PHI;
-        controls.maxPolarAngle = photo ? built.viewPhi : MAX_PHI;
 
         // Light from the front left and above; its shadow box just covers the plate.
         key.position.set(-radius * 1.6, height + 11, radius * 2.2);
@@ -294,6 +309,15 @@ export function createCakeViewer(container) {
         controls.dispatchEvent({ type: 'end' });
     }
 
+    // Turns a design's photographed side to the camera and holds it there (still = true), or lets it turn again.
+    function showFront(still = true) {
+        stillDesign = still;
+        spinning = (shownDesign ? !still : AUTO_ROTATE) && !reduceMotion;
+        clearTimeout(resumeTimer);
+        controls.autoRotate = spinning;
+        if (still) moveCamera(600, 0);
+    }
+
     function dispose() {
         renderer.setAnimationLoop(null);
         clearTimeout(resumeTimer);
@@ -308,7 +332,7 @@ export function createCakeViewer(container) {
         renderer.domElement.remove();
     }
 
-    return { render, setView, dispose };
+    return { render, setView, showFront, dispose };
 }
 
 /** A plain cake from its layers: { group, height, foot } (foot: the bottom of its stand). */
@@ -372,12 +396,12 @@ const DEFAULT_FIT = { x: 0.5, r: 0.4, top: 0.35, bottom: 0.65, top_curve: 0.065,
 
 /**
  * A finished design: the photo projected back onto the cake it shows. Each point of the side takes the photo's
- * pixel for its angle round the cake (the front DESIGN_ARC either way, then mirrored, so the back continues the
- * front without a seam) and its height; the top takes the photo's view of the top, squashed back to a circle.
- * toppings: [{ texture, count, ring, size, angle }] (see render()).
+ * pixel for its angle round the cake and its height: the front as photographed (so seen from the front at the
+ * photo's height it is the photo), easing in towards the sides (designAngle()), the back half its mirror image, so it continues without a seam; the top takes the photo's view of the top, squashed back to a circle.
+ * toppings: [{ texture, count, ring, size, angle }] (see render()); cleanTop: the photo with them painted out of the top, or null.
  * Returns { group, height, foot, viewPhi } (viewPhi: the camera angle the photo was taken from).
  */
-function buildDesignCake(photo, fitIn, toppings, radius, anisotropy) {
+function buildDesignCake(photo, fitIn, toppings, radius, anisotropy, cleanTop = null) {
     const fit = { ...DEFAULT_FIT, ...(fitIn ?? {}) };
     const aspect = photo.image.width / photo.image.height; // photo width per height
     // Photo heights, in photo widths: the unit radius (fit.r) is in widths too.
@@ -389,8 +413,8 @@ function buildDesignCake(photo, fitIn, toppings, radius, anisotropy) {
     map.anisotropy = anisotropy;
     map.wrapS = map.wrapT = THREE.ClampToEdgeWrapping;
     map.needsUpdate = true;
-    // The photo's own colors and light (not relit), only darkening as the side turns away, so it reads as round.
-    const material = photoMaterial(map, 0.4);
+    // The photo's own colors and light (not relit), only darkening a little as the side turns away.
+    const material = photoMaterial(map, DESIGN_SHADE);
 
     const group = new THREE.Group();
     const add = (mesh) => {
@@ -402,18 +426,15 @@ function buildDesignCake(photo, fitIn, toppings, radius, anisotropy) {
     // A photo point (shares of width and height) as a texture coordinate (v counts up from the bottom).
     const uvAt = (x, y) => [x, 1 - y];
 
-    // The side. Its angle round from the front (+z) folds into -DESIGN_ARC..DESIGN_ARC: up, down, up, down.
+    // The side. Its angle round from the front (+z) is the photo's angle on the front half, mirrored on the back.
     const side = new THREE.CylinderGeometry(radius, radius, height, SEGMENTS, 8, true);
     side.translate(0, height / 2, 0);
     const position = side.attributes.position;
     const uv = side.attributes.uv;
-    const quarter = Math.PI / 2;
     for (let i = 0; i < position.count; i++) {
         const theta = Math.atan2(position.getX(i), position.getZ(i));
-        const s = (theta + quarter / 2) / quarter;
-        const k = Math.floor(s);
-        const f = s - k;
-        const phi = DESIGN_ARC * (k % 2 === 0 ? 2 * f - 1 : 1 - 2 * f);
+        const round = Math.abs(theta) <= Math.PI / 2 ? Math.abs(theta) : Math.PI - Math.abs(theta);
+        const phi = Math.sign(theta) * designAngle(round);
         const t = position.getY(i) / height; // 0 at the bottom
         const bottom = fit.bottom - fit.bottom_curve * (1 - Math.cos(phi));
         const top = fit.top - fit.top_curve * (1 - Math.cos(phi));
@@ -431,8 +452,16 @@ function buildDesignCake(photo, fitIn, toppings, radius, anisotropy) {
         const z = topPosition.getZ(i) / radius;
         topUv.setXY(i, ...uvAt(fit.x + fit.r * x, fit.top - fit.top_curve + fit.top_curve * z));
     }
-    // The top without the photo's toppings printed on it (they stand on it instead), so nothing smears as it turns.
-    const topMap = toppings.length ? cleanTopTexture(photo, fit, toppings.map((t) => t.texture)) : map;
+    // The top without the photo's toppings printed on it (they stand on it instead), so nothing smears as it turns:
+    // the photo with them painted out when the server made one, else their colors filled away here.
+    let topMap = map;
+    if (cleanTop) {
+        topMap = cleanTop.clone();
+        topMap.wrapS = topMap.wrapT = THREE.ClampToEdgeWrapping;
+        topMap.needsUpdate = true;
+    } else if (toppings.length) {
+        topMap = cleanTopTexture(photo, fit, toppings.map((t) => t.texture));
+    }
     topMap.anisotropy = anisotropy;
     add(new THREE.Mesh(top, photoMaterial(topMap, 0))).position.y = height;
 
@@ -458,6 +487,19 @@ function buildDesignCake(photo, fitIn, toppings, radius, anisotropy) {
     const foot = addStand(group, radius);
 
     return { group, height, foot, viewPhi };
+}
+
+/**
+ * The photo's angle to read for an angle round the cake from the front (0 to PI/2). Up to DESIGN_TRUE it is the same
+ * angle; past it the photo is read ever more slowly, reaching DESIGN_EDGE at the side. It keeps moving right up to the
+ * side, so no column of the photo is smeared into streaks, and the photo's foreshortened, background-edged rim is never read.
+ */
+function designAngle(round) {
+    if (round <= DESIGN_TRUE) return round;
+    const span = Math.PI / 2 - DESIGN_TRUE;
+    const past = Math.min(round, Math.PI / 2) - DESIGN_TRUE;
+
+    return DESIGN_TRUE + past - (Math.PI / 2 - DESIGN_EDGE) * (past / span) ** 2;
 }
 
 /* ---------- Shapes ---------- */

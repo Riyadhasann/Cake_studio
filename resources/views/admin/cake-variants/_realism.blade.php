@@ -7,7 +7,7 @@
 
 <div class="mt-6 grid gap-5 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
     <section class="panel p-4">
-        <h2 class="heading text-xl">Shading</h2>
+        <h2 class="text-lg font-bold">Shading</h2>
         <p class="mt-2 text-sm leading-6 text-ink/80">
             Optional. A grayscale PNG or WebP with the drawing's proportions ({{ $variant->view_box_width }} × {{ $variant->view_box_height }}),
             multiplied over the shapes: white changes nothing, gray darkens. It replaces the built-in soft shading. Up to 2 MB.
@@ -35,7 +35,7 @@
     </section>
 
     <section class="panel p-4" x-data="{ slot: '1-sponge' }">
-        <h2 class="heading text-xl">Flavor photos</h2>
+        <h2 class="text-lg font-bold">Flavor photos</h2>
         <p class="mt-2 text-sm leading-6 text-ink/80">
             Optional. A photo of one flavor for one shape replaces that flavor's layer image there, cropped from the center to fit the shape.
             PNG, JPG or WebP, up to 2 MB. Uploading again for the same shape and flavor replaces the photo.

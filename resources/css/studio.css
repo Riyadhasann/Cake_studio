@@ -181,6 +181,28 @@
     .alert-error {
         @apply border-clay/30 bg-clay-soft text-clay;
     }
+    /* Admin: the menu down the left */
+    .admin-nav-link {
+        @apply flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-semibold text-ink/75 transition hover:bg-petal hover:text-ink aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand-dark;
+    }
+    /* Admin: one numbered step or section of a page */
+    .admin-card {
+        @apply rounded-xl border border-line bg-white p-5 shadow-box;
+    }
+    .admin-hint {
+        @apply text-sm leading-6 text-text-secondary;
+    }
+}
+
+/*
+ * The shop's pictures. The admin can replace them on "Shop & pictures"; the layout then sets these variables to the
+ * uploads. --scene-foot is how far down the scene the stand's foot stands, --scene-aspect the scene's width per height.
+ */
+:root {
+    --banner-image: url('../images/title-banner.webp');
+    --scene-image: url('../images/cake-scene.svg');
+    --scene-foot: 0.745;
+    --scene-aspect: 0.75;
 }
 
 /*
@@ -194,7 +216,7 @@
  */
 .title-banner {
     margin-inline: calc(50% - 50vw);
-    background: var(--color-bg-soft) url('../images/title-banner.webp') left bottom / cover no-repeat;
+    background: var(--color-bg-soft) var(--banner-image) left bottom / cover no-repeat;
     padding-block: 2rem 5rem;
 }
 @media (min-width: 768px) {
@@ -213,16 +235,16 @@
  */
 .cake-scene,
 .stage-3d {
-    background: var(--color-bg-soft) url('../images/cake-scene.svg') center / cover no-repeat;
+    background: var(--color-bg-soft) var(--scene-image) center / cover no-repeat;
 }
 .cake-scene-item {
     position: absolute;
     left: 18%;
     right: 18%;
     top: 12%;
-    bottom: 17%;
+    bottom: calc((1 - var(--scene-foot)) * 100% - 8.5%); /* 17% on the bundled scene */
     width: 64%;
-    height: 71%;
+    height: calc(100% - 12% - ((1 - var(--scene-foot)) * 100% - 8.5%));
     object-fit: contain;
     object-position: center bottom;
 }

@@ -15,7 +15,7 @@ class CakePhotoController extends Controller
     public function update(StoreVariantBaseRequest $request, ApplyCakePhoto $apply): RedirectResponse
     {
         // Every layer count gets a drawing, so the photo is used whatever the customer picks.
-        $variants = collect(CakeVariant::LAYER_COUNTS)->map(fn (int $layers) => CakeVariant::firstOrCreate(
+        $variants = collect(CakeVariant::offeredLayerCounts())->map(fn (int $layers) => CakeVariant::firstOrCreate(
             ['layers' => $layers],
             ['view_box_width' => 700, 'view_box_height' => 196 * $layers],
         ));
@@ -25,7 +25,10 @@ class CakePhotoController extends Controller
                 .'Leave the cut see-through (or a light gray checkerboard) and upload again, or mark the cut by hand under Cake shapes.');
         }
 
-        return back()->with('success', 'Cake photo saved. The layers were fitted into the cut for 2, 3 and 4 layers, and customers see it now.');
+        $counts = $variants->pluck('layers')->all();
+        $listed = implode(', ', array_slice($counts, 0, -1)).' and '.end($counts);
+
+        return back()->with('success', "Cake photo saved. The layers were fitted into the cut for {$listed} layers, and customers see it now.");
     }
 
     public function destroy(PublicUploads $uploads): RedirectResponse

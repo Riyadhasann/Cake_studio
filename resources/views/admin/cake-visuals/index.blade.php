@@ -1,6 +1,5 @@
-<x-studio-layout title="Cake images" :admin="true">
+<x-studio-layout title="Flavors & cake photo" :admin="true">
     @vite('resources/js/cake-3d.js')
-    <x-back-link :href="route('dashboard')" label="Back to Dashboard" />
 
     @php
         $defaultSponge = $sponges->firstWhere('is_default', true) ?? $sponges->first();
@@ -22,23 +21,19 @@
         $step = 'flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-cream';
     @endphp
 
-    <div class="mt-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-            <h1 class="heading text-3xl">Cake images</h1>
-            <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
-                What customers see in the cake preview, set up in four steps.
-            </p>
-        </div>
-        <a href="{{ route('cake-studio.index') }}" target="_blank" class="btn-outline btn-sm">Open the design page ↗</a>
-    </div>
+    <x-admin.header title="Flavors & cake photo" description="The cut cake customers see, and every sponge and cream they can pick: names, prices, colors and pictures. Four steps, top to bottom.">
+        <x-slot:actions>
+            <a href="{{ route('cake-studio.index') }}" target="_blank" rel="noopener" class="btn-outline btn-sm">Open the design page ↗</a>
+        </x-slot:actions>
+    </x-admin.header>
 
-    @include('admin.cake-variants._alerts')
+    <x-admin.alerts />
 
     {{-- 1. The cake photo --}}
-    <section class="panel mt-6 p-4">
+    <section class="admin-card mt-6">
         <div class="flex items-center gap-3">
             <span class="{{ $step }}">1</span>
-            <h2 class="heading text-xl">Cake photo</h2>
+            <h2 class="text-lg font-bold">Cake photo</h2>
         </div>
 
         <div class="mt-5 grid gap-4 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
@@ -54,7 +49,7 @@
                 <p class="text-sm leading-7 text-ink/90">
                     A photo of the whole cake with a slice cut out. Leave the cut <strong class="text-ink">empty</strong>
                     (see-through, or a gray checkerboard): the sponge and cream layers are filled into it automatically,
-                    for 2, 3 and 4 layers. PNG, JPG or WebP, up to 4 MB.
+                    for every layer count. PNG, JPG or WebP, up to 4 MB.
                 </p>
 
                 @if ($photo)
@@ -90,10 +85,10 @@
     </section>
 
     {{-- 2. The flavors every layer starts with --}}
-    <section class="panel mt-6 p-4">
+    <section class="admin-card mt-6">
         <div class="flex items-center gap-3">
             <span class="{{ $step }}">2</span>
-            <h2 class="heading text-xl">Default cake</h2>
+            <h2 class="text-lg font-bold">Default cake</h2>
         </div>
         <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
             The design page opens with every layer in these flavors. When a customer picks another one, only that layer changes.
@@ -107,7 +102,7 @@
                     <div class="grow">
                         <label for="default-{{ $type }}" class="label">Default {{ $type }}</label>
                         <select id="default-{{ $type }}" x-model.number="id" class="field">
-                            @foreach ($flavors as $flavor)
+                            @foreach ($flavors->where('is_active', true) as $flavor)
                                 <option value="{{ $flavor->id }}" @selected($flavor->id === $default?->id)>{{ $flavor->name }}</option>
                             @endforeach
                         </select>
@@ -118,31 +113,59 @@
         </div>
     </section>
 
-    {{-- 3 and 4. A picture per flavor --}}
-    @foreach (['sponge' => ['3', 'Sponge pictures', $sponges], 'cream' => ['4', 'Cream pictures', $creams]] as $type => [$number, $title, $flavors])
-        <section class="panel mt-6 p-4">
-            <div class="flex items-center gap-3">
-                <span class="{{ $step }}">{{ $number }}</span>
-                <h2 class="heading text-xl">{{ $title }}</h2>
+    {{-- 3 and 4. The flavors: add one, then its name, price, color and picture on its card --}}
+    @foreach (['sponge' => ['3', 'Sponges', $sponges], 'cream' => ['4', 'Creams', $creams]] as $type => [$number, $title, $flavors])
+        @php $onMenu = $flavors->where('is_active', true)->values(); @endphp
+        <section class="admin-card mt-6" aria-labelledby="{{ $type }}-heading">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="{{ $step }}">{{ $number }}</span>
+                    <h2 id="{{ $type }}-heading" class="text-lg font-bold">{{ $title }}</h2>
+                    <span class="chip">{{ $onMenu->count() }} on the menu</span>
+                </div>
             </div>
-            <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
-                One picture per {{ $type }} flavor, shaped like that layer in the cut: for a cake with a slice cut out, a
-                V-shaped strip on a see-through background. It is stretched to fit each layer. Without a picture, the layer
-                is drawn in the flavor's color. The arrows set the order on the design page.
+            <p class="admin-hint mt-2 max-w-3xl">
+                Each {{ $type }} needs a picture shaped like that layer in the cut (for a cake with a slice cut out, a V-shaped
+                strip on a see-through background). Without one, the layer is drawn in the flavor's color.
+                The arrows set the order customers see.
             </p>
 
-            <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {{-- Add a flavor --}}
+            <details class="mt-4 rounded-lg border border-dashed border-brand/50 bg-brand-soft/20 p-4" @if ($errors->any() && old('new_type') === $type) open @endif>
+                <summary class="cursor-pointer text-sm font-bold text-brand-dark">+ Add a {{ $type }}</summary>
+                <form action="{{ route('admin.flavors.store', $type) }}" method="POST" class="mt-4 grid gap-3 sm:grid-cols-[1fr_9rem_6rem_auto] sm:items-end">
+                    @csrf
+                    <input type="hidden" name="new_type" value="{{ $type }}">
+                    <div>
+                        <label for="new-{{ $type }}-name" class="label">Name</label>
+                        <input id="new-{{ $type }}-name" name="name" required maxlength="60" class="field" value="{{ old('new_type') === $type ? old('name') : '' }}" placeholder="{{ $type === 'sponge' ? 'e.g. Red velvet' : 'e.g. Cream cheese' }}">
+                    </div>
+                    <div>
+                        <label for="new-{{ $type }}-price" class="label">Extra price (৳)</label>
+                        <input id="new-{{ $type }}-price" name="extra_price" type="number" min="0" step="0.01" required class="field" value="{{ old('new_type') === $type ? old('extra_price', 0) : 0 }}">
+                    </div>
+                    <div>
+                        <label for="new-{{ $type }}-color" class="label">Color</label>
+                        <input id="new-{{ $type }}-color" name="color" type="color" class="h-[2.4rem] w-full cursor-pointer rounded-lg border border-line bg-white p-1" value="{{ old('new_type') === $type ? old('color', '#e8cfa4') : ($type === 'sponge' ? '#e8cfa4' : '#fbf1e1') }}">
+                    </div>
+                    <button type="submit" class="btn">Add</button>
+                </form>
+            </details>
+
+            <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($flavors as $flavor)
+                    @php $menuIndex = $onMenu->search(fn ($item) => $item->id === $flavor->id); @endphp
                     <x-visual-card :item="$flavor" :type="$type" ratio="2.6 / 1" fit="contain"
-                                   :move-up="$swapped($flavors, $loop->index, -1)" :move-down="$swapped($flavors, $loop->index, 1)" />
+                                   :move-up="$menuIndex === false ? null : $swapped($onMenu, $menuIndex, -1)"
+                                   :move-down="$menuIndex === false ? null : $swapped($onMenu, $menuIndex, 1)" />
                 @endforeach
             </div>
         </section>
     @endforeach
 
     {{-- Only for the drawn cake, used while there is no photo --}}
-    <details class="panel mt-6 p-4" @if (! $photo) open @endif>
-        <summary class="cursor-pointer font-display text-lg text-ink">Frosting and plate <span class="text-base text-ink/80">(only used without a cake photo)</span></summary>
+    <details class="admin-card mt-6" @if (! $photo) open @endif>
+        <summary class="cursor-pointer text-lg font-bold text-ink">Frosting and plate <span class="text-sm font-normal text-text-secondary">(only used without a cake photo)</span></summary>
         <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
             The drawn cake has frosting on top and a plate under it, the same for every flavor. Transparent PNGs work best:
             frosting about 1400 × 400 px, plate about 1800 × 160 px.

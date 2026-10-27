@@ -1,34 +1,17 @@
 <x-studio-layout title="Orders" :admin="true">
     <div x-data="ordersAdmin()" @keydown.escape.window="closeCancel()">
 
-        <x-back-link :href="route('dashboard')" label="Back to Dashboard" />
+        <x-admin.header title="Orders" description="Every order, newest first. Mark an order delivered when it leaves the shop, or cancel it with a reason the customer sees when they track it." />
 
-        <h1 class="heading mt-6 text-3xl">Orders</h1>
-
-        <div class="mt-5 space-y-4">
-            @if (session('success'))
-                <div class="rounded-xl border border-sage/30 bg-sage-soft px-5 py-4 text-sm text-ink">{{ session('success') }}</div>
-            @endif
-
-            @if (session('error'))
-                <div class="rounded-xl border border-clay/30 bg-clay-soft px-5 py-4 text-sm text-clay">{{ session('error') }}</div>
-            @endif
-
-            @if ($errors->any())
-                <div class="rounded-xl border border-clay/30 bg-clay-soft px-5 py-4 text-sm text-clay">
-                    <ul class="list-inside list-disc">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-        </div>
+        <x-admin.alerts />
 
         @if ($orders->isEmpty())
-            <p class="mt-5 text-ink/80">No orders yet.</p>
+            <div class="admin-card mt-6 text-center">
+                <p class="font-semibold">No orders yet</p>
+                <p class="admin-hint mt-1">New orders appear here as soon as a customer checks out.</p>
+            </div>
         @else
-            <div class="panel mt-5 overflow-x-auto">
+            <div class="panel mt-6 overflow-x-auto">
                 <table class="w-full min-w-[56rem] text-left text-sm">
                     <thead class="bg-petal text-xs font-medium tracking-wide text-ink/80">
                         <tr>
@@ -141,7 +124,7 @@
         >
             <form :action="cancelUrl" method="POST" class="w-full max-w-md rounded-[1.75rem] bg-paper p-5">
                 @csrf
-                <h2 class="heading text-2xl">Cancel order <span x-text="'#' + cancelId"></span></h2>
+                <h2 class="text-xl font-bold">Cancel order <span x-text="'#' + cancelId"></span></h2>
                 <p class="mt-2 text-sm text-ink/80">The customer will see this reason when they check their order.</p>
 
                 <label for="cancel_reason" class="label mt-6">Reason for cancellation</label>
