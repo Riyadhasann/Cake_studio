@@ -79,9 +79,6 @@
                              :tabindex="spinnable ? 0 : -1" style="touch-action: pan-y;"
                              @pointerdown="startSpin($event)" @pointermove="spin($event)" @pointerup="endSpin($event)" @pointercancel="endSpin($event)"
                              @keydown.arrow-left.prevent="turnDesign(-1)" @keydown.arrow-right.prevent="turnDesign(1)">
-                        <span x-show="spinnable" class="pointer-events-none absolute inset-x-0 bottom-3 mx-auto w-max rounded-md bg-white/95 px-2.5 py-1 text-xs font-semibold text-ink shadow-sm">
-                            360° · drag to spin
-                        </span>
                     </div>
 
                     {{-- The admin's SVG drawing for this layer count, or one element per sponge and per cream --}}
@@ -98,10 +95,6 @@
                              tabindex="0" role="group" aria-roledescription="3D cake" :aria-label="previewLabel + '. Drag, or use the arrow keys, to turn it.'"
                              x-effect="if (view === '3d' && ready3d) render3d(spec3d)"></div>
                         <p x-show="loading3d" class="pointer-events-none absolute inset-0 grid place-items-center text-sm font-semibold text-ink">Loading the 3D cake…</p>
-                        <span x-show="selectedDesign && !loading3d" x-transition.opacity
-                              class="pointer-events-none absolute inset-x-0 top-3 mx-auto w-max rounded-md bg-white/95 px-2.5 py-1 text-xs font-semibold text-ink shadow-sm">
-                            360° · <span x-text="selectedDesign?.name"></span> · drag to turn
-                        </span>
                         <div x-show="!selectedDesign" class="absolute inset-x-0 bottom-3 flex justify-center gap-2" role="group" aria-label="Camera">
                             @foreach (['front' => 'Front', 'angle' => 'Angle', 'top' => 'Top'] as $name => $label)
                                 <button type="button" @click="setView3d(@js($name))"

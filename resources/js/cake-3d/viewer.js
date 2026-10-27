@@ -28,11 +28,12 @@ export const TILE_WORLD = 1.2; // the size of one repeat of a tileable picture a
 export const BUMP = { sponge: 2.2, cream: 0.35 }; // how bumpy sponge and cream look in the light
 export const WOBBLE = { side: 0.007, top: 0.012 }; // unevenness of the side and the top, as a share of the radius
 export const EDGE_SHADE = 0.32; // darkening where sponge meets cream (0 = none)
-export const AUTO_ROTATE = false; // a still product shot until someone drags it (a design always turns)
+export const AUTO_ROTATE = true; // the plain cake turns slowly too (a design always turns); false = a still shot until dragged
 export const DESIGN_ARC = 0.8; // how far round from the front (radians) the design photo is used before it mirrors
 export const TOPPING_SINK = 0.08; // how much of a topping's picture sits below the top (it is pressed into the cream)
 export const DESIGN_TILT = 0.3; // how far (radians) a design can be tilted to look down on it, from the photo's height
 export const DESIGN_SPIN = 1.6; // turning speed of a design (OrbitControls units: 2 = one turn in 30 s)
+export const PLAIN_SPIN = 2; // turning speed of the plain cake (same units; one turn in 30 s)
 const SEGMENTS = 192;
 const STRIP_RATIO = 6; // wider than this (width / height) is a strip, wrapped once around the cake
 
@@ -96,7 +97,7 @@ export function createCakeViewer(container) {
     controls.maxPolarAngle = MAX_PHI;
     let spinning = AUTO_ROTATE && !reduceMotion;
     controls.autoRotate = spinning;
-    controls.autoRotateSpeed = 0.8;
+    controls.autoRotateSpeed = PLAIN_SPIN;
 
     // With auto-rotate on: it stops at the first touch and starts again 4 seconds after letting go.
     let resumeTimer = null;
@@ -250,7 +251,7 @@ export function createCakeViewer(container) {
         spinning = (photo ? true : AUTO_ROTATE) && !reduceMotion;
         clearTimeout(resumeTimer);
         controls.autoRotate = spinning;
-        controls.autoRotateSpeed = photo ? DESIGN_SPIN : 0.8;
+        controls.autoRotateSpeed = photo ? DESIGN_SPIN : PLAIN_SPIN;
         // A design is seen from about the photo's height (its top and toppings are pictures): drag turns it round.
         controls.minPolarAngle = photo ? built.viewPhi - DESIGN_TILT : MIN_PHI;
         controls.maxPolarAngle = photo ? built.viewPhi : MAX_PHI;

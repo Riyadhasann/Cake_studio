@@ -1,6 +1,6 @@
 /*
  * The shop and admin pages (x-studio-layout). Compiled by Vite, so nothing is built in the browser.
- * Green theme: white page, soft grey cards, brand green for buttons, links, picked choices and prices,
+ * Green theme: soft lime page, white and soft grey cards, brand green for buttons, links, picked choices and prices,
  * deep green for hovers, Poppins throughout. Every color below comes from the palette variables; the older
  * token names (brand, cocoa, ink, ...) used across the views are kept as aliases of them.
  */
@@ -18,10 +18,11 @@
     --color-primary-dark: #2e7d44; /* deep green: section headers, primary button hover */
     --color-text: #222222; /* headings and main text */
     --color-text-secondary: #666666; /* paragraphs, descriptions */
-    --color-text-muted: #999999; /* labels, captions, placeholders, meta */
+    --color-text-muted: #666565; /* labels, captions, placeholders, meta */
     --color-border: #e1e1e1; /* input borders, dividers, card outlines */
     --color-border-light: #ebebeb; /* subtle separators */
-    --color-bg: #ffffff; /* page */
+    --color-bg: #ffffff; /* cards, inputs; the base of the soft tints */
+    --color-bg-page: #f4f9e6; /* page background: soft lime, a lighter shade of the banner paper */
     --color-bg-soft: #f9f9f9; /* alternating sections, cards */
     --color-bg-muted: #f2f3f5; /* input fills, tables */
     --color-danger: #b11a1a; /* errors, out of stock, delete */
@@ -183,18 +184,24 @@
 }
 
 /*
- * The builder's "Design your cake" hero sits on resources/images/Title_banner.png (pale green, a cake drawing on the
+ * The builder's "Design your cake" hero sits on resources/images/title-banner.webp (pale green, a cake drawing on the
  * right and a row of cake doodles along the bottom). It breaks out of <main> to span the window edge to edge (html and
  * body clip sideways overflow, so 100vw never adds a scrollbar); the text keeps to the left and clear of the doodles.
  */
+/*
+ * The drawing fills the banner behind the text. Phones show its left end (leaves and the small row of sweets), since
+ * its right end, the big cake, would sit behind the heading; tablets and up show the right end with the cake.
+ */
 .title-banner {
     margin-inline: calc(50% - 50vw);
-    background: var(--color-bg-soft) url('../images/Title_banner.png') right bottom / cover no-repeat;
+    background: var(--color-bg-soft) url('../images/title-banner.webp') left bottom / cover no-repeat;
     padding-block: 2rem 5rem;
 }
 @media (min-width: 768px) {
     .title-banner {
         min-height: 20rem;
+        background-position: right bottom;
+        background-size: cover;
         padding-block: 2.75rem 6.5rem;
     }
 }
@@ -235,7 +242,7 @@
 
 /* The page: plain white */
 .page-bg {
-    background-color: var(--color-bg);
+    background-color: var(--color-bg-page);
 }
 
 /* MOTION: everything here is switched off for "reduce motion" (bottom of this file). */
