@@ -7,10 +7,10 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated users can visit the dashboard', function () {
-    $user = User::factory()->create();
-    $this->actingAs($user);
+test('customers land on the shop and admins on the admin home', function () {
+    $this->actingAs(User::factory()->create())->get(route('dashboard'))->assertRedirect(route('cake-studio.index'));
 
-    $response = $this->get(route('dashboard'));
-    $response->assertOk();
+    $admin = User::factory()->create();
+    $admin->forceFill(['is_admin' => true])->save();
+    $this->actingAs($admin)->get(route('dashboard'))->assertRedirect(route('admin.home'));
 });

@@ -26,7 +26,7 @@
 
     <div class="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h1 class="heading text-3xl">{{ $variant->layers }}-layer shape</h1>
+            <h1 class="text-2xl font-bold sm:text-3xl">{{ $variant->layers }}-layer shape</h1>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
                 Where the {{ $variant->layers }} sponge and cream layers sit in the cake. With a cake photo they are fitted into
                 its cut automatically; this page is only needed to adjust them.
@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    @include('admin.cake-variants._alerts')
+    <x-admin.alerts />
 
     @if ($problems)
         <div class="mt-4 rounded-xl border border-line bg-petal px-5 py-4 text-sm text-ink/90">
@@ -104,7 +104,7 @@
                 </p>
                 <div class="mt-6 space-y-5">
             <section class="space-y-5">
-                <h2 class="heading text-xl">Drawing</h2>
+                <h2 class="text-lg font-bold">Drawing</h2>
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div>
                         <label for="view_box_width" class="label">View box width</label>
@@ -132,7 +132,7 @@
 
 
             <section>
-                <h2 class="heading text-xl">Shapes</h2>
+                <h2 class="text-lg font-bold">Shapes</h2>
                 <p class="mt-2 text-sm text-ink/80">Enter an SVG path, or a rectangle that is turned into a path when you save. Leave a path empty to remove that shape.</p>
 
                 <div class="mt-6 divide-y divide-line">
@@ -183,7 +183,7 @@
 
         <aside class="lg:sticky lg:top-6 lg:self-start">
             <div class="panel p-4">
-                <h2 class="heading text-xl">Preview</h2>
+                <h2 class="text-lg font-bold">Preview</h2>
                 <p class="mt-1 text-xs text-ink/80">Sponge shapes are tan, cream shapes are light. Hover or edit a shape to highlight it.</p>
                 <div class="mt-4 rounded-xl bg-petal p-4">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ $variant->view_box_width }} {{ $variant->view_box_height }}"

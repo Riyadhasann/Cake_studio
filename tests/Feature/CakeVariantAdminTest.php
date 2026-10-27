@@ -46,7 +46,7 @@ test('admin can start a drawing for a missing layer count', function () {
     expect(CakeVariant::firstWhere('layers', 4))->is_published->toBeFalse()->view_box_height->toBe(784);
 
     $this->post(route('admin.cake-variants.store'), ['layers' => 4])->assertSessionHasErrors('layers');
-    $this->post(route('admin.cake-variants.store'), ['layers' => 5])->assertSessionHasErrors('layers');
+    $this->post(route('admin.cake-variants.store'), ['layers' => 9])->assertSessionHasErrors('layers');
     expect(CakeVariant::count())->toBe(1);
 });
 

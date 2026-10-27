@@ -6,8 +6,11 @@ use App\Http\Controllers\Admin\CakeSizeController;
 use App\Http\Controllers\Admin\CakeVariantController;
 use App\Http\Controllers\Admin\CakeVariantImageController;
 use App\Http\Controllers\Admin\CakeVisualController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FlavorController;
 use App\Http\Controllers\Admin\FlavorSurfaceController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\CakeStudioController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderTrackingController;
@@ -17,11 +20,18 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/cake-studio')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    // Where sign-in lands: the admin home for admins, the shop for customers.
+    Route::get('dashboard', fn () => request()->user()?->is_admin ? to_route('admin.home') : to_route('cake-studio.index'))->name('dashboard');
 
     // Admin only: logged-in customers get a 403
     Route::middleware(EnsureUserIsAdmin::class)->group(function () {
-        Route::redirect('/admin', '/admin/orders');
+        Route::get('/admin', DashboardController::class)->name('admin.home');
+
+        Route::get('/admin/settings', [SiteSettingsController::class, 'index'])->name('admin.settings.index');
+        Route::put('/admin/settings', [SiteSettingsController::class, 'update'])->name('admin.settings.update');
+        Route::put('/admin/settings/scene', [SiteSettingsController::class, 'updateScene'])->name('admin.settings.scene');
+        Route::post('/admin/settings/images/{key}', [SiteSettingsController::class, 'updateImage'])->whereIn('key', ['logo', 'favicon', 'banner', 'scene'])->name('admin.settings.images.update');
+        Route::delete('/admin/settings/images/{key}', [SiteSettingsController::class, 'destroyImage'])->whereIn('key', ['logo', 'favicon', 'banner', 'scene'])->name('admin.settings.images.destroy');
 
         Route::get('/admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
         Route::post('/admin/orders/{order}/deliver', [OrderController::class, 'deliver'])->name('admin.orders.deliver');
@@ -34,13 +44,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/cake-images/{type}/{id}/default', [CakeVisualController::class, 'setDefault'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.cake-visuals.default');
         Route::post('/admin/cake-images/photo', [CakePhotoController::class, 'update'])->name('admin.cake-photo.update');
         Route::delete('/admin/cake-images/photo', [CakePhotoController::class, 'destroy'])->name('admin.cake-photo.destroy');
+        Route::post('/admin/flavors/{type}', [FlavorController::class, 'store'])->whereIn('type', ['sponge', 'cream'])->name('admin.flavors.store');
+        Route::put('/admin/flavors/{type}/{id}', [FlavorController::class, 'update'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.flavors.update');
+        Route::delete('/admin/flavors/{type}/{id}', [FlavorController::class, 'destroy'])->whereIn('type', ['sponge', 'cream'])->whereNumber('id')->name('admin.flavors.destroy');
         Route::post('/admin/cake-images/{type}/order', [CakeVisualController::class, 'reorder'])->whereIn('type', ['sponge', 'cream'])->name('admin.cake-visuals.reorder');
         Route::get('/admin/designs', [CakeDesignController::class, 'index'])->name('admin.designs.index');
         Route::post('/admin/designs', [CakeDesignController::class, 'store'])->name('admin.designs.store');
         Route::put('/admin/designs/{design}', [CakeDesignController::class, 'update'])->whereNumber('design')->name('admin.designs.update');
         Route::put('/admin/designs/{design}/fit', [CakeDesignController::class, 'updateFit'])->whereNumber('design')->name('admin.designs.fit');
-        Route::post('/admin/designs/{design}/toppings', [CakeDesignController::class, 'storeTopping'])->whereNumber('design')->name('admin.designs.toppings.store');
-        Route::put('/admin/designs/{design}/toppings/{index}', [CakeDesignController::class, 'updateTopping'])->whereNumber(['design', 'index'])->name('admin.designs.toppings.update');
+        Route::post('/admin/designs/{design}/fit-from-photo', [CakeDesignController::class, 'fitFromPhoto'])->whereNumber('design')->name('admin.designs.fit-from-photo');
         Route::delete('/admin/designs/{design}/toppings/{index}', [CakeDesignController::class, 'destroyTopping'])->whereNumber(['design', 'index'])->name('admin.designs.toppings.destroy');
         Route::delete('/admin/designs/{design}', [CakeDesignController::class, 'destroy'])->whereNumber('design')->name('admin.designs.destroy');
         Route::post('/admin/designs/{design}/frames', [CakeDesignController::class, 'storeFrames'])->whereNumber('design')->name('admin.designs.frames.store');
@@ -56,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/admin/cake-variants', [CakeVariantController::class, 'index'])->name('admin.cake-variants.index');
         Route::post('/admin/cake-variants', [CakeVariantController::class, 'store'])->name('admin.cake-variants.store');
         Route::get('/admin/cake-variants/{variant}/edit', [CakeVariantController::class, 'edit'])->whereNumber('variant')->name('admin.cake-variants.edit');
+        Route::delete('/admin/cake-variants/{variant}', [CakeVariantController::class, 'destroy'])->whereNumber('variant')->name('admin.cake-variants.destroy');
         Route::put('/admin/cake-variants/{variant}', [CakeVariantController::class, 'update'])->whereNumber('variant')->name('admin.cake-variants.update');
         Route::post('/admin/cake-variants/{variant}/publish', [CakeVariantController::class, 'publish'])->whereNumber('variant')->name('admin.cake-variants.publish');
         Route::delete('/admin/cake-variants/{variant}/publish', [CakeVariantController::class, 'unpublish'])->whereNumber('variant')->name('admin.cake-variants.unpublish');

@@ -16,7 +16,7 @@
     </div>
 
     <div>
-        <h2 class="heading text-xl">Cake photo</h2>
+        <h2 class="text-lg font-bold">Cake photo</h2>
         <p class="mt-2 text-sm leading-6 text-ink/80">
             The whole cake with a slice cut out and the cut left empty (see-through, or a gray checkerboard). The cut is
             found automatically and the layers are fitted into it. PNG, JPG or WebP, up to 4 MB. Usually set once for

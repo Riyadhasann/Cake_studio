@@ -11,7 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class CakeVariant extends Model
 {
+    /** The layer counts every shop offers; the admin can add more, up to MAX_LAYERS, on the Cake shapes page. */
     public const LAYER_COUNTS = [2, 3, 4];
+
+    public const MIN_LAYERS = 2;
+
+    public const MAX_LAYERS = 8;
 
     protected $fillable = [
         'layers',
@@ -56,6 +61,26 @@ class CakeVariant extends Model
     }
 
     /**
+     * The layer counts customers can pick: the built-in ones plus every count the admin added a drawing for.
+     *
+     * @return non-empty-list<int>
+     */
+    public static function offeredLayerCounts(): array
+    {
+        $added = self::query()->whereBetween('layers', [self::MIN_LAYERS, self::MAX_LAYERS])->pluck('layers')->map(fn ($layers) => (int) $layers)->all();
+        $counts = array_unique([...self::LAYER_COUNTS, ...$added]);
+        sort($counts);
+
+        return $counts;
+    }
+
+    /** A layer count the admin added (not one of the built-in ones), so it can be removed again. */
+    public function isExtra(): bool
+    {
+        return ! in_array($this->layers, self::LAYER_COUNTS, true);
+    }
+
+    /**
      * Replaces every slot with the bands of the marked cut face. Does nothing without one.
      */
     public function fitSlotsToCutFace(): void
@@ -89,8 +114,8 @@ class CakeVariant extends Model
     {
         $problems = [];
 
-        if (! in_array($this->layers, self::LAYER_COUNTS, true)) {
-            $problems[] = 'The layer count must be 2, 3 or 4.';
+        if ($this->layers < self::MIN_LAYERS || $this->layers > self::MAX_LAYERS) {
+            $problems[] = 'The layer count must be from '.self::MIN_LAYERS.' to '.self::MAX_LAYERS.'.';
         }
 
         if ($this->view_box_width < 1 || $this->view_box_height < 1) {

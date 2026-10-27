@@ -1,4 +1,5 @@
-<x-studio-layout title="Design your cake" :step="1" description="Design a custom cake: pick the size, 2 to 4 layers, a sponge and cream for each, a finished design and a message. Live preview and price.">
+@inject('site', 'App\Services\SiteSettings')
+<x-studio-layout title="Design your cake" :step="1" description="Design a custom cake: pick the size, {{ min($layerOptions) }} to {{ max($layerOptions) }} layers, a sponge and cream for each, a finished design and a message. Live preview and price.">
     @vite('resources/js/cake-3d.js')
 
 
@@ -14,6 +15,7 @@
             variantPhotos: @js(collect($variants)->map(fn ($variant) => collect($variant['photos'])->map(fn ($photo) => ['id' => $photo['id'], 'url' => $photo['url']]))),
             defaultSpongeId: @js($defaultSpongeId),
             defaultCreamId: @js($defaultCreamId),
+            layerOptions: @js($layerOptions),
             addUrl: @js(route('cart.add')),
             cartUrl: @js(route('cart.index')),
             initialDesignId: @js(request()->integer('design') ?: null),
@@ -23,11 +25,20 @@
     >
         {{-- Hero: what this page does, and what there is to choose from --}}
         <div class="title-banner" data-reveal>
+            @php
+                // The heading and text the admin set on "Shop & pictures"; the heading's last word is in brand green.
+                $heroWords = explode(' ', trim($site->get('hero_title')));
+                $heroLast = array_pop($heroWords);
+            @endphp
             <div class="mx-auto max-w-6xl px-4 sm:px-6"><div class="max-w-2xl">
-                <p class="eyebrow">Cake Studio</p>
-                <h1 class="heading mt-3 text-4xl sm:text-5xl">Design your <span class="text-brand"> cake</span></h1>
+                <p class="eyebrow">{{ $site->get('name') }}</p>
+                <h1 class="heading mt-3 text-4xl sm:text-5xl">{{ implode(' ', $heroWords) }} <span class="text-brand">{{ $heroLast }}</span></h1>
                 <p class="mt-4 text-base font-medium leading-7 text-ink/80">
-                    Stack 2 to 4 layers, choose a sponge and a cream for each, add a design and a message, then pick a size. The cake changes as you choose.
+                    @if ($site->has('hero_text'))
+                        {{ $site->get('hero_text') }}
+                    @else
+                        Stack {{ min($layerOptions) }} to {{ max($layerOptions) }} layers, choose a sponge and a cream for each, add a design and a message, then pick a size. The cake changes as you choose.
+                    @endif
                 </p>
             </div></div>
         </div>
@@ -88,7 +99,7 @@
                         </div>
                     </div>
 
-                    {{-- The 3D cake: drag (or use the arrow keys) to turn it. A picked design is wrapped round it and turns by itself. --}}
+                    {{-- The 3D cake: drag sideways (or use the left and right arrow keys) to turn it; its height is fixed. A picked design is wrapped round it and turns by itself. --}}
                     <div x-show="view === '3d'" x-cloak class="stage-3d relative overflow-hidden rounded-lg border border-line shadow-box"
                          style="aspect-ratio: 4 / 5;">
                         <div x-ref="cake3d" class="absolute inset-0 cursor-grab focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand active:cursor-grabbing"
@@ -188,8 +199,8 @@
                         <div class="mt-4">
                             <x-studio-dropdown id="layers-picker" labelledby="layers-heading" icon="layers"
                                                options="layerOptions" selected="layerCount === o" pick="setLayerCount(o)"
-                                               label="o + ' layers'" meta="['', '', 'Classic', 'Tall', 'Extra tall'][o]"
-                                               current="layerCount + ' layers'" current-meta="['', '', 'Classic', 'Tall', 'Extra tall'][layerCount]" />
+                                               label="o + ' layers'" meta="layerMeta(o)"
+                                               current="layerCount + ' layers'" current-meta="layerMeta(layerCount)" />
                         </div>
                     </section>
 
@@ -426,8 +437,10 @@
 
     <script>
         function cakeStudio(config) {
-            const minLayers = 2;
-            const maxLayers = 4;
+            // The layer counts on offer: 2, 3 and 4, plus any the admin added (e.g. 6).
+            const layerOptions = config.layerOptions?.length ? config.layerOptions : [2, 3, 4];
+            const minLayers = Math.min(...layerOptions);
+            const maxLayers = Math.max(...layerOptions);
 
             // A brand-new layer with the admin's default flavors. Always a NEW object, never shared.
             const makeLayer = () => ({
@@ -460,7 +473,7 @@
 
                 minLayers: minLayers,
                 maxLayers: maxLayers,
-                layerOptions: [2, 3, 4],
+                layerOptions: layerOptions,
                 newLayer: makeLayer,
 
                 sizeId: config.sizes[0]?.id ?? null,
@@ -526,7 +539,7 @@
                         kg: Number(this.selectedSize?.weight_kg) || 2,
                         layers: this.layers.map(layer => ({ sponge: surface(this.sponges, layer.sponge_id), cream: surface(this.creams, layer.cream_id) })),
                         // A picked design is drawn instead of the layers' outside: its cover photo, where the cake sits in it, its toppings.
-                        design: this.selectedDesign ? { image: this.selectedDesign.frames[0], fit: this.selectedDesign.fit, toppings: this.selectedDesign.toppings ?? [] } : null,
+                        design: this.selectedDesign ? { image: this.selectedDesign.frames[0], fit: this.selectedDesign.fit, toppings: this.selectedDesign.toppings ?? [], topImage: this.selectedDesign.top_image ?? null } : null,
                     };
                 },
                 // The layers from the top of the cake down, with their index, for the summary.
@@ -550,7 +563,9 @@
                 // Layer count: drop layers from the top, or add default layers on top.
                 // Layers that stay keep their own sponge and cream.
                 setLayerCount(n) {
-                    const target = Math.min(maxLayers, Math.max(minLayers, Number(n) || minLayers));
+                    const wanted = Math.min(maxLayers, Math.max(minLayers, Number(n) || minLayers));
+                    // Only an offered count: the nearest one at or below the wish (6 when 7 isn't offered).
+                    const target = [...layerOptions].reverse().find(o => o <= wanted) ?? minLayers;
 
                     if (target < this.layers.length) {
                         this.layers.splice(target);
@@ -583,6 +598,11 @@
                     if (index < 0 || index >= this.layers.length) return;
                     this.activeLayer = index;
                     this.$nextTick(() => document.getElementById('layer-tab-' + index)?.focus());
+                },
+
+                // The word under a layer count in the picker.
+                layerMeta(n) {
+                    return n <= 2 ? '' : n === 3 ? 'Classic' : n === 4 ? 'Tall' : 'Extra tall';
                 },
 
                 layerTitle(index) {

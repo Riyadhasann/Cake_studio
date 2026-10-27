@@ -1,15 +1,18 @@
 {{-- One sponge, cream or fixed part on the Cake images page: its picture, upload and remove, and for flavors the menu order. --}}
 @props(['item', 'type', 'ratio', 'fit' => 'contain', 'moveUp' => null, 'moveDown' => null])
 
-<div class="rounded-xl border border-line bg-white p-4">
+<div class="rounded-xl border border-line bg-white p-4 {{ $type !== 'part' && ! $item->is_active ? 'border-dashed bg-bg-soft' : '' }}">
     <div class="flex items-center justify-between gap-2">
         <div class="flex min-w-0 items-center gap-2">
             @if ($item->color)
                 <span class="size-3 shrink-0 rounded-full border border-black/15" style="background-color: {{ $item->color }}"></span>
             @endif
-            <h3 class="truncate font-display text-xl font-medium">{{ $item->name }}</h3>
+            <h3 class="truncate text-base font-bold">{{ $item->name }}</h3>
             @if ($type !== 'part' && $item->is_default)
                 <span class="shrink-0 rounded-full bg-brand px-2 py-0.5 text-[0.65rem] font-medium text-cream">Default</span>
+            @endif
+            @if ($type !== 'part' && ! $item->is_active)
+                <span class="shrink-0 rounded-full bg-petal px-2 py-0.5 text-[0.65rem] font-semibold text-text-secondary">Hidden</span>
             @endif
         </div>
 
@@ -36,6 +39,10 @@
             @endforeach
         </div>
     </div>
+
+    @if ($type !== 'part')
+        <p class="mt-1 text-xs text-text-secondary">{{ (float) $item->extra_price > 0 ? '+৳'.number_format((float) $item->extra_price, 2) : 'No extra price' }}</p>
+    @endif
 
     {{-- The checkerboard shows the see-through parts of the picture. --}}
     <div class="mt-3 overflow-hidden rounded-xl border border-line"
@@ -65,6 +72,45 @@
             @method('DELETE')
             <button type="submit" class="text-xs text-ink/80 underline underline-offset-4 hover:text-clay">Remove picture</button>
         </form>
+    @endif
+
+    {{-- Sponges and creams: name, price, color, on the menu or hidden, delete --}}
+    @if ($type !== 'part')
+        <details class="mt-4 border-t border-line pt-3" @if (old('edit_key') === "{$type}-{$item->id}") open @endif>
+            <summary class="cursor-pointer text-sm font-semibold text-brand">Edit details</summary>
+            <form action="{{ route('admin.flavors.update', [$type, $item->id]) }}" method="POST" class="mt-3 space-y-3">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="edit_key" value="{{ $type }}-{{ $item->id }}">
+                <div>
+                    <label for="name-{{ $type }}-{{ $item->id }}" class="mb-1 block text-xs font-medium">Name</label>
+                    <input id="name-{{ $type }}-{{ $item->id }}" name="name" value="{{ $item->name }}" required maxlength="60" class="field">
+                </div>
+                <div class="grid grid-cols-[1fr_5rem] gap-3">
+                    <div>
+                        <label for="price-{{ $type }}-{{ $item->id }}" class="mb-1 block text-xs font-medium">Extra price (৳)</label>
+                        <input id="price-{{ $type }}-{{ $item->id }}" name="extra_price" type="number" min="0" step="0.01" value="{{ $item->extra_price }}" required class="field">
+                    </div>
+                    <div>
+                        <label for="color-{{ $type }}-{{ $item->id }}" class="mb-1 block text-xs font-medium">Color</label>
+                        <input id="color-{{ $type }}-{{ $item->id }}" name="color" type="color" value="{{ $item->color ?: '#e8cfa4' }}" class="h-[2.4rem] w-full cursor-pointer rounded-lg border border-line bg-white p-1">
+                    </div>
+                </div>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="hidden" name="is_active" value="0">
+                    <input type="checkbox" name="is_active" value="1" @checked($item->is_active) class="size-4 accent-brand">
+                    On the menu (customers can pick it)
+                </label>
+                <button type="submit" class="btn btn-sm">Save details</button>
+            </form>
+            <form action="{{ route('admin.flavors.destroy', [$type, $item->id]) }}" method="POST" class="mt-3"
+                  onsubmit="return confirm({{ Js::from('Delete '.$item->name.' and its pictures? This cannot be undone.') }})">
+                @csrf
+                @method('DELETE')
+                <input type="hidden" name="edit_key" value="{{ $type }}-{{ $item->id }}">
+                <button type="submit" class="text-xs text-danger underline underline-offset-4">Delete flavor</button>
+            </form>
+        </details>
     @endif
 
     {{-- Sponges and creams: the close-up picture the 3D cake wraps around the layer --}}

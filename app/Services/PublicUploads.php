@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 class PublicUploads
 {
     /** The only folders this app writes to, and so the only ones it ever deletes from. */
-    public const FOLDERS = ['cake-layers', 'cake-photos', 'cake-shading', 'cake-bases', 'cake-textures', 'cake-designs'];
+    public const FOLDERS = ['cake-layers', 'cake-photos', 'cake-shading', 'cake-bases', 'cake-textures', 'cake-designs', 'cake-site'];
 
     /** Larger images are stored as uploaded: decoding them could exhaust PHP's memory (about 4 bytes per pixel). */
     private const MAX_CONVERT_PIXELS = 2048 * 2048;

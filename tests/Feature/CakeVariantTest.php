@@ -66,8 +66,8 @@ test('an unknown slot type or an unsupported layer count blocks publishing', fun
 
     expect($variant->canPublish())->toBeFalse();
 
-    $five = CakeVariant::create(['layers' => 5, 'view_box_width' => 700, 'view_box_height' => 980]);
-    expect($five->publishProblems())->toContain('The layer count must be 2, 3 or 4.');
+    $nine = CakeVariant::create(['layers' => 9, 'view_box_width' => 700, 'view_box_height' => 1764]);
+    expect($nine->publishProblems())->toContain('The layer count must be from 2 to 8.');
 });
 
 test('deleting a variant deletes its slots', function () {

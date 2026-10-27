@@ -1,16 +1,9 @@
 <x-studio-layout title="Sizes" :admin="true">
-    <x-back-link :href="route('dashboard')" label="Back to Dashboard" />
+    <x-admin.header title="Sizes & prices" description="The size sets the base price of a cake; each layer's sponge and cream add their own extra price on top. Customers see sizes lightest first. New prices only apply to new orders." />
 
-    <h1 class="heading mt-6 text-3xl">Sizes</h1>
-    <p class="mt-3 max-w-2xl text-sm leading-7 text-ink/90">
-        The size sets the base price of a cake; each layer's sponge and cream add their own extra price on top.
-        Customers see sizes lightest first. Changing a price only affects cakes added to a cart from now on:
-        orders already placed keep the price they were placed at.
-    </p>
+    <x-admin.alerts />
 
-    @include('admin.sizes._alerts')
-
-    <div class="panel mt-5 overflow-x-auto">
+    <div class="panel mt-6 overflow-x-auto">
         <table class="w-full min-w-[36rem] text-left text-sm">
             <thead class="bg-petal text-xs font-medium tracking-wide text-ink/80">
                 <tr>
@@ -54,7 +47,7 @@
     </div>
 
     <section class="panel mt-6 max-w-xl p-4">
-        <h2 class="heading text-xl">Add a size</h2>
+        <h2 class="text-lg font-bold">Add a size</h2>
         <form action="{{ route('admin.sizes.store') }}" method="POST" class="mt-6 space-y-5">
             @csrf
             @include('admin.sizes._fields', ['size' => null])
