@@ -60,3 +60,7 @@ test('the design slider lists the plain cake first', function () {
         ->assertSee('class="slider', false)
         ->assertSeeInOrder(['Plain', 'Just your layers']);
 });
+
+test('the root sends customers to the cake builder', function () {
+    $this->get(route('home'))->assertRedirect(route('cake-studio.index'));
+});

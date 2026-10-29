@@ -4,7 +4,7 @@ namespace App\Actions\Variants;
 
 use App\Models\CakeVariant;
 use App\Models\CakeVariantSlot;
-use App\Services\SvgSanitizer;
+use App\Services\Images\SvgSanitizer;
 use Illuminate\Support\Facades\DB;
 
 class SaveCakeVariant

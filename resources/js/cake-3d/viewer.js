@@ -11,9 +11,10 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
  * Spec passed to render(): { kg, layers: [{ sponge: Surface, cream: Surface }], design? }, bottom layer first,
  * where Surface = { color, side, scale, top? } (side and top are picture URLs or null, scale is the grain size).
  *
- * With a design ({ image, fit, toppings, topImage }) the outside is that design's photo instead: the photo is projected back onto a
+ * With a design ({ image, fit, toppings, topImage, frames? }) the outside is that design's photo instead: the photo is projected back onto a
  * cylinder (its front half as photographed, eased in towards the edges, mirrored round the back) and onto the top, on a pedestal stand like the photos, and
- * the cake turns slowly. fit says where the cake sits in the photo, as shares of its width (x, r) and height
+ * the cake turns slowly. With a turn of photos (frames: two or more URLs, the cover first, evenly spaced round the cake, each
+ * next one showing the side that was on the right) every side wears the photo taken of it instead of a mirror (turnTexture()). fit says where the cake sits in the photo, as shares of its width (x, r) and height
  * (top and bottom: the side's top and bottom edge straight in front; top_curve and bottom_curve: how far those
  * edges curve up towards the sides).
  */
@@ -35,6 +36,9 @@ export const DESIGN_SHADE = 0.15; // how much a design's side darkens as it turn
 export const TOPPING_SINK = 0.08; // how much of a topping's picture sits below the top (it is pressed into the cream)
 export const DESIGN_SPIN = 1.6; // turning speed of a design (OrbitControls units: 2 = one turn in 30 s)
 export const PLAIN_SPIN = 2; // turning speed of the plain cake (same units; one turn in 30 s)
+export const DESIGN_TURN = 1; // which way a turn of photos goes round: 1 = each next photo shows the side that was on the right, -1 = on the left
+export const TURN_BLEND = 0.35; // how wide (radians, at most) neighbouring photos of a turn cross-fade into each other
+export const CONTACT_SHADE = 0.45; // how dark the soft shadow is where the cake stands on the plate (0 = none)
 const SEGMENTS = 192;
 const STRIP_RATIO = 6; // wider than this (width / height) is a strip, wrapped once around the cake
 
@@ -239,17 +243,20 @@ export function createCakeViewer(container) {
 
         // Every picture this cake needs, loaded once and kept for the next pick.
         const toppings = design?.toppings ?? [];
+        const frames = (design?.frames ?? []).length > 1 ? design.frames : [];
         const urls = design
-            ? [design.image, design.topImage, ...toppings.map((topping) => topping.image)].filter(Boolean)
+            ? [...new Set([design.image, design.topImage, ...frames, ...toppings.map((topping) => topping.image)].filter(Boolean))]
             : [...new Set(layers.flatMap((layer) => [layer.sponge?.side, layer.cream?.side]).concat(topCream.top).filter(Boolean))];
         const loaded = new Map(await Promise.all(urls.map(async (url) => [url, await loadTexture(url)])));
         if (token !== renderToken) return; // a newer pick arrived while loading
 
         const photo = design ? loaded.get(design.image) : null;
+        // A turn is only used whole: with a photo missing the rest would no longer be evenly spaced.
+        const turn = frames.map((url) => loaded.get(url));
         const anisotropy = renderer.capabilities.getMaxAnisotropy();
         const first = !cake;
         const built = photo
-            ? buildDesignCake(photo, design.fit, toppings.filter((t) => loaded.get(t.image)).map((t) => ({ ...t, texture: loaded.get(t.image) })), radius, anisotropy, loaded.get(design.topImage))
+            ? buildDesignCake(photo, design.fit, toppings.filter((t) => loaded.get(t.image)).map((t) => ({ ...t, texture: loaded.get(t.image) })), radius, anisotropy, loaded.get(design.topImage), turn.every(Boolean) ? turn : [])
             : buildCake(layers, radius, loaded, anisotropy);
         if (cake) {
             scene.remove(cake);
@@ -388,6 +395,15 @@ function addStand(group, radius) {
     contact.position.y = stand.foot + 0.002;
     group.add(contact);
 
+    // Where the cake stands on the plate little light gets in: a soft dark band just round its foot (under the cake it is hidden).
+    const occlusion = new THREE.Mesh(
+        new THREE.PlaneGeometry(radius * 2.4, radius * 2.4),
+        new THREE.MeshBasicMaterial({ map: occlusionTexture(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }),
+    );
+    occlusion.rotation.x = -Math.PI / 2;
+    occlusion.position.y = 0.004;
+    group.add(occlusion);
+
     return stand.foot;
 }
 
@@ -399,9 +415,11 @@ const DEFAULT_FIT = { x: 0.5, r: 0.4, top: 0.35, bottom: 0.65, top_curve: 0.065,
  * pixel for its angle round the cake and its height: the front as photographed (so seen from the front at the
  * photo's height it is the photo), easing in towards the sides (designAngle()), the back half its mirror image, so it continues without a seam; the top takes the photo's view of the top, squashed back to a circle.
  * toppings: [{ texture, count, ring, size, angle }] (see render()); cleanTop: the photo with them painted out of the top, or null.
+ * turn: two or more photos round the cake (the cover first, same framing): the side is then unrolled from all of them
+ * (turnTexture()), so the back and the sides are what was photographed there, not the front's mirror image.
  * Returns { group, height, foot, viewPhi } (viewPhi: the camera angle the photo was taken from).
  */
-function buildDesignCake(photo, fitIn, toppings, radius, anisotropy, cleanTop = null) {
+function buildDesignCake(photo, fitIn, toppings, radius, anisotropy, cleanTop = null, turn = []) {
     const fit = { ...DEFAULT_FIT, ...(fitIn ?? {}) };
     const aspect = photo.image.width / photo.image.height; // photo width per height
     // Photo heights, in photo widths: the unit radius (fit.r) is in widths too.
@@ -427,20 +445,32 @@ function buildDesignCake(photo, fitIn, toppings, radius, anisotropy, cleanTop = 
     const uvAt = (x, y) => [x, 1 - y];
 
     // The side. Its angle round from the front (+z) is the photo's angle on the front half, mirrored on the back.
+    // With a turn of photos it keeps the cylinder's own coordinates (u = once round from the front, v = up) and wears
+    // the side unrolled from every photo instead.
     const side = new THREE.CylinderGeometry(radius, radius, height, SEGMENTS, 8, true);
     side.translate(0, height / 2, 0);
-    const position = side.attributes.position;
-    const uv = side.attributes.uv;
-    for (let i = 0; i < position.count; i++) {
-        const theta = Math.atan2(position.getX(i), position.getZ(i));
-        const round = Math.abs(theta) <= Math.PI / 2 ? Math.abs(theta) : Math.PI - Math.abs(theta);
-        const phi = Math.sign(theta) * designAngle(round);
-        const t = position.getY(i) / height; // 0 at the bottom
-        const bottom = fit.bottom - fit.bottom_curve * (1 - Math.cos(phi));
-        const top = fit.top - fit.top_curve * (1 - Math.cos(phi));
-        uv.setXY(i, ...uvAt(fit.x + fit.r * Math.sin(phi), bottom + (top - bottom) * t));
+    let sideMaterial = material;
+    if (turn.length > 1) {
+        const unrolled = new THREE.CanvasTexture(turnTexture(turn, fit));
+        unrolled.colorSpace = THREE.SRGBColorSpace;
+        unrolled.wrapS = THREE.RepeatWrapping; // round the back the last column meets the first
+        unrolled.wrapT = THREE.ClampToEdgeWrapping;
+        unrolled.anisotropy = anisotropy;
+        sideMaterial = photoMaterial(unrolled, DESIGN_SHADE);
+    } else {
+        const position = side.attributes.position;
+        const uv = side.attributes.uv;
+        for (let i = 0; i < position.count; i++) {
+            const theta = Math.atan2(position.getX(i), position.getZ(i));
+            const round = Math.abs(theta) <= Math.PI / 2 ? Math.abs(theta) : Math.PI - Math.abs(theta);
+            const phi = Math.sign(theta) * designAngle(round);
+            const t = position.getY(i) / height; // 0 at the bottom
+            const bottom = fit.bottom - fit.bottom_curve * (1 - Math.cos(phi));
+            const top = fit.top - fit.top_curve * (1 - Math.cos(phi));
+            uv.setXY(i, ...uvAt(fit.x + fit.r * Math.sin(phi), bottom + (top - bottom) * t));
+        }
     }
-    add(new THREE.Mesh(side, material));
+    add(new THREE.Mesh(side, sideMaterial));
 
     // The top: a point (x, z) on it is seen in the photo across the ellipse of the top (z towards the camera is lower).
     const top = new THREE.CircleGeometry(radius, SEGMENTS);
@@ -464,6 +494,10 @@ function buildDesignCake(photo, fitIn, toppings, radius, anisotropy, cleanTop = 
     }
     topMap.anisotropy = anisotropy;
     add(new THREE.Mesh(top, photoMaterial(topMap, 0))).position.y = height;
+    if (sideMaterial !== material && topMap !== map) { // the photo's own copy ended up unused
+        material.dispose();
+        map.dispose();
+    }
 
     // The toppings, cut out of the photo, standing on the top where the photo has them, so they go round with the
     // cake. Each always faces the camera: piped and piled toppings look much the same from every side.
@@ -494,12 +528,119 @@ function buildDesignCake(photo, fitIn, toppings, radius, anisotropy, cleanTop = 
  * angle; past it the photo is read ever more slowly, reaching DESIGN_EDGE at the side. It keeps moving right up to the
  * side, so no column of the photo is smeared into streaks, and the photo's foreshortened, background-edged rim is never read.
  */
-function designAngle(round) {
+function designAngle(round, limit = Math.PI / 2) {
+    // A photo that only has to reach a little way round (one of a turn) is read as it is.
+    if (limit <= DESIGN_EDGE) return Math.min(round, limit);
     if (round <= DESIGN_TRUE) return round;
-    const span = Math.PI / 2 - DESIGN_TRUE;
-    const past = Math.min(round, Math.PI / 2) - DESIGN_TRUE;
+    // Past 2 * DESIGN_EDGE - DESIGN_TRUE the ease would turn back on itself; a turn of two photos stays under it.
+    const end = Math.min(limit, 2 * DESIGN_EDGE - DESIGN_TRUE - 0.01);
+    const span = end - DESIGN_TRUE;
+    const past = Math.min(round, end) - DESIGN_TRUE;
 
-    return DESIGN_TRUE + past - (Math.PI / 2 - DESIGN_EDGE) * (past / span) ** 2;
+    return DESIGN_TRUE + past - (end - DESIGN_EDGE) * (past / span) ** 2;
+}
+
+/**
+ * The side of a design unrolled from a turn of photos, as a canvas: column u is the angle u * 2PI round from the front
+ * (towards +x), row 0 is the top of the side. Photo k was taken from k / n of a turn round (DESIGN_TURN says which way),
+ * so each angle is read from the photo that faces it most, the same way the cover is read (designAngle() and the
+ * curves of fit), and neighbouring photos cross-fade over TURN_BLEND where they meet. Every photo is evened out to the
+ * cover's brightness first, so a photo taken in slightly different light doesn't show as a band.
+ */
+function turnTexture(photos, fit) {
+    const reads = photos.map((photo) => pixelsOf(photo.image, 2048));
+    const cover = reads[0];
+    const n = reads.length;
+    const width = Math.min(2048, Math.max(1024, Math.round((2 * Math.PI * fit.r * cover.width) / 256) * 256));
+    const height = Math.min(1024, Math.max(128, Math.round((fit.bottom - fit.top) * cover.height * 1.25)));
+
+    // Each photo's brightness gain: the middle of its side, against the cover's.
+    const brightness = ({ data, width: w, height: h }) => {
+        let sum = 0;
+        let count = 0;
+        for (let y = Math.floor(fit.top * h); y < fit.bottom * h; y += 2) {
+            for (let x = Math.floor((fit.x - fit.r * 0.4) * w); x < (fit.x + fit.r * 0.4) * w; x += 2) {
+                if (x < 0 || y < 0 || x >= w || y >= h) continue;
+                const i = (y * w + x) * 4;
+                sum += data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                count++;
+            }
+        }
+        return count ? sum / count : 128;
+    };
+    const base = brightness(cover);
+    const gains = reads.map((read, k) => (k === 0 ? 1 : Math.min(1.25, Math.max(0.8, base / Math.max(1, brightness(read))))));
+
+    // Reads a photo between its pixels (x, y in shares), so the unrolled side is as smooth as the photo.
+    const sample = ({ data, width: w, height: h }, sx, sy, out, weight) => {
+        const x = Math.min(w - 1.001, Math.max(0, sx * w - 0.5));
+        const y = Math.min(h - 1.001, Math.max(0, sy * h - 0.5));
+        const x0 = Math.floor(x);
+        const y0 = Math.floor(y);
+        const fx = x - x0;
+        const fy = y - y0;
+        const i00 = (y0 * w + x0) * 4;
+        const i10 = i00 + 4;
+        const i01 = i00 + w * 4;
+        const i11 = i01 + 4;
+        for (let c = 0; c < 3; c++) {
+            const top = data[i00 + c] + (data[i10 + c] - data[i00 + c]) * fx;
+            const bottom = data[i01 + c] + (data[i11 + c] - data[i01 + c]) * fx;
+            out[c] += (top + (bottom - top) * fy) * weight;
+        }
+    };
+
+    const half = Math.PI / n; // each photo is nearest for half the spacing either side
+    const blend = Math.min(TURN_BLEND, half * 0.5);
+    const limit = half + blend;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    const image = ctx.createImageData(width, height);
+    const pixel = [0, 0, 0];
+
+    for (let column = 0; column < width; column++) {
+        const theta = ((column + 0.5) / width) * Math.PI * 2;
+        // The photos that see this angle, how much each counts, and where in each photo it is.
+        const seen = [];
+        for (let k = 0; k < n; k++) {
+            const phi = Math.atan2(Math.sin(theta - DESIGN_TURN * k * half * 2), Math.cos(theta - DESIGN_TURN * k * half * 2));
+            const away = Math.abs(phi);
+            const weight = 1 - smoothstep(half - blend, half + blend, away);
+            if (weight <= 0) continue;
+            const read = Math.sign(phi) * designAngle(away, limit);
+            const lift = 1 - Math.cos(read);
+            seen.push({ k, weight, x: fit.x + fit.r * Math.sin(read), top: fit.top - fit.top_curve * lift, bottom: fit.bottom - fit.bottom_curve * lift });
+        }
+        const total = seen.reduce((sum, s) => sum + s.weight, 0) || 1;
+
+        for (let row = 0; row < height; row++) {
+            const t = 1 - (row + 0.5) / height; // 1 at the top of the side
+            pixel[0] = pixel[1] = pixel[2] = 0;
+            seen.forEach((s) => sample(reads[s.k], s.x, s.bottom + (s.top - s.bottom) * t, pixel, (s.weight / total) * gains[s.k]));
+            const i = (row * width + column) * 4;
+            image.data[i] = pixel[0];
+            image.data[i + 1] = pixel[1];
+            image.data[i + 2] = pixel[2];
+            image.data[i + 3] = 255;
+        }
+    }
+    ctx.putImageData(image, 0, 0);
+
+    return canvas;
+}
+
+/** A picture's pixels, drawn at most maxWidth wide (big photos are read smaller, which is plenty and much quicker). */
+function pixelsOf(source, maxWidth) {
+    const scale = Math.min(1, maxWidth / source.width);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(source.width * scale));
+    canvas.height = Math.max(1, Math.round(source.height * scale));
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+
+    return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
 
 /* ---------- Shapes ---------- */
@@ -981,13 +1122,33 @@ function shadowTexture() {
     return shadowMap;
 }
 
+/** A dark band fading out just past the cake's foot (the cake covers the middle): 1 / 1.2 of the way out is its edge. */
+let occlusionMap = null;
+function occlusionTexture() {
+    if (occlusionMap) return occlusionMap;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    gradient.addColorStop(0, `rgba(55, 38, 20, ${CONTACT_SHADE})`);
+    gradient.addColorStop(0.82, `rgba(55, 38, 20, ${CONTACT_SHADE})`);
+    gradient.addColorStop(0.88, `rgba(55, 38, 20, ${CONTACT_SHADE * 0.35})`);
+    gradient.addColorStop(1, 'rgba(55, 38, 20, 0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 256, 256);
+    occlusionMap = new THREE.CanvasTexture(canvas);
+    occlusionMap.colorSpace = THREE.SRGBColorSpace;
+
+    return occlusionMap;
+}
+
 /** Frees what one cake used; the shared pictures and patterns stay for the next pick. */
 function disposeGroup(group) {
     group.traverse((object) => {
         object.geometry?.dispose();
         const materials = Array.isArray(object.material) ? object.material : [object.material];
         materials.filter(Boolean).forEach((material) => {
-            if (material.map && material.map !== shadowMap) material.map.dispose();
+            if (material.map && material.map !== shadowMap && material.map !== occlusionMap) material.map.dispose();
             material.uniforms?.map?.value?.dispose();
             material.dispose();
         });

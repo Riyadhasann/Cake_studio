@@ -6,7 +6,7 @@ use App\Models\CakeSize;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
 use App\Models\User;
-use App\Services\DesignPhotoReader;
+use App\Services\Images\DesignPhotoReader;
 use Database\Seeders\CakeDesignSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

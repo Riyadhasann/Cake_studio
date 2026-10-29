@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Images;
 
+use App\Services\PublicUploads;
 use Illuminate\Support\Facades\Cache;
 
 /**

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shop;
 
+use App\Http\Controllers\Controller;
 use App\Models\CakeDesign;
 use App\Models\CakePart;
 use App\Models\CakeSize;
@@ -9,7 +10,7 @@ use App\Models\CakeVariant;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
 use App\Services\CakeDrawings;
-use App\Services\LayerStrips;
+use App\Services\Images\LayerStrips;
 use App\Services\PublicUploads;
 use Illuminate\View\View;
 
@@ -60,7 +61,7 @@ class CakeStudioController extends Controller
             ])
             ->values();
 
-        return view('cake-studio.index', [
+        return view('shop.studio', [
             'designs' => $designs,
             'sizes' => CakeSize::ordered()->get(),
             'sponges' => $sponges->map($forPage)->values(),

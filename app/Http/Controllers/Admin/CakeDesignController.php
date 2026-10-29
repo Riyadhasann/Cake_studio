@@ -8,7 +8,7 @@ use App\Http\Requests\Admin\StoreCakeDesignFramesRequest;
 use App\Http\Requests\Admin\UpdateCakeDesignFitRequest;
 use App\Models\CakeDesign;
 use App\Models\CakeDesignFrame;
-use App\Services\DesignPhotoReader;
+use App\Services\Images\DesignPhotoReader;
 use App\Services\PublicUploads;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;

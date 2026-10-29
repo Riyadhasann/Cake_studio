@@ -3,7 +3,7 @@
 namespace App\Actions\Variants;
 
 use App\Models\CakeVariant;
-use App\Services\CutFaceFinder;
+use App\Services\Images\CutFaceFinder;
 use App\Services\PublicUploads;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;

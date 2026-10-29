@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Puts the bundled cake photo (a chocolate cake with an empty wedge cut, from docs/base_cake_image.png) under
+ * Puts the bundled cake photo (a chocolate cake with an empty wedge cut, from docs/images/base_cake_image.png) under
  * every drawing that is still bare: no photo, no base SVG, no shading and no flavor photos, as CakeVariantSeeder
  * leaves them. Its slots are fitted to the cut, so the design page opens on the photo with the default
  * sponge and cream in every layer. A drawing the admin has worked on is never touched.

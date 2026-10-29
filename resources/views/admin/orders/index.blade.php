@@ -55,7 +55,7 @@
                                                 <span class="font-medium">{{ $c->quantity }} &times;</span>
                                                 {{ $c->cakeSize->label }} cake, {{ count($c->layer_summary) }} {{ count($c->layer_summary) === 1 ? 'layer' : 'layers' }}
                                                 <span class="mt-1 block text-ink/90"><span class="font-medium text-ink">Design:</span> {{ $c->design_name ?? 'Plain' }}</span>
-                                                <x-layer-list :layers="$c->layer_summary" class="mt-1" />
+                                                <x-cake.layer-list :layers="$c->layer_summary" class="mt-1" />
                                                 @if ($c->message)
                                                     <br><span class="text-ink/80">&ldquo;{{ $c->message }}&rdquo;</span>
                                                 @endif

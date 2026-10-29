@@ -103,7 +103,7 @@
                                     <span class="font-medium text-ink/80">· {{ $design->fit ? 'check it matches the photo' : 'not measured yet: press Measure from photo' }}</span>
                                 </summary>
                                 <form action="{{ route('admin.designs.fit', $design) }}" method="POST"
-                                      x-data="designFit(@js($design->fitOrDefault()), @js(['image' => asset($cover->image), 'topImage' => $design->top_image ? asset($design->top_image) : null, 'toppings' => array_map(fn (array $topping) => [...$topping, 'image' => asset($topping['image'])], $design->toppingList())]))"
+                                      x-data="designFit(@js($design->fitOrDefault()), @js(['image' => asset($cover->image), 'frames' => $design->frames->map(fn ($frame) => asset($frame->image))->values()->all(), 'topImage' => $design->top_image ? asset($design->top_image) : null, 'toppings' => array_map(fn (array $topping) => [...$topping, 'image' => asset($topping['image'])], $design->toppingList())]))"
                                       class="mt-4 grid gap-4 sm:grid-cols-2">
                                     @csrf
                                     @method('PUT')
@@ -247,7 +247,7 @@
                     });
                 },
                 async draw() {
-                    await viewer?.render({ kg: 2, layers: [], design: { image: design.image, fit: { ...this.fit }, toppings: design.toppings, topImage: design.topImage } });
+                    await viewer?.render({ kg: 2, layers: [], design: { image: design.image, frames: design.frames, fit: { ...this.fit }, toppings: design.toppings, topImage: design.topImage } });
                     viewer?.showFront(this.still);
                 },
                 front() {

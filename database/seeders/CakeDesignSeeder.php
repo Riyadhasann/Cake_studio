@@ -7,7 +7,7 @@ use App\Services\PublicUploads;
 use Illuminate\Database\Seeder;
 
 /**
- * The four bundled cake designs (from docs/360 images, one front photo each). Runs only while there are no designs,
+ * The four bundled cake designs (one front photo each, in database/seeders/images/designs/). Runs only while there are no designs,
  * so designs the admin added, renamed or priced are never touched. More photos per design (a full turn for 360°)
  * are added on /admin/designs.
  */

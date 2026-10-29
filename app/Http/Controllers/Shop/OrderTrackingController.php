@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shop;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ class OrderTrackingController extends Controller
 {
     public function index(): View
     {
-        return view('orders.track', ['order' => null, 'searched' => false]);
+        return view('shop.track', ['order' => null, 'searched' => false]);
     }
 
     public function lookup(Request $request): View
@@ -33,7 +34,7 @@ class OrderTrackingController extends Controller
             $order = null;
         }
 
-        return view('orders.track', ['order' => $order, 'searched' => true]);
+        return view('shop.track', ['order' => $order, 'searched' => true]);
     }
 
     public function dismiss(int $orderId): RedirectResponse

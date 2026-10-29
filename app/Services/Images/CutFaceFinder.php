@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Images;
 
 /**
  * Finds the empty cut face in a cake photo, so the admin only has to upload it. The cut is the largest empty

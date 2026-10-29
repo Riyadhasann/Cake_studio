@@ -3,7 +3,7 @@
 use App\Models\CakeVariant;
 use App\Models\CakeVariantSlot;
 use App\Models\User;
-use App\Services\SvgSanitizer;
+use App\Services\Images\SvgSanitizer;
 
 beforeEach(function () {
     $this->admin = User::factory()->create();

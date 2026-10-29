@@ -60,7 +60,7 @@
                                 $layerCount = count($item['layers']);
                             @endphp
                             <li class="flex gap-3 p-4">
-                                <x-cake-thumb :layers="$item['layers']" :image="$item['design_image'] ?? null" class="size-16" />
+                                <x-cake.thumb :layers="$item['layers']" :image="$item['design_image'] ?? null" class="size-16" />
 
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-start justify-between gap-4">
@@ -77,7 +77,7 @@
                                         <p class="shrink-0 text-right text-base font-extrabold">৳{{ number_format($item['price'] * $qty, 2) }}</p>
                                     </div>
 
-                                    <x-layer-list :layers="$item['layers']" class="mt-2 space-y-0.5" />
+                                    <x-cake.layer-list :layers="$item['layers']" class="mt-2 space-y-0.5" />
                                     @if (! empty($item['message']))
                                         <p class="mt-2 text-sm text-ink/80"><span class="font-semibold text-ink">Message:</span> &ldquo;{{ $item['message'] }}&rdquo;</p>
                                     @endif

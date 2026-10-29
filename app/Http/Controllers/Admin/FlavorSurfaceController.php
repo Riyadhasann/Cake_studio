@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateFlavorSurfaceRequest;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
+use App\Services\Images\SeamlessTexture;
 use App\Services\PublicUploads;
-use App\Services\SeamlessTexture;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 
