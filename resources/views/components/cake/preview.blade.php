@@ -2,7 +2,7 @@
     The cake preview on the design page. Lives inside the cakeStudio() Alpine scope.
 
     When the admin has published an SVG drawing for the chosen layer count, the cake is that drawing
-    (x-cake-variant-svg): on the admin's cake photo when it has one, which then fills the stage,
+    (x-cake.variant-svg): on the admin's cake photo when it has one, which then fills the stage,
     else between the plate and the frosting. Every slot is filled with the flavor's photo for that slot,
     else its layer image, else its color, then shaded (the drawing's shading image,
     or soft gradients). Otherwise the cake is stacked from one element per sponge and cream (the layered preview).
@@ -183,7 +183,7 @@
                     @foreach ($flavorsByType as $type => $flavors)
                         @foreach ($flavors as $flavor)
                             @if ($flavor['image'])
-                                <x-cake-cover-pattern :id="'cake-image-'.$type.'-'.$flavor['id']" :url="$flavor['image']" :size="$flavor['image_size']" />
+                                <x-cake.cover-pattern :id="'cake-image-'.$type.'-'.$flavor['id']" :url="$flavor['image']" :size="$flavor['image_size']" />
                             @endif
                         @endforeach
                     @endforeach
@@ -191,7 +191,7 @@
                     {{-- Photos of one flavor for one slot of one drawing --}}
                     @foreach ($variants as $variant)
                         @foreach ($variant['photos'] as $photo)
-                            <x-cake-cover-pattern :id="'cake-photo-'.$photo['id']" :url="$photo['url']" :size="[$photo['width'], $photo['height']]" />
+                            <x-cake.cover-pattern :id="'cake-photo-'.$photo['id']" :url="$photo['url']" :size="[$photo['width'], $photo['height']]" />
                         @endforeach
                     @endforeach
 
@@ -222,7 +222,7 @@
         @foreach ($variants as $layers => $variant)
             @if ($variant['base_image'])
                 <template x-if="hasVariant && layerCount === {{ $layers }}">
-                    <x-cake-variant-svg :layers="$layers" :variant="$variant" />
+                    <x-cake.variant-svg :layers="$layers" :variant="$variant" />
                 </template>
             @endif
         @endforeach
@@ -239,7 +239,7 @@
             @foreach ($variants as $layers => $variant)
                 @unless ($variant['base_image'])
                     <template x-if="hasVariant && layerCount === {{ $layers }}">
-                        <x-cake-variant-svg :layers="$layers" :variant="$variant" />
+                        <x-cake.variant-svg :layers="$layers" :variant="$variant" />
                     </template>
                 @endunless
             @endforeach

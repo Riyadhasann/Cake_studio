@@ -7,6 +7,7 @@ use App\Models\CakeVariantSlot;
 use App\Models\CreamFlavor;
 use App\Models\FlavorVariantImage;
 use App\Models\SpongeFlavor;
+use App\Services\Images\SvgSanitizer;
 use Illuminate\Database\Eloquent\Collection;
 
 /** The cake drawings (variants) as plain arrays for the pages that draw them. */

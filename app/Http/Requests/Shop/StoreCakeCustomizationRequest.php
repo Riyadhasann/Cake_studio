@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Shop;
 
 use App\Models\CakeVariant;
 use Illuminate\Contracts\Validation\Validator;

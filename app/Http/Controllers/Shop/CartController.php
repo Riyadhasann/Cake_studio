@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shop;
 
-use App\Http\Requests\PlaceOrderRequest;
-use App\Http\Requests\StoreCakeCustomizationRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\PlaceOrderRequest;
+use App\Http\Requests\Shop\StoreCakeCustomizationRequest;
 use App\Models\CakeDesign;
 use App\Models\CakeSize;
 use App\Models\CreamFlavor;
@@ -71,7 +72,7 @@ class CartController extends Controller
 
     public function index(CartService $cart): View
     {
-        return view('cart.index', [
+        return view('shop.cart', [
             'items' => $cart->items(),
             'total' => $cart->total(),
         ]);

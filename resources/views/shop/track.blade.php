@@ -61,7 +61,7 @@
                         <span class="rounded-md px-2 py-0.5 text-xs font-bold {{ $badge }}">{{ $label }}</span>
                     </div>
 
-                    <x-order-status :order="$order" class="mt-4 border-y border-line py-4" />
+                    <x-order.status :order="$order" class="mt-4 border-y border-line py-4" />
 
                     @if ($order->status === 'cancelled')
                         <div class="alert mt-4 border-clay/30 bg-clay-soft text-ink" role="alert">
@@ -78,11 +78,11 @@
                         @foreach ($order->cakeCustomizations as $c)
                             @php $layers = $c->layer_summary; @endphp
                             <li class="flex gap-3 py-3">
-                                <x-cake-thumb :layers="$layers" class="size-12" />
+                                <x-cake.thumb :layers="$layers" class="size-12" />
                                 <div class="min-w-0 flex-1">
                                     <p class="font-bold">{{ $c->quantity }} &times; {{ $c->cakeSize->label }} cake, {{ count($layers) }} {{ str('layer')->plural(count($layers)) }}</p>
                                     <p class="mt-0.5 text-ink/90"><span class="font-semibold text-ink">Design:</span> {{ $c->design_name ?? 'Plain' }}</p>
-                                    <x-layer-list :layers="$layers" class="mt-1" />
+                                    <x-cake.layer-list :layers="$layers" class="mt-1" />
                                     @if ($c->message)
                                         <p class="mt-1 text-ink/80">&ldquo;{{ $c->message }}&rdquo;</p>
                                     @endif

@@ -155,7 +155,7 @@
             <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($flavors as $flavor)
                     @php $menuIndex = $onMenu->search(fn ($item) => $item->id === $flavor->id); @endphp
-                    <x-visual-card :item="$flavor" :type="$type" ratio="2.6 / 1" fit="contain"
+                    <x-admin.visual-card :item="$flavor" :type="$type" ratio="2.6 / 1" fit="contain"
                                    :move-up="$menuIndex === false ? null : $swapped($onMenu, $menuIndex, -1)"
                                    :move-down="$menuIndex === false ? null : $swapped($onMenu, $menuIndex, 1)" />
                 @endforeach
@@ -172,7 +172,7 @@
         </p>
         <div class="mt-5 grid gap-4 sm:grid-cols-2">
             @foreach ($parts as $part)
-                <x-visual-card :item="$part" type="part" :ratio="$part->key === 'plate' ? '11.4 / 1' : '3 / 1'" fit="contain" />
+                <x-admin.visual-card :item="$part" type="part" :ratio="$part->key === 'plate' ? '11.4 / 1' : '3 / 1'" fit="contain" />
             @endforeach
         </div>
     </details>

@@ -4,7 +4,7 @@ use App\Models\CakeSize;
 use App\Models\CreamFlavor;
 use App\Models\SpongeFlavor;
 use App\Models\User;
-use App\Services\SeamlessTexture;
+use App\Services\Images\SeamlessTexture;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 

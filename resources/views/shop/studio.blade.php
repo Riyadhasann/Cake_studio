@@ -95,7 +95,7 @@
                     {{-- The admin's SVG drawing for this layer count, or one element per sponge and per cream --}}
                     <div x-show="view === '2d'" class="cake-float">
                         <div data-tilt>
-                            <x-cake-preview :sponges="$sponges" :creams="$creams" :variants="$variants" />
+                            <x-cake.preview :sponges="$sponges" :creams="$creams" :variants="$variants" />
                         </div>
                     </div>
 
@@ -538,8 +538,9 @@
                     return {
                         kg: Number(this.selectedSize?.weight_kg) || 2,
                         layers: this.layers.map(layer => ({ sponge: surface(this.sponges, layer.sponge_id), cream: surface(this.creams, layer.cream_id) })),
-                        // A picked design is drawn instead of the layers' outside: its cover photo, where the cake sits in it, its toppings.
-                        design: this.selectedDesign ? { image: this.selectedDesign.frames[0], fit: this.selectedDesign.fit, toppings: this.selectedDesign.toppings ?? [], topImage: this.selectedDesign.top_image ?? null } : null,
+                        // A picked design is drawn instead of the layers' outside: its cover photo, where the cake sits in it, its toppings,
+                        // and its turn of photos (each side then wears the photo taken of it).
+                        design: this.selectedDesign ? { image: this.selectedDesign.frames[0], frames: this.selectedDesign.frames, fit: this.selectedDesign.fit, toppings: this.selectedDesign.toppings ?? [], topImage: this.selectedDesign.top_image ?? null } : null,
                     };
                 },
                 // The layers from the top of the cake down, with their index, for the summary.

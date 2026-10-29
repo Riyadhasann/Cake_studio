@@ -208,7 +208,7 @@
 
     <main id="main" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
         @if ($alerts)
-            <x-order-alerts />
+            <x-order.alerts />
         @endif
 
         @if ($step)

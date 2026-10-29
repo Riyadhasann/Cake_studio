@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Images;
 
 use App\Models\CakeDesign;
+use App\Services\PublicUploads;
 use GdImage;
 
 /**

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\View\Components;
+namespace App\View\Components\Order;
 
 use App\Models\Order;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class OrderAlerts extends Component
+class Alerts extends Component
 {
     public function render(): View
     {
@@ -16,6 +16,6 @@ class OrderAlerts extends Component
             ? collect()
             : Order::whereIn('id', $ids)->where('status', 'cancelled')->get();
 
-        return view('components.order-alerts', ['orders' => $orders]);
+        return view('components.order.alerts', ['orders' => $orders]);
     }
 }
