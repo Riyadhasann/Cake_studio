@@ -13,4 +13,17 @@ return [
 
     'email' => env('STUDIO_EMAIL'),
 
+    /*
+     * Icing colors a customer can pick for the message written on the cake (name => hex). The first is the default.
+     */
+    'message_colors' => [
+        'Chocolate' => '#4a2a1a',
+        'White' => '#ffffff',
+        'Pink' => '#e0608a',
+        'Red' => '#c0262d',
+        'Blue' => '#2c6db3',
+        'Green' => '#2e7d4f',
+        'Gold' => '#b8902b',
+    ],
+
 ];

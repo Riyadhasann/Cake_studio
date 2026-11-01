@@ -54,6 +54,7 @@ class CartController extends Controller
         $design = $request->filled('cake_design_id') ? CakeDesign::with('frames')->findOrFail($request->integer('cake_design_id')) : null;
         $unitPrice += $design ? (float) $design->extra_price : 0;
         $cover = $design?->frames->first()?->image;
+        $message = filled($validated['message'] ?? null) ? $validated['message'] : null;
 
         $cart->add([
             'size_id' => $size->id,
@@ -62,7 +63,9 @@ class CartController extends Controller
             'design_name' => $design?->name,
             'design_image' => $cover,
             'layers' => $layers,
-            'message' => $validated['message'] ?? null,
+            'message' => $message,
+            // Only kept with a message; the shop's first icing color when none was picked.
+            'message_color' => $message !== null ? ($validated['message_color'] ?? array_values(config('studio.message_colors'))[0]) : null,
             'quantity' => (int) $validated['quantity'],
             'price' => round($unitPrice, 2),
         ]);
@@ -116,6 +119,7 @@ class CartController extends Controller
                     'sponge_flavor_id' => $first['sponge_id'],
                     'cream_flavor_id' => $first['cream_id'],
                     'message' => $item['message'],
+                    'message_color' => $item['message_color'] ?? null, // cart items added before colors existed have none
                     'quantity' => $item['quantity'] ?? 1,
                     'price' => $item['price'],
                     // Cart items added before designs existed have none.

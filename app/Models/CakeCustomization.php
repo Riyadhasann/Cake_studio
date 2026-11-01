@@ -15,6 +15,7 @@ class CakeCustomization extends Model
         'sponge_flavor_id', // mirrors layer 1, kept so the original columns stay valid
         'cream_flavor_id',  // mirrors layer 1, kept so the original columns stay valid
         'message',
+        'message_color', // the icing color of the message, a hex color
         'quantity',
         'price',
         'cake_design_id', // null for a plain cake

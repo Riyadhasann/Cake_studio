@@ -16,6 +16,7 @@
             defaultSpongeId: @js($defaultSpongeId),
             defaultCreamId: @js($defaultCreamId),
             layerOptions: @js($layerOptions),
+            messageColors: @js(collect(config('studio.message_colors'))->map(fn ($hex, $name) => ['name' => $name, 'hex' => $hex])->values()),
             addUrl: @js(route('cart.add')),
             cartUrl: @js(route('cart.index')),
             initialDesignId: @js(request()->integer('design') ?: null),
@@ -343,6 +344,20 @@
                                         class="btn-outline btn-sm">{{ $idea }}</button>
                             @endforeach
                         </div>
+                        {{-- The icing color the message is written in (shown on the plain 3D cake's top) --}}
+                        <div class="mt-4">
+                            <p id="message-color-heading" class="text-sm font-semibold">Writing color: <span class="font-normal text-ink/75" x-text="messageColorName"></span></p>
+                            <div class="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-labelledby="message-color-heading">
+                                <template x-for="color in messageColors" :key="color.hex">
+                                    <button type="button" role="radio" :aria-checked="messageColor === color.hex" :aria-label="color.name" :title="color.name"
+                                            @click="messageColor = color.hex"
+                                            class="size-8 rounded-full border border-line shadow-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                                            :class="messageColor === color.hex ? 'ring-2 ring-brand ring-offset-2' : 'hover:scale-110'"
+                                            :style="'background-color: ' + color.hex"></button>
+                                </template>
+                            </div>
+                            <p x-show="message.trim() && selectedDesign" x-cloak class="mt-2 text-xs text-ink/65">The writing is shown on the plain cake's 3D view; with a design the baker adds it by hand.</p>
+                        </div>
                     </section>
 
                     <section id="step-size" class="panel scroll-mt-20 p-5">
@@ -415,7 +430,8 @@
                             </li>
                         </template>
                     </ol>
-                    <p x-show="message.trim()" class="mt-2 text-ink/80">Message: &ldquo;<span x-text="message"></span>&rdquo;</p>
+                    <p x-show="message.trim()" class="mt-2 text-ink/80">Message: &ldquo;<span x-text="message"></span>&rdquo;
+                        <span class="ml-1 inline-flex items-center gap-1 whitespace-nowrap text-xs text-ink/70"><span class="inline-block size-3 rounded-full border border-line" :style="'background-color: ' + messageColor" aria-hidden="true"></span><span x-text="messageColorName + ' icing'"></span></span></p>
                     <p class="mt-3 flex items-baseline justify-between border-t border-line pt-3 font-semibold">
                         Total <span class="text-xl font-extrabold text-ink">৳<span x-text="format(totalPrice)"></span></span>
                     </p>
@@ -479,6 +495,8 @@
                 sizeId: config.sizes[0]?.id ?? null,
                 layers: Array.from({ length: minLayers }, makeLayer), // bottom layer first
                 message: '',
+                messageColors: config.messageColors ?? [], // [{name, hex}], the shop's icing colors
+                messageColor: config.messageColors?.[0]?.hex ?? '#4a2a1a',
                 quantity: 1,
                 maxQuantity: 20,
                 showModal: false,
@@ -529,6 +547,9 @@
                 get totalPrice() {
                     return this.unitPrice * this.quantity;
                 },
+                get messageColorName() {
+                    return this.messageColors.find(color => color.hex === this.messageColor)?.name ?? '';
+                },
                 // What the 3D cake draws: the size, and per layer (bottom first) each flavor's color and pictures.
                 get spec3d() {
                     const surface = (list, id) => {
@@ -537,6 +558,8 @@
                     };
                     return {
                         kg: Number(this.selectedSize?.weight_kg) || 2,
+                        // The message piped on the plain cake's top, in the picked icing color.
+                        message: this.message.trim() ? { text: this.message.trim(), color: this.messageColor } : null,
                         layers: this.layers.map(layer => ({ sponge: surface(this.sponges, layer.sponge_id), cream: surface(this.creams, layer.cream_id) })),
                         // A picked design is drawn instead of the layers' outside: its cover photo, where the cake sits in it, its toppings,
                         // and its turn of photos (each side then wears the photo taken of it).
@@ -848,6 +871,7 @@
                                 cake_design_id: this.designId,
                                 layers: this.payloadLayers,
                                 message: this.message,
+                                message_color: this.messageColor,
                                 quantity: this.quantity,
                             }),
                         });

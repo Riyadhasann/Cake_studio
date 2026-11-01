@@ -20,6 +20,7 @@ class StoreCakeCustomizationRequest extends FormRequest
         return [
             'cake_size_id' => ['required', 'exists:cake_sizes,id'],
             'message' => ['nullable', 'string', 'max:255'],
+            'message_color' => ['nullable', 'string', Rule::in(array_values(config('studio.message_colors')))],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
             // A finished design for the outside of the cake, or none for a plain cake.
             'cake_design_id' => ['nullable', 'integer', Rule::exists('cake_designs', 'id')->where('is_active', true)],
@@ -49,6 +50,7 @@ class StoreCakeCustomizationRequest extends FormRequest
             'layers.*.cream_flavor_id.required' => 'Choose a cream flavor for every layer.',
             'layers.*.cream_flavor_id.exists' => 'One of the chosen cream flavors is not available.',
             'cake_design_id.exists' => 'The chosen cake design is not available.',
+            'message_color.in' => 'Please pick one of the icing colors for the message.',
         ];
     }
 

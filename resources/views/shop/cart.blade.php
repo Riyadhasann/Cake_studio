@@ -79,7 +79,7 @@
 
                                     <x-cake.layer-list :layers="$item['layers']" class="mt-2 space-y-0.5" />
                                     @if (! empty($item['message']))
-                                        <p class="mt-2 text-sm text-ink/80"><span class="font-semibold text-ink">Message:</span> &ldquo;{{ $item['message'] }}&rdquo;</p>
+                                        <p class="mt-2 text-sm text-ink/80"><span class="font-semibold text-ink">Message:</span> <x-order.message :message="$item['message']" :color="$item['message_color'] ?? null" /></p>
                                     @endif
 
                                     <div class="mt-2 flex items-center justify-between gap-4 text-sm">

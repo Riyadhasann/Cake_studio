@@ -57,7 +57,7 @@
                                                 <span class="mt-1 block text-ink/90"><span class="font-medium text-ink">Design:</span> {{ $c->design_name ?? 'Plain' }}</span>
                                                 <x-cake.layer-list :layers="$c->layer_summary" class="mt-1" />
                                                 @if ($c->message)
-                                                    <br><span class="text-ink/80">&ldquo;{{ $c->message }}&rdquo;</span>
+                                                    <br><x-order.message :message="$c->message" :color="$c->message_color" class="text-ink/80" />
                                                 @endif
                                             </li>
                                         @endforeach

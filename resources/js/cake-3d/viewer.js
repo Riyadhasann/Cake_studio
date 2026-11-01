@@ -5,11 +5,13 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 /*
  * A round layer cake that looks photographed rather than drawn: per layer a sponge and a cream band whose edges
  * are slightly uneven (a hand-made cake is never a perfect cylinder), a frosted top with spatula swirls, piped
- * rosettes, on the same champagne-gold pedestal stand as the designs, lit by a warm studio light with soft shadows and darkening where layers meet.
+ * rosettes, on the same champagne-gold pedestal stand as the designs, lit by a warm studio light (matte, no shine) with soft shadows and darkening where layers meet.
  * Each layer wears its flavor's picture, or a crumb or cream pattern drawn from its color while none is uploaded.
  *
- * Spec passed to render(): { kg, layers: [{ sponge: Surface, cream: Surface }], design? }, bottom layer first,
- * where Surface = { color, side, scale, top? } (side and top are picture URLs or null, scale is the grain size).
+ * Spec passed to render(): { kg, layers: [{ sponge: Surface, cream: Surface }], design?, message? }, bottom layer first,
+ * where Surface = { color, side, scale, top? } (side and top are picture URLs or null, scale is the grain size)
+ * and message = { text, color } is piped on the plain cake's top in that icing color (makeWriting()); changing only
+ * the message swaps the writing without building the cake again.
  *
  * With a design ({ image, fit, toppings, topImage, frames? }) the outside is that design's photo instead: the photo is projected back onto a
  * cylinder (its front half as photographed, eased in towards the edges, mirrored round the back) and onto the top, on a pedestal stand like the photos, and
@@ -22,13 +24,19 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 // TUNING. World units: a 2 kg cake has radius 2. The layer heights match the cake photo (97 px sponge, 66 px cream, 973 px wide).
 export const SPONGE_H = 0.4;
 export const CREAM_H = 0.27;
-export const CREAM_BULGE = 0.012; // how far the cream bulges past the sponge, as a share of the radius
+export const CREAM_BULGE = 0.024; // how far the cream bulges past the sponge, as a share of the radius (more in some places, less in others)
+export const CREAM_RIDGE = 0.005; // the fine ridges a palette knife leaves running round the cream, as a share of the radius
 export const TOP_H = 0.12; // frosting thickness
 export const TOP_ROUND = 0.07; // how much the frosting edge curves down
 export const TILE_WORLD = 1.2; // the size of one repeat of a tileable picture at grain size 1
 export const BUMP = { sponge: 2.2, cream: 0.35 }; // how bumpy sponge and cream look in the light
 export const WOBBLE = { side: 0.007, top: 0.012 }; // unevenness of the side and the top, as a share of the radius
 export const EDGE_SHADE = 0.32; // darkening where sponge meets cream (0 = none)
+export const CRUMB_PITS = 0.006; // how deep the open crumb on a sponge's side is, as a share of the radius
+export const CRUST = 0.45; // how much of a sponge's side shows browned, baked patches (0 = none)
+export const GLOW = { sponge: 0.03, cream: 0.07 }; // light that passes through sponge and cream (they are soft, not plastic): lifts their shadows
+export const CRUMBS = 2; // loose crumbs on the plate round the foot, per unit of radius (0 = none)
+export const WRITING = { width: 1.24, height: 0.8, font: '"Dancing Script", "Brush Script MT", cursive', relief: 6, thick: 0.07, maxSize: 260 }; // the message's area on the top (shares of the radius, inside the rosettes), its piped look, the extra stroke that makes it bolder (share of the letter size) and the biggest letters (px on a 1024 px wide sheet)
 export const AUTO_ROTATE = true; // the plain cake turns slowly too (a design always turns); false = a still shot until dragged
 export const DESIGN_EDGE = 1.2; // how far round from the front (radians) the photo is read: past it the photo is too foreshortened (and its outline shows background)
 export const DESIGN_TRUE = 0.4; // up to this angle from the front the side is exactly the photo; from there to the cake's edge it eases out to DESIGN_EDGE
@@ -85,17 +93,15 @@ export function createCakeViewer(container) {
     room.dispose();
     pmrem.dispose();
 
-    // Studio lighting: a warm key light with soft shadows, a cool fill, and a rim light that outlines the cake.
-    const key = new THREE.DirectionalLight(0xfff0dc, 2.6);
+    // Studio lighting: a warm key light with soft shadows and a cool fill (no rim light or shine on the cake).
+    const key = new THREE.DirectionalLight(0xfff0dc, 2.4);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
-    key.shadow.radius = 6;
+    key.shadow.radius = 9;
     key.shadow.bias = -0.0004;
     key.shadow.normalBias = 0.02;
     scene.add(key, key.target);
-    scene.add(new THREE.HemisphereLight(0xf4f1ff, 0xd9c3a0, 0.45));
-    const rim = new THREE.DirectionalLight(0xffffff, 0.9);
-    scene.add(rim);
+    scene.add(new THREE.HemisphereLight(0xf4f1ff, 0xd9c3a0, 0.55)); // the warm ground color is light bounced off the plate
 
     const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
     camera.position.setFromSphericalCoords(16, VIEWS.angle, Math.PI / 5);
@@ -104,11 +110,16 @@ export function createCakeViewer(container) {
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.enablePan = false;
-    // Dragging only turns the cake round: its height is locked (lockTilt), and an up or down swipe scrolls the page.
-    controls.minPolarAngle = controls.maxPolarAngle = VIEWS.angle;
-    renderer.domElement.style.touchAction = 'pan-y';
+    // The plain cake can be dragged up and down too, between the top and the front views (a swipe on it then tilts
+    // instead of scrolling the page). A design is held at its photo's height (lockTilt): an up or down swipe scrolls.
+    controls.minPolarAngle = VIEWS.top;
+    controls.maxPolarAngle = VIEWS.front;
+    renderer.domElement.style.touchAction = 'none';
     const lockTilt = (phi) => {
-        controls.minPolarAngle = controls.maxPolarAngle = phi;
+        const free = !shownDesign;
+        controls.minPolarAngle = free ? VIEWS.top : phi;
+        controls.maxPolarAngle = free ? VIEWS.front : phi;
+        renderer.domElement.style.touchAction = free ? 'none' : 'pan-y';
     };
     let spinning = AUTO_ROTATE && !reduceMotion;
     controls.autoRotate = spinning;
@@ -124,15 +135,17 @@ export function createCakeViewer(container) {
         if (spinning) resumeTimer = setTimeout(() => { controls.autoRotate = true; }, 4000);
     });
 
-    // Left and right arrow keys turn the cake (OrbitControls would pan, which is off).
+    // Left and right arrow keys turn the cake (OrbitControls would pan, which is off); up and down tilt the plain cake.
     const onKey = (event) => {
-        const turn = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
-        if (!turn) return;
+        const turn = { ArrowLeft: -1, ArrowRight: 1 }[event.key] ?? 0;
+        const tilt = shownDesign ? 0 : ({ ArrowUp: -1, ArrowDown: 1 }[event.key] ?? 0);
+        if (!turn && !tilt) return;
         event.preventDefault();
         controls.dispatchEvent({ type: 'start' });
         const offset = camera.position.clone().sub(controls.target);
         const spherical = new THREE.Spherical().setFromVector3(offset);
         spherical.theta += turn * (Math.PI / 12);
+        spherical.phi = THREE.MathUtils.clamp(spherical.phi + tilt * 0.12, controls.minPolarAngle, controls.maxPolarAngle);
         camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(spherical));
         controls.dispatchEvent({ type: 'end' });
     };
@@ -233,9 +246,17 @@ export function createCakeViewer(container) {
     let renderToken = 0;
     let stillDesign = false; // showFront(): a design held still, its photographed side to the camera
     let shownDesign = null; // the design photo on show, so a new design turns its front to the camera
+    let shownShape = null; // everything render() was last given except the message, to tell a message-only change
+    let writing = null; // the message on the plain cake's top
+    let topOf = null; // { radius, y } of the plain cake's top, where the writing goes
 
     async function render(spec) {
         const token = ++renderToken;
+        const shape = JSON.stringify({ ...spec, message: null });
+        if (cake && shape === shownShape) {
+            await placeWriting(spec?.message, token); // only the message changed: keep the cake, rewrite its top
+            return;
+        }
         const layers = spec?.layers ?? [];
         const radius = radiusForKg(spec?.kg);
         const topCream = layers[layers.length - 1]?.cream ?? {};
@@ -258,6 +279,11 @@ export function createCakeViewer(container) {
         const built = photo
             ? buildDesignCake(photo, design.fit, toppings.filter((t) => loaded.get(t.image)).map((t) => ({ ...t, texture: loaded.get(t.image) })), radius, anisotropy, loaded.get(design.topImage), turn.every(Boolean) ? turn : [])
             : buildCake(layers, radius, loaded, anisotropy);
+        if (writing) {
+            disposeWriting(writing); // its bump picture isn't freed with the cake
+            cake?.remove(writing);
+            writing = null;
+        }
         if (cake) {
             scene.remove(cake);
             disposeGroup(cake);
@@ -265,6 +291,9 @@ export function createCakeViewer(container) {
         cake = built.group;
         footY = built.foot;
         scene.add(cake);
+        shownShape = shape;
+        topOf = photo ? null : { radius, y: built.height };
+        placeWriting(spec?.message, token);
 
         const height = built.height;
 
@@ -281,7 +310,6 @@ export function createCakeViewer(container) {
         // Light from the front left and above; its shadow box just covers the plate.
         key.position.set(-radius * 1.6, height + 11, radius * 2.2);
         key.target.position.set(0, height / 2, 0);
-        rim.position.set(radius * 2, height + 2, -radius * 3);
         const box = radius * 1.9;
         Object.assign(key.shadow.camera, { left: -box, right: box, top: box, bottom: -box, near: 1, far: 30 });
         key.shadow.camera.updateProjectionMatrix();
@@ -306,6 +334,24 @@ export function createCakeViewer(container) {
         controls.minDistance = fit.distance * 0.55;
         controls.maxDistance = fit.distance * 1.6;
         moveCamera(first ? 0 : 600, turnToFront ? 0 : null);
+    }
+
+    // Writes the message on the plain cake's top (a design has its own top: nothing is written there).
+    async function placeWriting(message, token) {
+        const text = topOf && message?.text?.trim() ? message.text.trim() : '';
+        if (text) {
+            // The script font comes from Google Fonts; wait for it so the first letters aren't drawn in a fallback.
+            await document.fonts?.load(`700 120px ${WRITING.font}`).catch(() => null);
+            if (token !== renderToken) return;
+        }
+        if (writing) {
+            cake?.remove(writing);
+            disposeWriting(writing);
+            writing = null;
+        }
+        if (!text || !cake) return;
+        writing = makeWriting(text, message.color, topOf.radius, topOf.y, renderer.capabilities.getMaxAnisotropy());
+        cake.add(writing);
     }
 
     function setView(name) {
@@ -371,6 +417,10 @@ function buildCake(layers, radius, loaded, anisotropy) {
 
     const creamTone = averageColor(loaded.get(topCream.top) ?? loaded.get(topCream.side), topCream.color || FALLBACK_COLOR.cream);
     group.add(makeRosettes(radius, y + TOP_H, creamTone));
+
+    // A few crumbs fallen on the plate, in the bottom sponge's color.
+    const bottomSponge = layers[0]?.sponge ?? {};
+    if (CRUMBS > 0) group.add(makeCrumbs(radius, averageColor(loaded.get(bottomSponge.side), bottomSponge.color || FALLBACK_COLOR.sponge)));
 
     // The same pedestal stand as the designs.
     const foot = addStand(group, radius);
@@ -665,28 +715,97 @@ function standGeometry(R) {
  * so where one layer ends the next begins at exactly the same width: uneven, but without steps or gaps.
  */
 
-/** A sponge layer with a slightly uneven side, darker at the top and bottom where cream presses on it. */
+/**
+ * A sponge layer with a slightly uneven, open-crumbed side, darker at the top and bottom where cream presses on it,
+ * with browner patches where the bake's crust shows.
+ */
 function spongeGeometry(r, h, baseY) {
-    const geometry = new THREE.CylinderGeometry(r, r, h, SEGMENTS, 14, true);
+    const geometry = new THREE.CylinderGeometry(r, r, h, SEGMENTS, 40, true);
     geometry.translate(0, h / 2, 0);
+    crumble(geometry, r, h, baseY);
     wobble(geometry, r, WOBBLE.side, baseY);
     shadeEdges(geometry, h, 0.07, EDGE_SHADE);
+    mottle(geometry, baseY, { scale: 4.5, tint: [0.86, 0.74, 0.6], share: CRUST, vary: 0.05 });
 
     return geometry;
 }
 
-/** The cream between layers: nearly flush with the sponge, rounded at its edges, a little uneven. */
+/** Small pits and torn bits in the sponge's side (none at its top and bottom edge, so it meets the cream flush). */
+function crumble(geometry, r, h, baseY) {
+    const position = geometry.attributes.position;
+    for (let i = 0; i < position.count; i++) {
+        const x = position.getX(i);
+        const y = position.getY(i);
+        const z = position.getZ(i);
+        const radius = Math.hypot(x, z);
+        if (radius < 1e-6) continue;
+        const angle = Math.atan2(z, x);
+        const edge = smoothstep(0, 0.04, y) * smoothstep(0, 0.04, h - y);
+        const pit = Math.max(0, fbm(Math.cos(angle) * 38, Math.sin(angle) * 38, (baseY + y) * 38 + 2) - 0.52);
+        const scale = (radius - pit * 4 * CRUMB_PITS * r * edge) / radius;
+        position.setXYZ(i, x * scale, y, z * scale);
+    }
+}
+
+/**
+ * Multiplies the vertex colors (set by shadeEdges) by patchy noise: patches tinted by `tint` (an [r, g, b]
+ * multiplier) over `share` of their strength, and a light-and-dark variation of +/- `vary`.
+ */
+function mottle(geometry, baseY, { scale, tint, share, vary }) {
+    const position = geometry.attributes.position;
+    const color = geometry.attributes.color;
+    for (let i = 0; i < position.count; i++) {
+        const y = position.getY(i);
+        const angle = Math.atan2(position.getZ(i), position.getX(i));
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        const patch = smoothstep(0.45, 0.72, fbm(c * scale, s * scale, (baseY + y) * scale * 1.5)) * share;
+        const light = 1 + (fbm(c * scale * 3, s * scale * 3, (baseY + y) * scale * 4 + 9) - 0.5) * 2 * vary;
+        color.setXYZ(
+            i,
+            color.getX(i) * light * (1 - patch + patch * tint[0]),
+            color.getY(i) * light * (1 - patch + patch * tint[1]),
+            color.getZ(i) * light * (1 - patch + patch * tint[2]),
+        );
+    }
+}
+
+/**
+ * The cream between layers: pressed out by the sponge on top, so it bulges in a soft round pillow, more in some
+ * places than others, with fine knife ridges running round it. It meets the sponge at exactly the sponge's width
+ * (no step), tucked into a shaded crease.
+ */
 function creamGeometry(r, h, baseY) {
     const points = [];
-    for (let i = 0; i <= 24; i++) {
-        const t = i / 24;
-        points.push(new THREE.Vector2(r * (1 + CREAM_BULGE * Math.pow(Math.sin(Math.PI * t), 0.35)), t * h));
-    }
+    for (let i = 0; i <= 36; i++) points.push(new THREE.Vector2(r, (i / 36) * h));
     const geometry = new THREE.LatheGeometry(points, SEGMENTS);
+    squeezeCream(geometry, r, h, baseY);
     wobble(geometry, r, WOBBLE.side, baseY);
-    shadeEdges(geometry, h, 0.05, EDGE_SHADE * 0.5);
+    shadeEdges(geometry, h, 0.035, EDGE_SHADE * 0.75);
+    mottle(geometry, baseY, { scale: 3, tint: [1, 1, 1], share: 0, vary: 0.03 });
 
     return geometry;
+}
+
+/** Pushes the cream out: a pillow that is 0 at the sponge, uneven round the cake, with ridges along it. */
+function squeezeCream(geometry, r, h, baseY) {
+    const position = geometry.attributes.position;
+    for (let i = 0; i < position.count; i++) {
+        const x = position.getX(i);
+        const y = position.getY(i);
+        const z = position.getZ(i);
+        const radius = Math.hypot(x, z);
+        if (radius < 1e-6) continue;
+        const angle = Math.atan2(z, x);
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        const pillow = Math.pow(Math.sin(Math.PI * Math.min(1, Math.max(0, y / h))), 0.55);
+        const squeezed = 0.45 + 1.1 * fbm(c * 1.7, s * 1.7, baseY * 3.1 + 5); // how much was pressed out here
+        const ridge = fbm(c * 3, s * 3, (baseY + y) * 75) - 0.5; // long in the turn, short up the side
+        const out = r * (CREAM_BULGE * squeezed + CREAM_RIDGE * ridge * 2) * pillow;
+        const scale = (radius + out) / radius;
+        position.setXYZ(i, x * scale, y, z * scale);
+    }
 }
 
 /** The frosting edge: a quarter circle, so it curves down to the side. Uneven at the bottom like the cake, true at the top. */
@@ -709,22 +828,151 @@ function topGeometry(r, cakeRadius) {
     const geometry = new THREE.RingGeometry(0, r, SEGMENTS, 48);
     geometry.rotateX(-Math.PI / 2);
     const position = geometry.attributes.position;
-    const amount = cakeRadius * WOBBLE.top;
-
-    for (let i = 0; i < position.count; i++) {
-        const x = position.getX(i);
-        const z = position.getZ(i);
-        const d = Math.hypot(x, z) / r;
-        const angle = Math.atan2(z, x);
-        const fade = 1 - smoothstep(0.82, 1, d); // meets the rim exactly
-        const hills = (fbm(x * 0.9, z * 0.9, 12.5) - 0.5) * 2 * amount;
-        // Faint palette-knife strokes: a loose spiral, broken up by noise so it never looks like rings.
-        const strokes = Math.sin(d * 14 - angle * 1.5 + fbm(x * 2, z * 2, 3.1) * 6) * amount * 0.12 * smoothstep(0.1, 0.4, d);
-        position.setY(i, (hills + strokes) * fade);
-    }
+    for (let i = 0; i < position.count; i++) position.setY(i, topHeight(position.getX(i), position.getZ(i), r, cakeRadius));
     geometry.computeVertexNormals();
 
     return geometry;
+}
+
+/** How high the top's surface is at (x, z): gentle hills and spatula strokes, flat where it meets the edge. */
+function topHeight(x, z, r, cakeRadius) {
+    const amount = cakeRadius * WOBBLE.top;
+    const d = Math.hypot(x, z) / r;
+    const angle = Math.atan2(z, x);
+    const fade = 1 - smoothstep(0.82, 1, d); // meets the rim exactly
+    const hills = (fbm(x * 0.9, z * 0.9, 12.5) - 0.5) * 2 * amount;
+    // Faint palette-knife strokes: a loose spiral, broken up by noise so it never looks like rings.
+    const strokes = Math.sin(d * 14 - angle * 1.5 + fbm(x * 2, z * 2, 3.1) * 6) * amount * 0.22 * smoothstep(0.1, 0.4, d);
+
+    return (hills + strokes) * fade;
+}
+
+/**
+ * The message piped on the top, inside the ring of rosettes: script lettering in the icing color on a thin sheet
+ * that follows the top's hills, facing the camera's starting side. A blurred copy of the letters bumps them up,
+ * and a soft shadow under them makes even white icing stand out on cream.
+ */
+function makeWriting(text, color, radius, topY, anisotropy) {
+    const width = radius * WRITING.width;
+    const height = radius * WRITING.height;
+    const { picture, relief } = writingCanvases(text, color, width / height);
+
+    const map = new THREE.CanvasTexture(picture);
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.anisotropy = anisotropy;
+    const bumpMap = new THREE.CanvasTexture(relief);
+
+    // Read from where the camera starts (setFromSphericalCoords' theta of PI / 5): the letters' foot towards it.
+    const geometry = new THREE.PlaneGeometry(width, height, 48, 34);
+    geometry.rotateX(-Math.PI / 2);
+    geometry.rotateY(Math.PI / 5);
+    const position = geometry.attributes.position;
+    const topR = radius - TOP_ROUND;
+    for (let i = 0; i < position.count; i++) {
+        position.setY(i, topHeight(position.getX(i), position.getZ(i), topR, radius) + radius * 0.003);
+    }
+    geometry.computeVertexNormals();
+
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+        map, bumpMap, bumpScale: WRITING.relief, roughness: 1, transparent: true, alphaTest: 0.02, depthWrite: false,
+        polygonOffset: true, polygonOffsetFactor: -4, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: GLOW.cream,
+    }));
+    mesh.position.y = topY;
+    mesh.receiveShadow = true;
+    mesh.renderOrder = 1;
+
+    return mesh;
+}
+
+/** The writing's two canvases: the colored lettering with its shadow, and a white-on-black height map of it. */
+function writingCanvases(text, color, aspect) {
+    const W = 1024;
+    const H = Math.round(W / aspect);
+    const font = (size) => `700 ${size}px ${WRITING.font}`;
+    const measure = document.createElement('canvas').getContext('2d');
+
+    // The biggest letters at which the words wrap into lines that fit; a very long message is cut short with "...".
+    const wrap = (size) => {
+        measure.font = font(size);
+        const lines = [];
+        text.split(/\s+/).forEach((word) => {
+            const last = lines[lines.length - 1];
+            if (last !== undefined && measure.measureText(`${last} ${word}`).width <= W * 0.92) lines[lines.length - 1] = `${last} ${word}`;
+            else lines.push(word);
+        });
+        return lines;
+    };
+    let size = WRITING.maxSize;
+    let lines = wrap(size);
+    while (size > 56 && (lines.length * size * 1.08 > H * 0.92 || lines.some((line) => measure.measureText(line).width > W * 0.92))) {
+        size -= 6;
+        lines = wrap(size);
+    }
+    const fits = Math.max(1, Math.floor((H * 0.92) / (size * 1.08)));
+    if (lines.length > fits) {
+        lines = lines.slice(0, fits);
+        let last = lines[fits - 1];
+        while (last.length > 1 && measure.measureText(`${last}...`).width > W * 0.92) last = last.slice(0, -1);
+        lines[fits - 1] = `${last.trimEnd()}...`;
+    }
+    lines = lines.map((line) => {
+        let cut = line;
+        while (cut.length > 1 && measure.measureText(cut).width > W * 0.96) cut = cut.slice(0, -1);
+        return cut;
+    });
+
+    // Stroking round the letters too makes the thin script strokes thicker, like a full line of piped icing.
+    const draw = (ctx, stroke = 0) => {
+        ctx.font = font(size);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.lineWidth = stroke;
+        ctx.strokeStyle = ctx.fillStyle;
+        const first = H / 2 - ((lines.length - 1) * size * 1.08) / 2;
+        lines.forEach((line, i) => {
+            if (stroke > 0) ctx.strokeText(line, W / 2, first + i * size * 1.08);
+            ctx.fillText(line, W / 2, first + i * size * 1.08);
+        });
+    };
+    const thick = size * WRITING.thick;
+    const canvas = () => {
+        const element = document.createElement('canvas');
+        element.width = W;
+        element.height = H;
+        return element;
+    };
+
+    const picture = canvas();
+    const ctx = picture.getContext('2d');
+    // A small soft contact shadow, as a line of icing casts on the cream right under it.
+    ctx.shadowColor = 'rgba(45, 28, 12, 0.3)';
+    ctx.shadowBlur = size * 0.035;
+    ctx.shadowOffsetY = size * 0.02;
+    ctx.fillStyle = color;
+    draw(ctx, thick);
+    ctx.shadowColor = 'transparent';
+    // No painted light or shade on the letters, so the icing keeps its true color; the height map gives the 3D look.
+
+    // The height map: a well-blurred copy, so each stroke bulges round like piped icing rather than a flat cut-out.
+    const relief = canvas();
+    const rctx = relief.getContext('2d');
+    rctx.fillStyle = '#000';
+    rctx.fillRect(0, 0, W, H);
+    rctx.filter = `blur(${Math.max(3, size * 0.045)}px)`;
+    rctx.fillStyle = '#fff';
+    draw(rctx, thick);
+
+    return { picture, relief };
+}
+
+/** Frees the writing's sheet, material and both its pictures. */
+function disposeWriting(mesh) {
+    mesh.geometry.dispose();
+    mesh.material.map?.dispose();
+    mesh.material.bumpMap?.dispose();
+    mesh.material.dispose();
 }
 
 /** Piped rosettes around the top edge: star-tip ridges that twist up to a soft peak, each a little different. */
@@ -732,8 +980,10 @@ function makeRosettes(radius, topY, color) {
     const size = 0.2 * (radius / 2);
     const geometry = rosetteGeometry(size);
     const count = Math.round(5 * radius); // 10 on a 2 kg cake
-    const material = new THREE.MeshPhysicalMaterial({ color, roughness: 0.42, sheen: 0.5, sheenRoughness: 0.5, sheenColor: 0xffffff });
+    const material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, emissive: color, emissiveIntensity: GLOW.cream });
     const mesh = new THREE.InstancedMesh(geometry, material, count);
+    const tone = new THREE.Color(color);
+    const shade = new THREE.Color();
     mesh.castShadow = true;
     mesh.receiveShadow = true;
 
@@ -748,6 +998,35 @@ function makeRosettes(radius, topY, color) {
             new THREE.Vector3(Math.cos(angle) * radius * 0.78, topY - size * 0.1, Math.sin(angle) * radius * 0.78),
             quaternion,
             new THREE.Vector3(scale, scale * (0.92 + hash(i, 1, 4) * 0.16), scale),
+        );
+        mesh.setMatrixAt(i, matrix);
+        mesh.setColorAt(i, shade.copy(tone).multiplyScalar(0.95 + hash(i, 2, 8) * 0.07)); // piped by hand: not all alike
+    }
+
+    return mesh;
+}
+
+/** Loose crumbs on the plate, just outside the cake's foot: small rough lumps, each turned and sized differently. */
+function makeCrumbs(radius, color) {
+    const count = Math.round(CRUMBS * radius * 7);
+    const material = new THREE.MeshStandardMaterial({ color, roughness: 1, emissive: color, emissiveIntensity: GLOW.sponge, flatShading: true });
+    const mesh = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), material, count);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    const matrix = new THREE.Matrix4();
+    const quaternion = new THREE.Quaternion();
+    const euler = new THREE.Euler();
+    for (let i = 0; i < count; i++) {
+        // Most land close to the cake, a few roll further out.
+        const angle = hash(i, 11, 4) * Math.PI * 2;
+        const out = radius * (1.03 + Math.pow(hash(i, 6, 13), 2) * 0.12);
+        const size = radius * (0.006 + Math.pow(hash(i, 9, 2), 3) * 0.014);
+        quaternion.setFromEuler(euler.set(hash(i, 1, 1) * 6.3, hash(i, 2, 2) * 6.3, hash(i, 3, 3) * 6.3));
+        matrix.compose(
+            new THREE.Vector3(Math.cos(angle) * out, size * 0.5, Math.sin(angle) * out),
+            quaternion,
+            new THREE.Vector3(size, size * (0.6 + hash(i, 4, 4) * 0.4), size * (0.7 + hash(i, 5, 5) * 0.5)),
         );
         mesh.setMatrixAt(i, matrix);
     }
@@ -771,7 +1050,7 @@ function rosetteGeometry(size) {
         for (let i = 0; i <= radial; i++) {
             const u = i / radial;
             const angle = u * Math.PI * 2;
-            const ridge = 1 + 0.16 * Math.cos(ridges * angle + v * 3.2) * (1 - v * 0.5);
+            const ridge = 1 + 0.2 * Math.cos(ridges * angle + v * 3.2) * (1 - v * 0.5);
             const r = profile * ridge;
             positions.push(Math.cos(angle) * r + lean, v * size * 1.35, Math.sin(angle) * r);
             uvs.push(u, v);
@@ -852,8 +1131,8 @@ function smoothSeam(geometry) {
 
 /**
  * The side of a layer. A strip is wrapped once around; a tileable picture repeats a whole number of times
- * around (so it never meets itself at a seam), as big as the grain size says. Sponge is matte and crumbly,
- * cream soft with a slight sheen.
+ * around (so it never meets itself at a seam), as big as the grain size says. Sponge and cream are both matte
+ * (no shine) and let a little light through (GLOW), so their shadows stay soft like real food.
  */
 function sideMaterial(kind, surface, picture, height, circumference, anisotropy, offset = 0) {
     const base = picture ?? patternTexture(kind, surface?.color || FALLBACK_COLOR[kind]);
@@ -872,12 +1151,15 @@ function sideMaterial(kind, surface, picture, height, circumference, anisotropy,
     map.needsUpdate = true;
 
     if (kind === 'sponge') {
-        return new THREE.MeshStandardMaterial({ map, bumpMap: map, bumpScale: BUMP.sponge, roughness: 0.96, vertexColors: true });
+        return new THREE.MeshStandardMaterial({
+            map, bumpMap: map, bumpScale: BUMP.sponge, roughness: 1, vertexColors: true,
+            emissive: 0xffffff, emissiveMap: map, emissiveIntensity: GLOW.sponge,
+        });
     }
 
-    return new THREE.MeshPhysicalMaterial({
-        map, bumpMap: map, bumpScale: BUMP.cream, roughness: 0.45, vertexColors: true, side: THREE.DoubleSide,
-        sheen: 0.45, sheenRoughness: 0.55, sheenColor: 0xffffff, clearcoat: 0.06, clearcoatRoughness: 0.6,
+    return new THREE.MeshStandardMaterial({
+        map, bumpMap: map, bumpScale: BUMP.cream, roughness: 1, vertexColors: true, side: THREE.DoubleSide,
+        emissive: 0xffffff, emissiveMap: map, emissiveIntensity: GLOW.cream,
     });
 }
 
@@ -897,9 +1179,8 @@ function topMaterial(cream, loaded, radius, anisotropy) {
     }
     map.needsUpdate = true;
 
-    return new THREE.MeshPhysicalMaterial({
-        map, bumpMap: map, bumpScale: BUMP.cream, roughness: 0.4,
-        sheen: 0.45, sheenRoughness: 0.55, sheenColor: 0xffffff, clearcoat: 0.08, clearcoatRoughness: 0.5,
+    return new THREE.MeshStandardMaterial({
+        map, bumpMap: map, bumpScale: BUMP.cream, roughness: 1, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: GLOW.cream,
     });
 }
 
@@ -1084,7 +1365,7 @@ function patternTexture(kind, color) {
             });
         }
     } else {
-        // Soft, wide streaks, like cream smoothed with a palette knife.
+        // Soft, wide streaks, like cream smoothed with a palette knife, then finer drag lines along them.
         for (let i = 0; i < 160; i++) {
             const x = random() * size;
             const y = random() * size;
@@ -1094,6 +1375,33 @@ function patternTexture(kind, color) {
             wrapped(x, y, w, (px, py) => {
                 ctx.beginPath();
                 ctx.ellipse(px, py, w, h, (random() - 0.5) * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        for (let i = 0; i < 260; i++) {
+            const x = random() * size;
+            const y = random() * size;
+            const w = 20 + random() * 70;
+            ctx.fillStyle = random() < 0.5 ? `rgba(255, 255, 255, ${0.05 + random() * 0.07})` : `rgba(110, 70, 35, ${0.03 + random() * 0.05})`;
+            wrapped(x, y, w, (px, py) => {
+                ctx.beginPath();
+                ctx.ellipse(px, py, w, 0.5 + random() * 0.8, (random() - 0.5) * 0.08, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        // Tiny air bubbles whipped into the cream: a shaded pit with a light lower edge.
+        for (let i = 0; i < 420; i++) {
+            const x = random() * size;
+            const y = random() * size;
+            const r = 0.6 + Math.pow(random(), 2.5) * 2.4;
+            wrapped(x, y, r + 1, (px, py) => {
+                ctx.fillStyle = `rgba(255, 255, 255, ${0.12 + random() * 0.12})`;
+                ctx.beginPath();
+                ctx.arc(px, py + r * 0.35, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = `rgba(90, 60, 30, ${0.1 + random() * 0.14})`;
+                ctx.beginPath();
+                ctx.arc(px, py, r * 0.8, 0, Math.PI * 2);
                 ctx.fill();
             });
         }
